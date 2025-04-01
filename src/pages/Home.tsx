@@ -18,7 +18,7 @@ const Home: FC = () => {
       fetch("http://localhost:5000/products/all?limit=24")
         .then((res) => res.json())
         .then(({ categories }) => {
-          console.log("API Response:", categories);
+          // console.log("API Response:", categories);
 
           const productList: Product[] = [];
 
@@ -41,7 +41,7 @@ const Home: FC = () => {
             });
           });
 
-          console.log("Processed Product List:", productList);
+          // console.log("Processed Product List:", productList);
 
           dispatch(updateFeaturedList(productList.slice(0, 8)));
           dispatch(updateNewList(productList.slice(8, 16)));

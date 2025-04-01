@@ -14,28 +14,50 @@ const ProductCard: FC<Product> = ({ _id, price, image, title, category, rating, 
   const { requireAuth } = useAuth();
 
   const addCart = () => {
-    if (!_id) {
-      toast.error("Error: Product ID is missing!");
-      return;
-    }
     requireAuth(() => {
-      dispatch(
-        addToCart({
-          _id,
-          price,
-          title,
-          category,
-          rating,
-          image,
-          discountPercentage,
+      const userId = localStorage.getItem("userId");
+      if (!userId) {
+        toast.error("User not found. Please log in again.");
+        return;
+      }
+  
+      console.log("🛒 Adding to Cart:", { _id, title, price });
+  
+      fetch("http://localhost:5000/cart", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+        body: JSON.stringify({
+          userId,
+          productId: _id, // Using _id directly instead of product._id
+          quantity: 1,
+        }),
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.cart) {
+            if (!_id) {
+              console.error("❌ Error: Product ID is missing!");
+              toast.error("Product ID is required.");
+              return;
+            }
+            dispatch(addToCart({ _id, title, price, image, category, rating, discountPercentage }));
+            toast.success("Added to cart!");
+          } else {
+            toast.error(data.message || "Failed to add to cart!");
+          }
         })
-      );
-      toast.success("Item added to cart successfully", {
-        duration: 3000,
-      });
+        .catch((error) => {
+          console.error("Error adding to cart:", error);
+          toast.error("Error adding to cart!");
+        });
     });
   };
-
+  
+  
+  
   return (
     <div className="border border-gray-200 font-lato" data-test="product-card">
       <div className="text-center border-b border-gray-200">

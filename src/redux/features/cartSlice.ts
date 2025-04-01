@@ -1,8 +1,8 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { CartItem } from "../../models/CartItem";
-import { CartSlice } from "../../models/CartSlice";
+import { CartState } from "../../models/CartSlice";
 
-const initialState: CartSlice = {
+const initialState: CartState = {
   cartOpen: false,
   cartItems: [],
 };
@@ -10,46 +10,53 @@ const initialState: CartSlice = {
 export const cartSlice = createSlice({
   name: "cartSlice",
   initialState,
-  reducers: {
-    addToCart: (state, action: PayloadAction<CartItem>) => {
-      const { cartItems } = state;
-      const existingIndex = cartItems.findIndex((pro) => pro._id === action.payload._id);
 
-  if (existingIndex === -1) {
-    const item = { ...action.payload, quantity: 1 }; // Ensure quantity is set
-    return { ...state, cartItems: [...cartItems, item] };
-  } else {
-    const updatedItems = cartItems.map((item) =>
-      item._id === action.payload._id
-        ? { ...item, quantity: (item.quantity ?? 0) + 1 } // Ensure quantity is always a number
-        : item
-    );
-    return { ...state, cartItems: updatedItems };
-  }
+  reducers: {
+    toggleCart1: (state: CartState) => {
+      state.cartOpen = !state.cartOpen;
+    },
+
+    addToCart: (state, action: PayloadAction<CartItem>) => {
+      const accessToken = localStorage.getItem("accessToken"); // 🔥 Fetch it every time
+      if (!accessToken) {
+        console.log("🚨 User not logged in. Cannot add to cart.");
+        return state;
+      }
+
+      const { cartItems } = state;
+      const existingIndex = cartItems.findIndex((pro: CartItem) => pro._id === action.payload._id);
+
+      if (existingIndex === -1) {
+        const item = { ...action.payload, quantity: 1 };
+        state.cartItems.push(item);
+      } else {
+        const updatedItems = cartItems.map((item: CartItem) =>
+          item._id === action.payload._id ? { ...item, quantity: (item.quantity ?? 0) + 1 } : item
+        );
+        return { ...state, cartItems: updatedItems };
+      }
     },
 
     removeFromCart: (state, action: PayloadAction<string>) => {
       const { cartItems } = state;
-      const updatedItems = cartItems.filter((item) => item._id !== action.payload);
+      const updatedItems = cartItems.filter((item: CartItem) => item._id !== action.payload);
       return { ...state, cartItems: updatedItems };
     },
+
     reduceFromCart: (state, action: PayloadAction<string>) => {
       const { cartItems } = state;
-      const _item = cartItems.find((item) => item._id === action.payload);
-    
-      if (_item && (_item.quantity ?? 1) > 1) { // Ensure quantity is defined
-        const updatedList = cartItems.map((item) =>
-          item._id === action.payload
-            ? { ...item, quantity: (item.quantity ?? 1) - 1 } // Default to 1
-            : item
+      const _item = cartItems.find((item: CartItem) => item._id === action.payload);
+
+      if (_item && (_item.quantity ?? 1) > 1) {
+        const updatedList = cartItems.map((item: CartItem) =>
+          item._id === action.payload ? { ...item, quantity: (item.quantity ?? 1) - 1 } : item
         );
         return { ...state, cartItems: updatedList };
       } else {
-        const updatedItems = cartItems.filter((item) => item._id !== action.payload);
+        const updatedItems = cartItems.filter((item: CartItem) => item._id !== action.payload);
         return { ...state, cartItems: updatedItems };
       }
     },
-    
 
     setCartState: (state, action: PayloadAction<boolean>) => {
       return { ...state, cartOpen: action.payload };
@@ -63,6 +70,7 @@ export const cartSlice = createSlice({
 
 export const {
   addToCart,
+  toggleCart1,
   removeFromCart,
   setCartState,
   reduceFromCart,

@@ -1,11 +1,11 @@
-import { FC } from "react";
-import { AiOutlineShoppingCart } from "react-icons/ai";
 import { BsSearch } from "react-icons/bs";
+import { FC, useEffect, useState } from "react";
+import { AiOutlineShoppingCart } from "react-icons/ai";
 import { useAppSelector, useAppDispatch } from "../redux/hooks";
-import { setCartState } from "../redux/features/cartSlice";
-import { updateModal } from "../redux/features/authSlice";
-import { Link } from "react-router-dom";
-import useAuth from "../hooks/useAuth";
+import { fetchCartItems } from "../models/CartSlice";
+import { toggleCart1 } from "../redux/features/cartSlice";
+import { updateModal, checkAuthStatus, doLogout } from "../redux/features/authSlice";
+import { Link, useNavigate } from "react-router-dom";
 import { FaUser } from "react-icons/fa";
 import CustomPopup from "./CustomPopup";
 import { updateDarkMode } from "../redux/features/homeSlice";
@@ -13,26 +13,46 @@ import { MdOutlineDarkMode, MdOutlineLightMode } from "react-icons/md";
 
 const Navbar: FC = () => {
   const dispatch = useAppDispatch();
-  const cartCount = useAppSelector(
-    (state) => state.cartReducer.cartItems.length
-  );
-  const username = useAppSelector((state) => state.authReducer.username);
+  const userId = useAppSelector((state) => state.authReducer.userId) || localStorage.getItem("userId");
+  const [showNotification, setShowNotification] = useState(false);
+
+  useEffect(() => {
+    dispatch(checkAuthStatus());
+  }, [dispatch, userId]);
+
+  const cartCount = useAppSelector((state) => state.cartReducer?.cartItems?.length);
+  const totalQuantity = useAppSelector((state) => state.cartReducer.cartItems.reduce((acc, item) => acc + (item.quantity ?? 0), 0));
+  const totalPrice = useAppSelector((state) => state.cartReducer.cartItems.reduce((acc, item) => acc + (item.quantity ?? 0) * (item.price ?? 0), 0));
+
+  const userName = useAppSelector((state) => state.authReducer.userName);
   const isDarkMode = useAppSelector((state) => state.homeReducer.isDarkMode);
-  const { requireAuth } = useAuth();
+
+  const navigate = useNavigate();  // Initialize the navigate function
 
   const showCart = () => {
-    requireAuth(() => dispatch(setCartState(true)));
+    const storedUserId = localStorage.getItem("userId");
+    const finalUserId = userId || storedUserId;
+
+    if (!finalUserId) {
+      setShowNotification(true);
+      setTimeout(() => {
+        setShowNotification(false); // Hide the notification after 3 seconds
+      }, 3000);
+      return;
+    }
+
+    dispatch(fetchCartItems(finalUserId));
+    dispatch(toggleCart1());
+
+    // Redirect to the cart page
+    navigate(`/cart/${userId}`);  // This will redirect to the /cart page
   };
 
   return (
     <div className="py-4 bg-white dark:bg-slate-800 top-0 sticky z-10 shadow-lg font-karla">
       <div className="container mx-auto px-4">
         <div className="flex justify-between items-center">
-          <Link
-            to="/"
-            className="text-4xl font-bold dark:text-white"
-            data-test="main-logo"
-          >
+          <Link to="/" className="text-4xl font-bold dark:text-white">
             My E-commerce website
           </Link>
           <div className="lg:flex hidden w-full max-w-[500px]">
@@ -46,55 +66,46 @@ const Navbar: FC = () => {
             </div>
           </div>
           <div className="flex gap-4 md:gap-8 items-center dark:text-white">
-            <Link
-              to="/products"
-              className="text-xl font-bold"
-              data-test="main-products"
-            >
+            <Link to="/products" className="text-xl font-bold">
               Products
             </Link>
-            <Link
-              to="/categories"
-              className="text-xl font-bold"
-              data-test="main-categories"
-            >
+            <Link to="/categories" className="text-xl font-bold">
               Categories
             </Link>
             <div className="flex items-center gap-2">
-              {username !== "" ? (
-                <img
-                  src="https://robohash.org/Terry.png?set=set4"
-                  alt="avatar"
-                  className="w-6"
-                />
-              ) : (
-                <FaUser className="text-gray-500 text-2xl dark:text-white" />
-              )}
-              <div className="text-gray-500 text-2xl">
-                {username !== "" ? (
+              {userName ? (
+                <>
+                  <img src="https://robohash.org/Terry.png?set=set4" alt="avatar" className="w-6" />
                   <CustomPopup />
-                ) : (
+                  <button
+                    className="text-red-500 ml-2 cursor-pointer hover:opacity-85"
+                    onClick={() => dispatch(doLogout())}
+                  >
+                    Logout
+                  </button>
+                </>
+              ) : (
+                <>
+                  <FaUser className="text-gray-500 text-2xl dark:text-white" />
                   <span
                     className="cursor-pointer hover:opacity-85 dark:text-white"
                     onClick={() => dispatch(updateModal(true))}
-                    data-test="login-btn"
                   >
                     Login
                   </span>
-                )}
-              </div>
+                </>
+              )}
             </div>
             <div
               className="text-gray-500 text-[32px] relative hover:cursor-pointer hover:opacity-80"
               onClick={showCart}
-              data-test="cart-btn"
             >
               <AiOutlineShoppingCart className="dark:text-white" />
-              <div
-                className="absolute top-[-15px] right-[-10px] bg-red-600 w-[25px] h-[25px] rounded-full text-white text-[14px] grid place-items-center"
-                data-test="cart-item-count"
-              >
+              <div className="absolute top-[-15px] right-[-10px] bg-red-600 w-[25px] h-[25px] rounded-full text-white text-[14px] grid place-items-center">
                 {cartCount}
+              </div>
+              <div className="absolute top-[25px] right-[-10px] text-sm text-white">
+                {totalQuantity} items - ${totalPrice.toFixed(2)}
               </div>
             </div>
             <div
@@ -112,6 +123,12 @@ const Navbar: FC = () => {
           </div>
         </div>
       </div>
+      {/* Notification Box */}
+      {showNotification && (
+        <div className="fixed bottom-4 left-1/2 transform -translate-x-1/2 bg-purple-500 text-black py-2 px-6 rounded-lg shadow-lg">
+          <span>Please login to view your cart</span>
+        </div>
+      )}
     </div>
   );
 };

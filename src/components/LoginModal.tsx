@@ -114,14 +114,14 @@ import { RiLockPasswordFill, RiUser3Fill } from "react-icons/ri";
 import { RxCross1 } from "react-icons/rx";
 
 const LoginModal: FC = () => {
-  const [username, setUsername] = useState("");
+  const [userName, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const dispatch = useAppDispatch();
   const open = useAppSelector((state) => state.authReducer.modalOpen);
 
   const submitForm = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    dispatch(doLogin({ username, password }));
+    dispatch(doLogin({ userName, password }));
   };
 
   if (!open) return null;
@@ -144,7 +144,7 @@ const LoginModal: FC = () => {
               type="text"
               placeholder="Your username here... (atuny0)"
               className="border w-full py-2 px-8 rounded"
-              value={username}
+              value={userName}
               onChange={(e) => setUsername(e.target.value)}
             />
             <RiUser3Fill className="absolute top-3 left-2 text-lg" />

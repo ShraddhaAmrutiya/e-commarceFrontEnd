@@ -11,7 +11,7 @@ import { Link } from "react-router-dom";
 const CustomPopup: FC = () => {
   const dispatch = useAppDispatch();
   const [isVisible, setVisible] = useState(false);
-  const username = useAppSelector((state) => state.authReducer.username);
+  const username = useAppSelector((state) => state.authReducer.userName);
 
   const handlePopup = () => {
     setVisible((v) => !v);

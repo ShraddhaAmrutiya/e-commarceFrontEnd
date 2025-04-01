@@ -1,5 +1,7 @@
 export interface AuthSlice {
   isLoggedIn: boolean;
   modalOpen: boolean;
-  username: string;
+  userName: string;
+  userId?: string ; 
+  accessToken?:string
 }
