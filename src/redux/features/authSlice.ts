@@ -28,7 +28,7 @@ axios.interceptors.request.use(
     const token = localStorage.getItem("accessToken");
     if (token) {
       config.headers = config.headers || {};
-      config.headers["token"] = token; // 👈 Ensure this matches your backend's expected key
+      config.headers["token"] = token;
       // console.log("📤 Attaching Token to Request:", token);
     }
     return config;
@@ -116,8 +116,9 @@ const loginSuccess = (state: AuthSlice, action: PayloadAction<{ userName: string
 
   if (action.payload.accessToken) {
     localStorage.setItem("userName", action.payload.userName);
-    localStorage.setItem("userId", action.payload.userId ?? "");
-    localStorage.setItem("accessToken", action.payload.accessToken ||"");
+    localStorage.setItem("userId", action.payload.userId ||"");
+    
+    localStorage.setItem("accessToken", action.payload.accessToken );
     console.log("🔒 Stored Token in LocalStorage:", action.payload.accessToken);
   } else {
     console.error("❌ No access token received, login may have failed.");

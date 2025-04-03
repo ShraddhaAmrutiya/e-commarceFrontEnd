@@ -23,14 +23,37 @@ interface UserInfo {
 
 const Profile: FC = () => {
   const [info, setInfo] = useState<UserInfo>();
-
   useEffect(() => {
-    fetch("http://localhost:5000/users")
-      .then((res) => res.json())
-      .then((data) => {
-        setInfo(data);
-      });
+    const userId = localStorage.getItem("userId");
+    const token = localStorage.getItem("authToken"); // Retrieve token
+  
+    if (!userId) {
+      console.error("User ID not found!");
+      return;
+    }
+  
+    if (!token) {
+      console.error("Token not found!");
+      return;
+    }
+  
+    fetch(`http://localhost:5000/users/${userId}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`,      },
+    })
+      .then((res) => {
+        if (res.status === 401) {
+          throw new Error("Unauthorized: Invalid or missing token");
+        }
+        return res.json();
+      })
+      .then((data) => setInfo(data))
+      .catch((err) => console.error(err.message));
   }, []);
+  
+  
 
   return (
     <div className="container mx-auto min-h-[83vh] w-full max-w-5xl dark:text-white">
@@ -72,14 +95,14 @@ const Profile: FC = () => {
           </tbody>
         </table>
         <div className="space-y-2">
-          <div>
+          {/* <div>
             <h1 className="font-bold">Address</h1>
             <p>{info?.address.address}</p>
             <p>
               {info?.address.city}, {info?.address.postalCode},{" "}
               {info?.address.state}
             </p>
-          </div>
+          </div> */}
           <div>            
           </div>
         </div>

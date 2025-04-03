@@ -2,7 +2,6 @@
 
  import { FC, useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { useAppDispatch } from "../redux/hooks";
 import { addToCart } from "../redux/features/cartSlice";
 import { Product } from "../models/Product";
 import RatingStar from "../components/RatingStar";
@@ -13,7 +12,11 @@ import { FaHandHoldingDollar } from "react-icons/fa6";
 import ProductList from "../components/ProductList";
 import useAuth from "../hooks/useAuth";
 import { MdFavoriteBorder } from "react-icons/md";
-import { addToWishlist } from "../redux/features/productSlice";
+// import { addToWishlist } from "../redux/features/productSlice";
+import { useAppDispatch, useAppSelector } from "../redux/hooks";
+import { addWishlistItem } from "../redux/features/WishlistSlice"
+
+
 
 const SingleProduct: FC = () => {
   const dispatch = useAppDispatch();
@@ -90,21 +93,83 @@ const SingleProduct: FC = () => {
     });
   };
 
+  // const buyNow = () => {
+  //   requireAuth(() => {
+  //     if (!product) return;
+  //     dispatch(addToCart({ ...product, _id: product._id ?? "" }));
+  //     toast.success("Proceeding to checkout!");
+  //   });
+  // };
+
+  const userId = useAppSelector((state) => state.authReducer.userId) || localStorage.getItem("userId");
   const buyNow = () => {
-    requireAuth(() => {
-      if (!product) return;
-      dispatch(addToCart({ ...product, _id: product._id ?? "" }));
-      toast.success("Proceeding to checkout!");
+    requireAuth(async () => {
+      if (!product || !_id) return;
+  
+      const stock = 1; // Default to buying 1 item
+      const token = localStorage.getItem("accessToken");
+            console.log("Token from localStorage...................................:", token);
+  
+      if (!token) {
+        toast.error("Authentication failed! Please log in.");
+        return;
+      }
+  
+      try {
+        const response = await fetch("http://localhost:5000/order/direct", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            userId,
+            productId: _id,
+            stock,
+          }),
+        });
+  
+        const data = await response.json();
+        if (!response.ok) {
+          throw new Error(data.message);
+        }
+  
+        dispatch(addToCart({ ...product, _id: product._id ?? "" }));
+        toast.success("Order placed successfully!");
+      } catch (error) {
+        toast.error((error as Error).message);
+        console.error("Order Error:", error);
+      }
     });
   };
+  
+  const addWishlist = async () => {
+    requireAuth(async () => {
+      if (!product || !_id) return;
+  
+      const token = localStorage.getItem("accessToken");
+  
+      if (!token) {
+        toast.error("Authentication failed! Please log in.");
+        return;
+      }
+      const imageUrl = product.image ? product.image : "";
 
-  const addWishlist = () => {
-    requireAuth(() => {
-      if (!product) return;
-      dispatch(addToWishlist(product));
+      // Construct the full WishlistItem object
+      const wishlistItem = {
+        id: _id,
+        productId: _id, // Optional: Remove this if not needed
+        name: product.title,
+        price: product.price,
+        image: imageUrl, // Ensure this is correctly formatted
+      };
+  
+      dispatch(addWishlistItem(wishlistItem)); // ✅ Dispatch the correct structure
       toast.success("Item added to your wishlist");
     });
   };
+   
+  
 
   return (
     <div className="container mx-auto pt-8 dark:text-white">
