@@ -13,9 +13,16 @@ import { MdOutlineDarkMode, MdOutlineLightMode } from "react-icons/md";
 import { fetchWishlistItems } from "../redux/features/WishlistSlice";
 
 const Navbar: FC = () => {
+  const [searchTerm, setSearchTerm] = useState("");
   const dispatch = useAppDispatch();
   const userId: string = useAppSelector((state) => state.authReducer.userId) || localStorage.getItem("userId") || "";
   const [showNotification, setShowNotification] = useState(false);
+  const handleSearch = () => {
+    if (searchTerm.trim()) {
+      navigate(`/search?q=${encodeURIComponent(searchTerm.trim())}`);
+      setSearchTerm("");
+    }
+  };
 
   useEffect(() => {
     dispatch(checkAuthStatus());
@@ -25,10 +32,13 @@ const Navbar: FC = () => {
   }, [dispatch, userId]);
 
   const cartCount = useAppSelector((state) => state.cartReducer?.cartItems?.length);
-  const totalQuantity = useAppSelector((state) => state.cartReducer.cartItems.reduce((acc, item) => acc + (item.quantity ?? 0), 0));
-  const totalPrice = useAppSelector((state) => state.cartReducer.cartItems.reduce((acc, item) => acc + (item.quantity ?? 0) * (item.price ?? 0), 0));
+  const totalQuantity = useAppSelector((state) =>
+    state.cartReducer.cartItems.reduce((acc, item) => acc + (item.quantity ?? 0), 0)
+  );
+  const totalPrice = useAppSelector((state) =>
+    state.cartReducer.cartItems.reduce((acc, item) => acc + (item.quantity ?? 0) * (item.price ?? 0), 0)
+  );
 
-  
   const wishlistCount = useAppSelector((state) => state.wishlistReducer?.wishlistItems?.length);
 
   const userName = useAppSelector((state) => state.authReducer.userName);
@@ -65,7 +75,15 @@ const Navbar: FC = () => {
               type="text"
               placeholder="Search for a product..."
               className="border-2 border-blue-500 px-6 py-2 w-full dark:text-white dark:bg-slate-800"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  handleSearch();
+                }
+              }}
             />
+
             <div className="bg-blue-500 text-white text-[26px] grid place-items-center px-4">
               <BsSearch />
             </div>
@@ -82,7 +100,6 @@ const Navbar: FC = () => {
                 <>
                   <img src="https://robohash.org/Terry.png?set=set4" alt="avatar" className="w-6" />
                   <CustomPopup />
-                  
                 </>
               ) : (
                 <>

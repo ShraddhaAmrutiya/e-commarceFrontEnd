@@ -74,6 +74,10 @@ const AllProducts: FC = () => {
   }, [allProducts]);
 
   const sortProducts = (sortValue: string) => {
+    if (sortValue === "default") {
+      setCurrentProducts(allProducts); // ✅ Reset to original order
+      return;
+    }
     const sortedProducts = [...currentProducts].sort((a, b) => {
       const aPrice = a.salePrice ?? a.price;
       const bPrice = b.salePrice ?? b.price;

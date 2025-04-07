@@ -19,6 +19,7 @@ import AllCategories from "./pages/AllCategories";
 import SingleCategory from "./pages/SingleCategory";
 import Cart from "./pages/cartPage"; 
 import { checkAuthStatus } from "./redux/features/authSlice";
+import SearchPage from "./pages/searchpage";
 
 function AppContent() {
   const dispatch = useAppDispatch();
@@ -41,6 +42,8 @@ function AppContent() {
         <Route path="/categories" element={<AllCategories />} />
         <Route path="/products/:_id" element={<SingleProduct />} />
         <Route path="category/:id" element={<SingleCategory />} />
+        <Route path="/search" element={<SearchPage />} />
+
 
         {/* Protected Routes */}
         <Route element={<ProtectedRoute />}>

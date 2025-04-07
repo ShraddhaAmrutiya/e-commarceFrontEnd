@@ -1,12 +1,13 @@
 import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
 import { CartItem } from "../models/CartItem";
+import { RootState } from "../redux/store";
 
 // Define the cart slice state interface
 export interface CartState {
   cartOpen: boolean;
   cartItems: CartItem[];
-  totalQuantity?:number;
-  totalPrice?:number
+  totalQuantity?: number;
+  totalPrice?: number;
 }
 
 // Initial state
@@ -15,44 +16,33 @@ const initialState: CartState = {
   cartItems: [],
 };
 
-// type FetchCartResponse = CartItem[];
-
+// Response type from backend
 type FetchCartResponse = {
   _id: string;
   userId: string;
   products: {
-    productId: CartItem; // The actual product details
+    productId: CartItem;
     quantity: number;
     _id: string;
   }[];
   __v: number;
 };
 
-
+// Thunk to fetch cart from backend
 export const fetchCartItems = createAsyncThunk<FetchCartResponse, string>(
   "cart/fetchCartItems",
   async (userId, { rejectWithValue }) => {
     try {
-      const token = localStorage.getItem("accessToken"); // 🔍 Make sure this key matches the stored one!
-      // console.log("🔍 LocalStorage Token:", token); // ✅ Debugging line
-
-      if (!token) {
-        console.error("❌ User not logged in. No token found.");
-        return rejectWithValue("User not logged in");
-      }
+      const token = localStorage.getItem("accessToken");
+      if (!token) return rejectWithValue("User not logged in");
 
       const response = await fetch(`http://localhost:5000/cart/${userId}`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`, // ✅ Ensure token is sent
+          Authorization: `Bearer ${token}`,
         },
       });
-
-      // console.log("📡 Sending Request with Headers:", {
-      //   "Content-Type": "application/json",
-      //   Authorization: `Bearer ${token}`,
-      // });
 
       if (!response.ok) throw new Error("Failed to fetch cart items");
 
@@ -63,74 +53,91 @@ export const fetchCartItems = createAsyncThunk<FetchCartResponse, string>(
   }
 );
 
-
-
 export const cartSlice = createSlice({
   name: "cartSlice",
   initialState,
 
   reducers: {
-    toggleCart1: (state: CartState) => {
+    toggleCart1: (state) => {
       state.cartOpen = !state.cartOpen;
     },
 
     addToCart: (state, action: PayloadAction<CartItem>) => {
-      const accessToken = localStorage.getItem("accessToken"); // 🔥 Fetch it every time
-      if (!accessToken) {
-        console.log("🚨 User not logged in. Cannot add to cart.");
-        return state;
-      }
+      const accessToken = localStorage.getItem("accessToken");
+      if (!accessToken) return;
 
-      const { cartItems } = state;
-      const existingIndex = cartItems.findIndex((pro: CartItem) => pro._id === action.payload._id);
+      const existingIndex = state.cartItems.findIndex(
+        (item) => item._id === action.payload._id
+      );
 
       if (existingIndex === -1) {
-        const item = { ...action.payload, quantity: 1 };
-        state.cartItems.push(item);
+        state.cartItems.push({ ...action.payload, quantity: 1 });
       } else {
-        const updatedItems = cartItems.map((item: CartItem) =>
-          item._id === action.payload._id ? { ...item, quantity: (item.quantity ?? 0) + 1 } : item
-        );
-        return { ...state, cartItems: updatedItems };
+        state.cartItems[existingIndex].quantity =
+          (state.cartItems[existingIndex].quantity ?? 0) + 1;
       }
     },
 
     removeFromCart: (state, action: PayloadAction<string>) => {
-      const { cartItems } = state;
-      const updatedItems = cartItems.filter((item: CartItem) => item._id !== action.payload);
-      return { ...state, cartItems: updatedItems };
+      state.cartItems = state.cartItems.filter(
+        (item) => item._id !== action.payload
+      );
     },
 
     reduceFromCart: (state, action: PayloadAction<string>) => {
-      const { cartItems } = state;
-      const _item = cartItems.find((item: CartItem) => item._id === action.payload);
+      const index = state.cartItems.findIndex(
+        (item) => item._id === action.payload
+      );
 
-      if (_item && (_item.quantity ?? 1) > 1) {
-        const updatedList = cartItems.map((item: CartItem) =>
-          item._id === action.payload ? { ...item, quantity: (item.quantity ?? 1) - 1 } : item
-        );
-        return { ...state, cartItems: updatedList };
-      } else {
-        const updatedItems = cartItems.filter((item: CartItem) => item._id !== action.payload);
-        return { ...state, cartItems: updatedItems };
+      if (index !== -1) {
+        const currentItem = state.cartItems[index];
+        if ((currentItem.quantity ?? 1) > 1) {
+          currentItem.quantity = (currentItem.quantity ?? 1) - 1;
+        } else {
+          state.cartItems.splice(index, 1);
+        }
       }
     },
 
-    setCartState: (state, action: PayloadAction<boolean>) => {
-      return { ...state, cartOpen: action.payload };
+    emptyCart: (state) => {
+      state.cartItems = [];
     },
 
-    emptyCart: (state) => {
-      return { ...state, cartItems: [] };
+    setCartState: (state, action: PayloadAction<boolean>) => {
+      state.cartOpen = action.payload;
     },
   },
+
+  extraReducers: (builder) => {
+    builder.addCase(fetchCartItems.fulfilled, (state, action) => {
+      const products = action.payload.products || [];
+      state.cartItems = products.map((p) => ({
+        ...p.productId,
+        quantity: p.quantity,
+      }));
+    });
+
+    builder.addCase(fetchCartItems.rejected, (state, action) => {
+      console.error("❌ Failed to fetch cart:", action.payload);
+      state.cartItems = [];
+    });
+  },
 });
-export const selectTotalQuantity = (state: CartState) => 
-  state.cartItems.reduce((acc, item) => acc + (item.quantity ?? 0), 0);
 
-export const selectTotalPrice = (state: CartState) => 
-  state.cartItems.reduce((acc, item) => acc + (item.price * (item.quantity ?? 1)), 0);
+// Selectors
+export const selectCartItems = (state: RootState) => state.cartReducer.cartItems;
 
+export const selectTotalQuantity = (state: RootState) =>
+  state.cartReducer.cartItems.reduce(
+    (acc, item) => acc + (item.quantity ?? 0),
+    0
+  );
+
+export const selectTotalPrice = (state: RootState) =>
+  state.cartReducer.cartItems.reduce(
+    (acc, item) => acc + (item.price ?? 0) * (item.quantity ?? 1),
+    0
+  );
 
 // Export actions
 export const {
@@ -139,7 +146,7 @@ export const {
   removeFromCart,
   reduceFromCart,
   emptyCart,
+  setCartState,
 } = cartSlice.actions;
 
 export default cartSlice.reducer;
-

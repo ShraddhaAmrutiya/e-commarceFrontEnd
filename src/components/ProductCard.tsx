@@ -20,9 +20,9 @@ const ProductCard: FC<Product> = ({ _id, price, image, title, category, rating, 
         toast.error("User not found. Please log in again.");
         return;
       }
-  
+
       console.log("🛒 Adding to Cart:", { _id, title, price });
-  
+
       fetch("http://localhost:5000/cart", {
         method: "PUT",
         headers: {
@@ -55,21 +55,18 @@ const ProductCard: FC<Product> = ({ _id, price, image, title, category, rating, 
         });
     });
   };
-  
-  
-  
+
   return (
     <div className="border border-gray-200 font-lato" data-test="product-card">
       <div className="text-center border-b border-gray-200">
         <Link to={`/products/${_id}`}>
           {image ? (
-           <img
-           src={image.startsWith("http") ? image : `http://localhost:5000${image}`} // Add server base URL if needed
-           alt={title}
-           loading="lazy"
-           className="inline-block h-60 transition-transform duration-200 hover:scale-110"
-         />
-         
+            <img
+              src={image.startsWith("http") ? image : `http://localhost:5000${image}`} // Add server base URL if needed
+              alt={title}
+              loading="lazy"
+              className="inline-block h-60 transition-transform duration-200 hover:scale-110"
+            />
           ) : (
             <p className="text-gray-400">No Image Available</p>
           )}
@@ -77,7 +74,7 @@ const ProductCard: FC<Product> = ({ _id, price, image, title, category, rating, 
       </div>
       <div className="px-4 pt-4">
         <p className="text-gray-500 text-[14px] font-medium dark:text-white">
-        {typeof category === "string" ? category : category?.name ?? "Unknown Category"}
+          {typeof category === "string" ? category : category?.name ?? "Unknown Category"}
         </p>
         <Link
           className="font-semibold hover:underline dark:text-white overflow-hidden text-ellipsis whitespace-nowrap block"
@@ -95,7 +92,10 @@ const ProductCard: FC<Product> = ({ _id, price, image, title, category, rating, 
         <button
           type="button"
           className="flex items-center space-x-2 hover:bg-blue-500 text-white py-2 px-4 rounded bg-pink-500"
-          onClick={addCart}
+          onClick={(e) => {
+            e.stopPropagation(); // 👈 Prevent parent click (navigation)
+            addCart();
+          }}
           data-test="add-cart-btn"
           title="ADD TO CART"
         >

@@ -134,7 +134,6 @@ export const authSlice = createSlice({
       state.modalOpen = action.payload;
     },
     doLogout: (state) => {
-      
       localStorage.removeItem("userName");
       localStorage.removeItem("userId");
       localStorage.removeItem("accessToken");
