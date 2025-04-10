@@ -8,11 +8,32 @@ import { AiOutlineShoppingCart } from "react-icons/ai";
 import { Link } from "react-router-dom";
 import PriceSection from "./PriceSection";
 import useAuth from "../hooks/useAuth";
+import { CartItem } from "../models/CartItem";
 
-const ProductCard: FC<Product> = ({ _id, price, image, title, category, rating, discountPercentage }) => {
+// Define the CartItemForDispatch interface inside ProductCard.tsx
+// interface CartItemForDispatch {
+//   _id: string; // Unique cart item ID (can be generated or set as a placeholder)
+//   productId: string; // The product ID, which is a string
+//   quantity: number; // Quantity of the product in the cart
+//   title: string;
+//   price: number;
+//   image?: string;
+//   category: string | { name: string };
+//   rating: number;
+//   discountPercentage?: number;
+// }
+
+const ProductCard: FC<Product> = ({
+  _id,
+  price,
+  image,
+  title,
+  category,
+  rating,
+  discountPercentage,
+}) => {
   const dispatch = useAppDispatch();
   const { requireAuth } = useAuth();
-
   const addCart = () => {
     requireAuth(() => {
       const userId = localStorage.getItem("userId");
@@ -20,9 +41,18 @@ const ProductCard: FC<Product> = ({ _id, price, image, title, category, rating, 
         toast.error("User not found. Please log in again.");
         return;
       }
-
-      console.log("🛒 Adding to Cart:", { _id, title, price });
-
+  
+      // Fetch full product details if necessary
+      const product: Product = {
+        _id,
+        price,
+        image,
+        title,
+        category,
+        rating,
+        discountPercentage,
+      };
+  
       fetch("http://localhost:5000/cart", {
         method: "PUT",
         headers: {
@@ -43,7 +73,21 @@ const ProductCard: FC<Product> = ({ _id, price, image, title, category, rating, 
               toast.error("Product ID is required.");
               return;
             }
-            dispatch(addToCart({ _id, title, price, image, category, rating, discountPercentage }));
+  
+            // Dispatch with the full Product object
+            const cartItem: CartItem = {
+              _id: 'unique-cart-id', // Placeholder for cart item ID
+              productId: product,    // Use the full product object
+              quantity: 1,
+              title,
+              price,
+              image,
+              category,
+              rating,
+              discountPercentage,
+            };
+  
+            dispatch(addToCart(cartItem)); // Dispatch the full product object
             toast.success("Added to cart!");
           } else {
             toast.error(data.message || "Failed to add to cart!");
@@ -55,7 +99,7 @@ const ProductCard: FC<Product> = ({ _id, price, image, title, category, rating, 
         });
     });
   };
-
+  
   return (
     <div className="border border-gray-200 font-lato" data-test="product-card">
       <div className="text-center border-b border-gray-200">

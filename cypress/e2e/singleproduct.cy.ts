@@ -23,7 +23,7 @@
 //   it("buy now works perfectly", () => {
 //     cy.wait("@product").then(() => {
 //       cy.get('[data-test="login-btn"]').click();
-//       cy.get('[data-test="input-username"]').type("atuny0");
+//       cy.get('[data-test="input-userName"]').type("atuny0");
 //       cy.get('[data-test="input-password"]').type("9uQFF1Lh");
 //       cy.get('[data-test="input-submit"]').click();
 //       cy.contains("BUY NOW").click();
@@ -35,11 +35,11 @@
 //   it.only("add to wishlist works perfectly", () => {
 //     cy.wait("@product").then(() => {
 //       cy.get('[data-test="login-btn"]').click();
-//       cy.get('[data-test="input-username"]').type("atuny0");
+//       cy.get('[data-test="input-userName"]').type("atuny0");
 //       cy.get('[data-test="input-password"]').type("9uQFF1Lh");
 //       cy.get('[data-test="input-submit"]').click();
 //       cy.contains("ADD TO WISHLIST").click();
-//       cy.get('[data-test="username-popup"]').click();
+//       cy.get('[data-test="userName-popup"]').click();
 //       cy.get('[data-test="popup-content-list"]').should("be.visible");
 //       cy.get('[data-test="wishlist-container"]').click();
 //       cy.contains(/Sneaker shoes/i).should("be.visible");

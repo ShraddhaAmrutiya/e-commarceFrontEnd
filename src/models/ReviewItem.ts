@@ -1,5 +1,5 @@
 export interface ReviewItem {
-  username: string;
+  userName: string;
   rating: number;
   review: string;
 }

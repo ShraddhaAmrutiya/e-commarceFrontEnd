@@ -1,5 +1,5 @@
 export interface Product {
-  _id?: string; // Optional, since MongoDB provides it
+  _id: string; // Optional, since MongoDB provides it
    title: string;
   image?: string;
   price: number;

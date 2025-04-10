@@ -11,7 +11,7 @@ import { Link } from "react-router-dom";
 const CustomPopup: FC = () => {
   const dispatch = useAppDispatch();
   const [isVisible, setVisible] = useState(false);
-  const username = useAppSelector((state) => state.authReducer.userName);
+  const userName = useAppSelector((state) => state.authReducer.userName);
 
   const handlePopup = () => {
     setVisible((v) => !v);
@@ -31,9 +31,9 @@ const CustomPopup: FC = () => {
       <div
         className="inline-block cursor-pointer hover:opacity-85 dark:text-white"
         onClick={handlePopup}
-        data-test="username-popup"
+        data-test="userName-popup"
       >
-        {username}
+        {userName}
       </div>
       {isVisible && (
         <div
@@ -88,7 +88,7 @@ export default CustomPopup;
 // const CustomPopup: FC = () => {
 //   const dispatch = useAppDispatch();
 //   const [isVisible, setVisible] = useState(false);
-//   const username = useAppSelector((state) => state.authReducer.userName);
+//   const userName = useAppSelector((state) => state.authReducer.userName);
 
 //   const handlePopup = () => {
 //     setVisible((v) => !v);
@@ -108,9 +108,9 @@ export default CustomPopup;
 //       <div
 //         className="inline-block cursor-pointer hover:opacity-85 dark:text-white"
 //         onClick={handlePopup}
-//         data-test="username-popup"
+//         data-test="userName-popup"
 //       >
-//         {username}
+//         {userName}
 //       </div>
 //       {isVisible && (
 //         <div

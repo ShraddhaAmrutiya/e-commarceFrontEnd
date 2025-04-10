@@ -2,11 +2,14 @@ import React, { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "../redux/store";
 import { fetchWishlistItems, removeWishlistItem } from "../redux/features/WishlistSlice";
-import { Link } from "react-router-dom";
+import {  useNavigate } from "react-router-dom";
 
 const Wishlist: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
-  const { wishlistItems, loading, error } = useSelector((state: RootState) => state.wishlistReducer);
+  const navigate = useNavigate();
+  const { wishlistItems, loading, error } = useSelector(
+    (state: RootState) => state.wishlistReducer
+  );
 
   // Fetch wishlist items on component mount
   useEffect(() => {
@@ -17,7 +20,12 @@ const Wishlist: React.FC = () => {
   const handleRemove = (productId: string) => {
     dispatch(removeWishlistItem({ productId }));
   };
-  
+
+  // Handle redirect to single product
+  const handleCardClick = (productId: string) => {
+    navigate(`/products/${productId}`);
+  };
+
   return (
     <div className="p-6">
       <h2 className="text-2xl font-semibold mb-4">Your Wishlist</h2>
@@ -31,10 +39,19 @@ const Wishlist: React.FC = () => {
       {/* Wishlist Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {wishlistItems.map((item) => {
-          const product = item.productId || {}; // Ensure productId is an object
-          const imageUrl = product.image ? (product.image.startsWith("/") ? `http://localhost:5000${product.image}` : product.image) : "/placeholder.jpg";
+          const product = item.productId || {};
+          const imageUrl = product.image
+            ? product.image.startsWith("/")
+              ? `http://localhost:5000${product.image}`
+              : product.image
+            : "/placeholder.jpg";
+
           return (
-            <div key={product._id} className="border p-4 rounded-lg shadow-lg bg-white">
+            <div
+              key={product._id}
+              className="border p-4 rounded-lg shadow-lg bg-white cursor-pointer hover:shadow-xl transition"
+              onClick={() => handleCardClick(product._id)}
+            >
               {/* Product Image */}
               <div className="relative">
                 <img
@@ -45,26 +62,25 @@ const Wishlist: React.FC = () => {
               </div>
 
               {/* Product Details */}
-              <h3 className="text-lg font-semibold mt-2">{product.title || "Unknown Product"}</h3>
+              <h3 className="text-lg font-semibold mt-2">
+                {product.title || "Unknown Product"}
+              </h3>
               <p className="text-gray-600">
-                Price: ${product.price ? product.price.toFixed(2) : "N/A"}
+                Price: ₹{product.price ? product.price.toFixed(2) : "N/A"}
               </p>
               {product.salePrice && (
                 <p className="text-gray-600">
-                  Sale Price: ${product.salePrice.toFixed(2)}
+                  Sale Price: ₹{product.salePrice.toFixed(2)}
                 </p>
               )}
 
-              {/* Buttons */}
-              <div className="mt-4 flex justify-between">
-                <Link
-                  to={`/products/${product._id}`}
-                  className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-                >
-                  View Product
-                </Link>
+              {/* Remove Button */}
+              <div className="mt-4">
                 <button
-                  onClick={() => handleRemove(product._id)}
+                  onClick={(e) => {
+                    e.stopPropagation(); // prevent card click from firing
+                    handleRemove(product._id);
+                  }}
                   className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
                 >
                   Remove

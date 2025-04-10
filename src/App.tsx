@@ -20,6 +20,8 @@ import SingleCategory from "./pages/SingleCategory";
 import Cart from "./pages/cartPage"; 
 import { checkAuthStatus } from "./redux/features/authSlice";
 import SearchPage from "./pages/searchpage";
+import Register from "./components/Register"
+import Login from "./pages/login";
 
 function AppContent() {
   const dispatch = useAppDispatch();
@@ -38,11 +40,13 @@ function AppContent() {
       <Routes>
         <Route path="*" element={<h1>Page Not Found</h1>} />
         <Route path="/" element={<Home />} />
+        <Route path="/login" element={<Login />} />
         <Route path="/products" element={<AllProducts />} />
         <Route path="/categories" element={<AllCategories />} />
         <Route path="/products/:_id" element={<SingleProduct />} />
         <Route path="category/:id" element={<SingleCategory />} />
         <Route path="/search" element={<SearchPage />} />
+        <Route path="/register" element={<Register />} />
 
 
         {/* Protected Routes */}

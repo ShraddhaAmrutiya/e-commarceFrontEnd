@@ -1,3 +1,5 @@
+
+
 import { FC } from "react";
 import { CartItem } from "../models/CartItem";
 import {
@@ -13,18 +15,15 @@ import {
 import { RiDeleteBin6Line } from "react-icons/ri";
 import useDiscount from "../hooks/useDiscount";
 
-const CartRow: FC<CartItem> = ({
-  _id ,
-  image,
-  title,
-  price,
-  quantity,
-  rating,
-  category,
-  discountPercentage = 0,
-}) => {
+const CartRow: FC<CartItem> = (props) => {
+  const {
+    _id,
+    quantity,
+    productId: { title, price, image, rating, category, discountPercentage = 0 },
+  } = props;
+
   const dispatch = useAppDispatch();
-  const result = useDiscount({ price, discount: discountPercentage });
+  const result = useDiscount({ price, discount: Number(discountPercentage) });
 
   return (
     <div className="grid grid-cols-7 gap-3 border items-center">
@@ -41,7 +40,7 @@ const CartRow: FC<CartItem> = ({
         <div className="flex items-center space-x-1">
           <IoIosRemoveCircleOutline
             className="cursor-pointer hover:opacity-80"
-            onClick={() => dispatch(reduceFromCart(_id ))}
+            onClick={() => dispatch(reduceFromCart(_id))}
             data-test="cart-reduce-btn"
           />
           <span data-test="cart-item-quantity">{quantity}</span>
@@ -51,15 +50,26 @@ const CartRow: FC<CartItem> = ({
             onClick={() =>
               dispatch(
                 addToCart({
-                  _id ,
+                  _id,
+                  quantity,
                   title,
                   price,
-                  quantity,
                   image,
                   rating,
                   category,
+                  discountPercentage,
+                  productId: {
+                    _id,
+                    title,
+                    price,
+                    image,
+                    rating,
+                    category,
+                    discountPercentage,
+                  },
                 })
               )
+              
             }
           />
         </div>
@@ -72,7 +82,7 @@ const CartRow: FC<CartItem> = ({
         )}
         <RiDeleteBin6Line
           className="text-red-500 cursor-pointer text-2xl hover:text-red-600"
-          onClick={() => dispatch(removeFromCart(_id ))}
+          onClick={() => dispatch(removeFromCart(_id))}
           data-test="cart-remove-btn"
         />
       </div>

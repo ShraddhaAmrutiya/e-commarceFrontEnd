@@ -4,9 +4,7 @@ import toast from "react-hot-toast"
 export const addToWishlist = async (productId: string, token: string) => {
   try {
     const userId = localStorage.getItem("userId"); 
-    console.log("🔑 Sending Token:", token);
-    console.log("🆔 Sending userId:", userId);
-
+   
     const response = await axios.post(
       `http://localhost:5000/wishlist/add`,
       { productId },
@@ -45,7 +43,7 @@ export const getWishlist = async (token: string, userId: string) => {
         userId,  
       },
     });
-    console.log("getwishlist fatched");
+    // console.log("getwishlist fatched");
     
     return response.data;
   } catch (error) {

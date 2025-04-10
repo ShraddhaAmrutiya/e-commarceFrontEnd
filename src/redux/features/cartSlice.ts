@@ -5,6 +5,7 @@ import { CartState } from "../../models/CartSlice";
 const initialState: CartState = {
   cartOpen: false,
   cartItems: [],
+  cartCount:0
 };
 
 export const cartSlice = createSlice({
@@ -16,48 +17,88 @@ export const cartSlice = createSlice({
       state.cartOpen = !state.cartOpen;
     },
 
+    // addToCart: (state, action: PayloadAction<CartItem>) => {
+    //   const accessToken = localStorage.getItem("accessToken"); // 🔥 Fetch it every time
+    //   if (!accessToken) {
+    //     // console.log("🚨 User not logged in. Cannot add to cart.");
+    //     return state;
+    //   }
+
+    //   const { cartItems } = state;
+    //   const existingIndex = cartItems.findIndex((pro: CartItem) => pro._id === action.payload._id);
+
+    //   if (existingIndex === -1) {
+    //     const item = { ...action.payload, quantity: 1 };
+    //     state.cartItems.push(item);
+    //   } else {
+    //     const updatedItems = cartItems.map((item: CartItem) =>
+    //       item._id === action.payload._id ? { ...item, quantity: (item.quantity ?? 0) + 1 } : item
+    //     );
+    //     return { ...state, cartItems: updatedItems };
+    //   }
+    // },
+
+
     addToCart: (state, action: PayloadAction<CartItem>) => {
-      const accessToken = localStorage.getItem("accessToken"); // 🔥 Fetch it every time
-      if (!accessToken) {
-        console.log("🚨 User not logged in. Cannot add to cart.");
-        return state;
-      }
-
+      const accessToken = localStorage.getItem("accessToken");
+      if (!accessToken) return state;
+    
       const { cartItems } = state;
-      const existingIndex = cartItems.findIndex((pro: CartItem) => pro._id === action.payload._id);
-
+      const existingIndex = cartItems.findIndex(
+        (pro: CartItem) => pro.productId._id === action.payload.productId._id
+      );
+    
       if (existingIndex === -1) {
         const item = { ...action.payload, quantity: 1 };
         state.cartItems.push(item);
       } else {
-        const updatedItems = cartItems.map((item: CartItem) =>
-          item._id === action.payload._id ? { ...item, quantity: (item.quantity ?? 0) + 1 } : item
-        );
-        return { ...state, cartItems: updatedItems };
+        state.cartItems[existingIndex].quantity += 1;
       }
     },
+    
+
+    // removeFromCart: (state, action: PayloadAction<string>) => {
+    //   const { cartItems } = state;
+    //   const updatedItems = cartItems.filter((item: CartItem) => item._id !== action.payload);
+    //   return { ...state, cartItems: updatedItems };
+    // },
+
 
     removeFromCart: (state, action: PayloadAction<string>) => {
-      const { cartItems } = state;
-      const updatedItems = cartItems.filter((item: CartItem) => item._id !== action.payload);
-      return { ...state, cartItems: updatedItems };
+      state.cartItems = state.cartItems.filter(
+        (item: CartItem) => item.productId._id !== action.payload
+      );
     },
+    
+    // reduceFromCart: (state, action: PayloadAction<string>) => {
+    //   const { cartItems } = state;
+    //   const _item = cartItems.find((item: CartItem) => item._id === action.payload);
+
+    //   if (_item && (_item.quantity ?? 1) > 1) {
+    //     const updatedList = cartItems.map((item: CartItem) =>
+    //       item._id === action.payload ? { ...item, quantity: (item.quantity ?? 1) - 1 } : item
+    //     );
+    //     return { ...state, cartItems: updatedList };
+    //   } else {
+    //     const updatedItems = cartItems.filter((item: CartItem) => item._id !== action.payload);
+    //     return { ...state, cartItems: updatedItems };
+    //   }
+    // },
 
     reduceFromCart: (state, action: PayloadAction<string>) => {
       const { cartItems } = state;
-      const _item = cartItems.find((item: CartItem) => item._id === action.payload);
-
-      if (_item && (_item.quantity ?? 1) > 1) {
-        const updatedList = cartItems.map((item: CartItem) =>
-          item._id === action.payload ? { ...item, quantity: (item.quantity ?? 1) - 1 } : item
-        );
-        return { ...state, cartItems: updatedList };
-      } else {
-        const updatedItems = cartItems.filter((item: CartItem) => item._id !== action.payload);
-        return { ...state, cartItems: updatedItems };
+      const itemIndex = cartItems.findIndex(item => item.productId._id === action.payload);
+    
+      if (itemIndex !== -1) {
+        const item = cartItems[itemIndex];
+        if (item.quantity > 1) {
+          cartItems[itemIndex].quantity -= 1;
+        } else {
+          cartItems.splice(itemIndex, 1);
+        }
       }
     },
-
+    
     setCartState: (state, action: PayloadAction<boolean>) => {
       return { ...state, cartOpen: action.payload };
     },

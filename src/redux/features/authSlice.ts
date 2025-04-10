@@ -51,7 +51,7 @@ export const doLogin = createAsyncThunk(
   async ({ userName, password }: LoginProps, { rejectWithValue }) => {
     try {
       const response = await axios.post<LoginResponse>(
-        "/users/login",
+        "http://localhost:5000/users/login",
         { userName, password }
       );
       if (response.data.accessToken) {
