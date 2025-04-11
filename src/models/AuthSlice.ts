@@ -9,6 +9,7 @@ export interface AuthSlice {
   errorMessage?: string;
   successMessage?: string;
   user?: string;
+  Role?:string
 }
 
 

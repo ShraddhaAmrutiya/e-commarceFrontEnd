@@ -10,18 +10,7 @@ import PriceSection from "./PriceSection";
 import useAuth from "../hooks/useAuth";
 import { CartItem } from "../models/CartItem";
 
-// Define the CartItemForDispatch interface inside ProductCard.tsx
-// interface CartItemForDispatch {
-//   _id: string; // Unique cart item ID (can be generated or set as a placeholder)
-//   productId: string; // The product ID, which is a string
-//   quantity: number; // Quantity of the product in the cart
-//   title: string;
-//   price: number;
-//   image?: string;
-//   category: string | { name: string };
-//   rating: number;
-//   discountPercentage?: number;
-// }
+
 
 const ProductCard: FC<Product> = ({
   _id,
@@ -42,7 +31,6 @@ const ProductCard: FC<Product> = ({
         return;
       }
   
-      // Fetch full product details if necessary
       const product: Product = {
         _id,
         price,
@@ -61,7 +49,7 @@ const ProductCard: FC<Product> = ({
         },
         body: JSON.stringify({
           userId,
-          productId: _id, // Using _id directly instead of product._id
+          productId: _id, 
           quantity: 1,
         }),
       })
@@ -74,10 +62,9 @@ const ProductCard: FC<Product> = ({
               return;
             }
   
-            // Dispatch with the full Product object
             const cartItem: CartItem = {
-              _id: 'unique-cart-id', // Placeholder for cart item ID
-              productId: product,    // Use the full product object
+              _id: 'unique-cart-id', 
+              productId: product,    
               quantity: 1,
               title,
               price,
@@ -87,10 +74,10 @@ const ProductCard: FC<Product> = ({
               discountPercentage,
             };
   
-            dispatch(addToCart(cartItem)); // Dispatch the full product object
+            dispatch(addToCart(cartItem)); 
             toast.success("Added to cart!");
           } else {
-            toast.error(data.message || "Failed to add to cart!");
+            toast.success(data.message || "Failed to add to cart!");
           }
         })
         .catch((error) => {
@@ -137,7 +124,7 @@ const ProductCard: FC<Product> = ({
           type="button"
           className="flex items-center space-x-2 hover:bg-blue-500 text-white py-2 px-4 rounded bg-pink-500"
           onClick={(e) => {
-            e.stopPropagation(); // 👈 Prevent parent click (navigation)
+            e.stopPropagation(); 
             addCart();
           }}
           data-test="add-cart-btn"

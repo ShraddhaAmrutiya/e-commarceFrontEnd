@@ -23,6 +23,7 @@ const Navbar: FC = () => {
   const userName = useAppSelector((state) => state.authReducer.userName);
   const isDarkMode = useAppSelector((state) => state.homeReducer.isDarkMode);
   const navigate = useNavigate();
+  const Role = useAppSelector((state) => state.authReducer.Role) || localStorage.getItem("role");
 
   const handleSearch = () => {
     if (searchTerm.trim()) {
@@ -99,8 +100,29 @@ const Navbar: FC = () => {
 
           {/* Icons & Links */}
           <div className="flex gap-4 md:gap-8 items-center dark:text-white">
-            <Link to="/products" className="text-xl font-bold">Products</Link>
-            <Link to="/categories" className="text-xl font-bold">Categories</Link>
+            <Link to="/products" className="text-xl font-bold text-blue-600">
+              Products
+            </Link>
+            <Link to="/categories" className="text-xl font-bold text-blue-600">
+              Categories
+            </Link>
+
+            {Role === "admin" && (
+              <>
+                <Link
+                  to="/addcategory"
+                  className="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 text-sm md:text-base"
+                >
+                  Add Category
+                </Link>
+                <Link
+                  to="/Addproduct"
+                  className="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 text-sm md:text-base"
+                >
+                  Add Product
+                </Link>
+              </>
+            )}
 
             {/* Auth Section */}
             <div className="relative" ref={authMenuRef}>
@@ -136,7 +158,7 @@ const Navbar: FC = () => {
                     onClick={() => setAuthMenuOpen(false)}
                     className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-slate-600"
                   >
-                   New Customer? Register
+                    New Customer? Register
                   </Link>
                 </div>
               )}

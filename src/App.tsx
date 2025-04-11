@@ -22,7 +22,8 @@ import { checkAuthStatus } from "./redux/features/authSlice";
 import SearchPage from "./pages/searchpage";
 import Register from "./components/Register"
 import Login from "./pages/login";
-
+import AddCategory from "./components/AddCategory";
+import AddProduct from "./components/Addproduct";
 function AppContent() {
   const dispatch = useAppDispatch();
 
@@ -53,6 +54,8 @@ function AppContent() {
         <Route element={<ProtectedRoute />}>
           <Route path="/wishlist" element={<Wishlist />} />
           <Route path="/account" element={<Profile />} />
+          <Route path="/addCategory" element={<AddCategory />} />
+          <Route path="/Addproduct" element={<AddProduct />} />
           <Route path="/cart/:_userId" element={<Cart />} /> {/* Add Cart route here */}
         </Route>
       </Routes>

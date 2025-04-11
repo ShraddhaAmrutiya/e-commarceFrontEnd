@@ -8,17 +8,17 @@ const HeroSection: FC = () => {
         <div className="flex items-center">
           <div className="max-w-[450px] space-y-4">
             <p className="text-black dark:text-white">
-              Starting At <span className="font-bold">$999</span>
+              Starting At <span className="font-bold">rupees 2375</span>
             </p>
             <h2 className="text-black font-bold text-4xl md:text-5xl dark:text-white">
-              The best smart phone
+              puma shouse
             </h2>
             <h3 className="text-2xl dark:text-white">
               Exclusive offer <span className="text-red-600">-10%</span> off
               this week
             </h3>
             <Link
-              to="/products/67e4f9782eaf62a1a2b07a85"
+              to="/products/67ebde56a8ee7c1965d73659"
               data-test="hero-btn"
               className="inline-block bg-white rounded-md px-6 py-3 hover:bg-blue-500 hover:text-white"
             >
@@ -27,7 +27,7 @@ const HeroSection: FC = () => {
           </div>
         </div>
         <div>
-          <img src="	http://localhost:5000/uploads/1743059320605-mobile.jpg" alt="Smart phone" className="ml-auto" />
+          <img src="	http://localhost:5000/uploads/1743511126721-shouse.jpg" alt="Smart phone" className="ml-auto" />
         </div>
       </div>
     </div>

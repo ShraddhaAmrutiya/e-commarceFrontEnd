@@ -1,7 +1,7 @@
 
 
- import { FC, useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { FC, useEffect, useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import { addToCart } from "../redux/features/cartSlice";
 import { Product } from "../models/Product";
 import RatingStar from "../components/RatingStar";
@@ -12,14 +12,18 @@ import { FaHandHoldingDollar } from "react-icons/fa6";
 import ProductList from "../components/ProductList";
 import useAuth from "../hooks/useAuth";
 import { MdFavoriteBorder } from "react-icons/md";
-// import { addToWishlist } from "../redux/features/productSlice";
 import { useAppDispatch, useAppSelector } from "../redux/hooks";
-import { addWishlistItem } from "../redux/features/WishlistSlice"
+import { addWishlistItem } from "../redux/features/WishlistSlice";
+import Modal from "react-modal";
 
-
+export interface CartItem {
+  productId: Product;
+  quantity: number;
+}
 
 const SingleProduct: FC = () => {
   const dispatch = useAppDispatch();
+  const navigate = useNavigate();
   const { _id } = useParams<{ _id?: string }>();
   const [product, setProduct] = useState<Product | null>(null);
   const [imgs, setImgs] = useState<string[]>([]);
@@ -28,20 +32,26 @@ const SingleProduct: FC = () => {
   const [similar, setSimilar] = useState<Product[]>([]);
   const { requireAuth } = useAuth();
 
-  useEffect(() => {
-    // console.log("Fetching Product with ID:", _id);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [formData, setFormData] = useState<Partial<Product>>({});
+  const [loading, setLoading] = useState(false);  // Loading state for the product details
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false); // State for delete confirmation modal
 
+  const userId = useAppSelector((state) => state.authReducer.userId) || localStorage.getItem("userId");
+  const token = localStorage.getItem("accessToken");
+  const Role = useAppSelector((state) => state.authReducer.Role); // Assuming role is stored in Redux
+
+  useEffect(() => {
     if (!_id) {
       toast.error("Invalid product ID!");
-      console.error("Error: _id is undefined or empty in useParams().");
       return;
     }
 
-    fetch(`http://localhost:5000/products/${_id}`)
-      .then((res) => res.json())
-      .then((data) => {
-        // console.log("Full API Response:", data);
-
+    const fetchProduct = async () => {
+      setLoading(true);  // Set loading to true before fetching data
+      try {
+        const res = await fetch(`http://localhost:5000/products/${_id}`);
+        const data = await res.json();
         if (!data || !data.product || !data.product._id) {
           toast.error("Product not found!");
           return;
@@ -49,7 +59,6 @@ const SingleProduct: FC = () => {
 
         const { image, category } = data.product;
         const categoryName = typeof category === "object" && category?.name ? category.name : "Unknown";
-        // console.log("Extracted Category Name:", categoryName);
 
         const fullImageUrls = Array.isArray(image)
           ? image.map((img) => (img.startsWith("/") ? `http://localhost:5000${img}` : img))
@@ -61,11 +70,15 @@ const SingleProduct: FC = () => {
         setImgs(fullImageUrls);
         setScategory(categoryName);
         setSelectedImg(fullImageUrls.length > 0 ? fullImageUrls[0] : "");
-      })
-      .catch((error) => {
+      } catch (error) {
         toast.error("Error fetching product details!");
         console.error(error);
-      });
+      } finally {
+        setLoading(false);  // Set loading to false after fetch completes
+      }
+    };
+
+    fetchProduct();
   }, [_id]);
 
   useEffect(() => {
@@ -73,124 +86,176 @@ const SingleProduct: FC = () => {
 
     fetch(`http://localhost:5000/products/category/${Category}`)
       .then((res) => res.json())
-      .then((data) => { 
-        if (!Array.isArray(data.products)) return;
+      .then((data) => {
         setSimilar(data.products.filter((p: Product) => p._id !== _id));
-      })
-      .catch(console.error);
-  }, [_id,Category]);
+      });
+  }, [Category, _id]);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleUpdateProduct = async () => {
+    if (!product || !_id || !token) return;
+
+    // Simple validation: Ensure title and description are not empty
+    if (!formData.title || !formData.description) {
+      toast.error("Please fill in all fields");
+      return;
+    }
+
+    try {
+      const res = await fetch(`http://localhost:5000/products/update/${_id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(formData),
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Update failed");
+
+      toast.success("Product updated!");
+      setProduct(data.product);
+      setIsModalOpen(false);
+    } catch (error) {
+      toast.error("❌ Failed to update product.");
+      console.error("Error during update product", error);
+    }
+  };
+
+  const handleDeleteProduct = async () => {
+    if (!_id || !token) return;
+
+    setIsDeleteModalOpen(false);  // Close the modal after confirming delete
+
+    try {
+      const res = await fetch(`http://localhost:5000/products/delete/${_id}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Delete failed");
+
+      toast.success("Product deleted");
+      navigate("/");
+    } catch (error) {
+      console.error("Error delete product:", error);
+      toast.error("Failed to delete product");
+    }
+  };
 
   const addCart = () => {
     requireAuth(() => {
-      if (!product) {
-        console.error("❌ Error: No product found to add to cart.");
-        return;
-      }
+      if (!product) return;
 
-      // console.log("🛒 Adding to Cart:", product);
-      dispatch(addToCart({ ...product, _id: product._id ?? "" }));
+      dispatch(addToCart({
+        _id: product._id,
+        title: product.title,
+        price: product.price,
+        rating: product.rating,
+        category: product.category,
+        productId: product,
+        quantity: 1,
+      }));
       toast.success("Added to cart!");
     });
   };
 
-  // const buyNow = () => {
-  //   requireAuth(() => {
-  //     if (!product) return;
-  //     dispatch(addToCart({ ...product, _id: product._id ?? "" }));
-  //     toast.success("Proceeding to checkout!");
-  //   });
-  // };
-
-  const userId = useAppSelector((state) => state.authReducer.userId) || localStorage.getItem("userId");
   const buyNow = () => {
     requireAuth(async () => {
-      if (!product || !_id) return;
-  
-      const stock = 1; // Default to buying 1 item
-      const token = localStorage.getItem("accessToken");
-            console.log("Token from localStorage...................................:", token);
-  
-      if (!token) {
-        toast.error("Authentication failed! Please log in.");
-        return;
-      }
-  
+      if (!product || !_id || !token) return;
+
       try {
-        const response = await fetch("http://localhost:5000/order/direct", {
+        const res = await fetch("http://localhost:5000/order/direct", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            "Authorization": `Bearer ${token}`,
+            Authorization: `Bearer ${token}`,
           },
           body: JSON.stringify({
             userId,
             productId: _id,
-            stock,
+            stock: 1,
           }),
         });
-  
-        const data = await response.json();
-        if (!response.ok) {
-          throw new Error(data.message);
+
+        if (!res.ok) {
+          const errorData = await res.json();
+          throw new Error(errorData.message);
         }
-  
-        dispatch(addToCart({ ...product, _id: product._id ?? "" }));
-        toast.success("Order placed successfully!");
+
+        dispatch(addToCart({
+          _id: product._id,
+          title: product.title,
+          price: product.price,
+          rating: product.rating,
+          category: product.category,
+          productId: product,
+          quantity: 1,
+        }));
+        toast.success("Order placed!");
       } catch (error) {
-        toast.error((error as Error).message);
-        console.error("Order Error:", error);
+        console.error("Error order product:", error);
+        toast.error("Failed to place order");
       }
     });
   };
-  
+
   const addWishlist = async () => {
     requireAuth(async () => {
       if (!product || !_id) return;
-  
+
       const token = localStorage.getItem("accessToken");
-  
+
       if (!token) {
         toast.error("Authentication failed! Please log in.");
         return;
       }
       const imageUrl = product.image ? product.image : "";
 
-      // Construct the full WishlistItem object
       const wishlistItem = {
         id: _id,
-        productId: _id, // Optional: Remove this if not needed
+        productId: _id,
         name: product.title,
         price: product.price,
-        image: imageUrl, // Ensure this is correctly formatted
+        image: imageUrl,
       };
-  
-      dispatch(addWishlistItem(wishlistItem)); // ✅ Dispatch the correct structure
+
+      dispatch(addWishlistItem(wishlistItem));
       toast.success("Item added to your wishlist");
     });
   };
-   
-  
 
   return (
     <div className="container mx-auto pt-8 dark:text-white">
+      {loading && <div>Loading...</div>} {/* Loading indicator */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 px-4 font-karla">
         <div className="space-y-2">
           {selectedImg && <img src={selectedImg} alt="Product" className="h-80 object-cover" />}
           <div className="flex space-x-1 items-center">
-            {imgs.map((_img) => (
+            {imgs.map((img) => (
               <img
-                src={_img}
-                key={_img}
-                className={`w-12 cursor-pointer hover:border-2 hover:border-black ${_img === selectedImg ? "border-2 border-black" : ""}`}
-                onClick={() => setSelectedImg(_img)}
+                key={img}
+                src={img}
+                className={`w-12 cursor-pointer hover:border-2 hover:border-black ${img === selectedImg ? "border-2 border-black" : ""}`}
+                onClick={() => setSelectedImg(img)}
               />
             ))}
           </div>
         </div>
+
         <div className="px-2">
           <h2 className="text-2xl">{product?.title}</h2>
           {product?.rating && <RatingStar rating={product.rating} />}
           {product?.discountPercentage && <PriceSection discountPercentage={product.discountPercentage} price={product.price} />}
+
           {product && (
             <table className="mt-2">
               <tbody>
@@ -200,17 +265,79 @@ const SingleProduct: FC = () => {
               </tbody>
             </table>
           )}
+
           <div className="flex justify-between mt-4">
-            <button className="flex items-center bg-black text-white p-2 rounded w-24" onClick={addCart}><AiOutlineShoppingCart /> Add to Cart</button>
-            <button className="flex items-center bg-black text-white p-2 rounded w-24" onClick={buyNow}><FaHandHoldingDollar /> Buy Now</button>
+            <button className="flex items-center bg-black text-white p-2 rounded w-24" onClick={addCart}>
+              <AiOutlineShoppingCart /> Add to Cart
+            </button>
+            <button className="flex items-center bg-black text-white p-2 rounded w-24" onClick={buyNow}>
+              <FaHandHoldingDollar /> Buy Now
+            </button>
           </div>
+
           <div className="flex mt-4 items-center space-x-2">
             <button className="text-xl dark:text-white" onClick={addWishlist}><MdFavoriteBorder /></button>
             <span>Add to Wishlist</span>
           </div>
+
+          {/* Conditionally render buttons based on role */}
+          {Role === "admin" && (
+            <div className="mt-6 space-x-3">
+              <button onClick={() => setIsModalOpen(true)} className="bg-blue-600 text-white px-4 py-2 rounded">Edit Product</button>
+              <button onClick={() => setIsDeleteModalOpen(true)} className="bg-red-600 text-white px-4 py-2 rounded">Delete Product</button>
+            </div>
+          )}
         </div>
       </div>
+
       {similar.length > 0 && <ProductList title="Similar Products" products={similar} />}
+
+      {/* Modal for updating product */}
+      <Modal
+        isOpen={isModalOpen}
+        onRequestClose={() => {
+          setIsModalOpen(false);
+          setFormData({});
+        }}
+        className="bg-white p-6 rounded-md shadow-md max-w-md mx-auto mt-20"
+      >
+        <h2 className="text-xl font-bold mb-4">Edit Product</h2>
+        <form className="space-y-3">
+          <input
+            type="text"
+            name="title"
+            value={formData.title || ""}
+            onChange={handleInputChange}
+            className="w-full p-2 border"
+            placeholder="Title"
+          />
+          <input
+            type="text"
+            name="description"
+            value={formData.description || ""}
+            onChange={handleInputChange}
+            className="w-full p-2 border"
+            placeholder="Description"
+          />
+          <div className="flex justify-between space-x-2">
+            <button type="button" onClick={handleUpdateProduct} className="w-full bg-blue-600 text-white p-2 rounded">Update</button>
+            <button type="button" onClick={() => setIsModalOpen(false)} className="w-full bg-gray-600 text-white p-2 rounded">Cancel</button>
+          </div>
+        </form>
+      </Modal>
+
+      {/* Modal for delete confirmation */}
+      <Modal
+        isOpen={isDeleteModalOpen}
+        onRequestClose={() => setIsDeleteModalOpen(false)}
+        className="bg-white p-6 rounded-md shadow-md max-w-md mx-auto mt-20"
+      >
+        <h2 className="text-xl font-bold mb-4">Are you sure you want to delete this product?</h2>
+        <div className="flex justify-between space-x-2">
+          <button onClick={handleDeleteProduct} className="w-full bg-red-600 text-white p-2 rounded">Yes, Delete</button>
+          <button onClick={() => setIsDeleteModalOpen(false)} className="w-full bg-gray-600 text-white p-2 rounded">Cancel</button>
+        </div>
+      </Modal>
     </div>
   );
 };

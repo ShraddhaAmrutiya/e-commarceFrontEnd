@@ -5,8 +5,11 @@ import { CartState } from "../../models/CartSlice";
 const initialState: CartState = {
   cartOpen: false,
   cartItems: [],
-  cartCount:0
+  cartCount: 0,
+  totalQuantity: 0,
+  totalPrice: 0,
 };
+
 
 export const cartSlice = createSlice({
   name: "cartSlice",

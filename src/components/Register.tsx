@@ -92,7 +92,7 @@ const Register = () => {
           navigate("/login");
         }, 2000);  // Redirect after 2 seconds
       } else {
-        toast.error(data.message || "Something went wrong.");
+        toast.success(data.message || "Something went wrong.");
       }
     } catch (err: unknown) {
       if (typeof err === "object" && err !== null && "response" in err) {
@@ -194,7 +194,7 @@ const Register = () => {
           >
             <option value="Customer">Customer</option>
             <option value="Seller">Seller</option>
-            <option value="Admin">Admin</option>
+            <option value="admin">admin</option>
           </select>
         </div>
 
