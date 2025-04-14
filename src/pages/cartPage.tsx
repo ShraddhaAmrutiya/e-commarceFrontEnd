@@ -7,9 +7,6 @@ import { useAppSelector } from '../redux/hooks';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
-const getCartCount = (cartItems: CartItem[]): number => {
-  return cartItems.reduce((acc, item) => acc + item.quantity, 0);
-};
 
 interface Product {
   _id: string;
@@ -38,6 +35,7 @@ const Cart = () => {
   const [error, setError] = useState<string>('');
   const [showModal, setShowModal] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
+  const [showNotification, setShowNotification] = useState(false);
 
   const userId =
     useAppSelector((state) => state.authReducer.userId) || localStorage.getItem('userId');
@@ -60,9 +58,12 @@ const Cart = () => {
   
         console.log('Cart Items Response:', response.data.cartItems); // Log the response for inspection
         setCartItems(response.data.cartItems);
-      } catch (err) {
+      }catch (err) {
         console.error('Error fetching cart items:', err);
-        setError('🛒 Your cart is empty...');
+        setShowNotification(true); // Show the login popup notification
+        setTimeout(() => {
+          setShowNotification(false); // Hide after 3 seconds
+        }, 3000);
       }
     };
   
@@ -71,23 +72,33 @@ const Cart = () => {
     }
   }, [userId, token]);
   
+
   const handleRemoveFromCart = async (productId: string) => {
     try {
       if (!userId || !token) return;
-
+  
       const config = {
         headers: { Authorization: `Bearer ${token}` },
         data: { userId, productId },
       };
-
-      await axios.delete('http://localhost:5000/cart', config);
-      setCartItems(cartItems.filter((item) => item.productId._id !== productId));
+  
+      // Send DELETE request to remove the item from the database
+      const response = await axios.delete('http://localhost:5000/cart', config);
+  
+      if (response.status === 200) {
+        // Update the frontend state immediately after successful database removal
+        setCartItems(cartItems.filter((item) => item.productId._id !== productId));
+        toast.success('Item removed from cart successfully!');
+      } else {
+        throw new Error('Failed to remove item from cart.');
+      }
     } catch (err) {
       console.error('Error removing item from cart:', err);
       setError('Failed to remove item from cart.');
+      toast.error('Failed to remove item from cart.'); // Show error message if something goes wrong
     }
   };
-
+  
   const confirmClearCart = async () => {
     try {
       await axios.delete(`http://localhost:5000/cart/${userId}`, {
@@ -164,9 +175,7 @@ const Cart = () => {
   return (
     <div className="container relative">
       {/* Cart Count Box */}
-      <div className="absolute top-0 right-0 bg-blue-600 text-white px-4 py-2 rounded-bl-lg font-bold shadow">
-        Cart Items: {getCartCount(cartItems)}
-      </div>
+    
 
       <h1 className="text-center text-2xl font-bold mb-6 mt-6">🛒 Shopping Cart</h1>
 
@@ -209,6 +218,12 @@ const Cart = () => {
                 </button>
               </div>
             </div>
+            {showNotification && (
+  <div className="fixed bottom-4 left-1/2 transform -translate-x-1/2 bg-red-600 text-white py-2 px-6 rounded-lg shadow-lg">
+    <span>Please log in again to view your cart</span>
+  </div>
+)}
+
             <button
               className="bg-red-500 text-white px-4 py-2 rounded"
               onClick={() => handleRemoveFromCart(item.productId._id)}

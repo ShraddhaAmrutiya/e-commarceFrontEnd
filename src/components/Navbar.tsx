@@ -10,37 +10,75 @@ import { FaUser } from "react-icons/fa";
 import CustomPopup from "./CustomPopup";
 import { updateDarkMode } from "../redux/features/homeSlice";
 import { MdOutlineDarkMode, MdOutlineLightMode } from "react-icons/md";
+import axios from "axios";
+import { useLocation } from "react-router-dom";
 
 const Navbar: FC = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [authMenuOpen, setAuthMenuOpen] = useState(false);
   const authMenuRef = useRef<HTMLDivElement>(null);
-  // const cartItems = useAppSelector((state) => state.cartReducer.cartItems);
+  const [cartCount, setCartCount] = useState(0);
   const dispatch = useAppDispatch();
-  const userId: string = useAppSelector((state) => state.authReducer.userId) || localStorage.getItem("userId") || "";
+  const userId: string =
+    useAppSelector((state) => state.authReducer.userId) || localStorage.getItem("userId") || "";
   const [showNotification, setShowNotification] = useState(false);
   const wishlistCount = useAppSelector((state) => state.wishlistReducer?.wishlistItems?.length);
   const userName = useAppSelector((state) => state.authReducer.userName);
   const isDarkMode = useAppSelector((state) => state.homeReducer.isDarkMode);
   const navigate = useNavigate();
   const Role = useAppSelector((state) => state.authReducer.Role) || localStorage.getItem("role");
-
+  const location = useLocation();
+  useEffect(() => {
+    const storedUserId = localStorage.getItem("userId");
+    const finalUserId = userId || storedUserId;
+  
+    if (finalUserId) {
+      dispatch(fetchCartItems(finalUserId));
+      fetchCartCount();
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.pathname]); 
   const handleSearch = () => {
     if (searchTerm.trim()) {
       navigate(`/search?q=${encodeURIComponent(searchTerm.trim())}`);
       setSearchTerm("");
     }
   };
-
+  const token = localStorage.getItem('authToken');
+  if (!token) {
+    console.error('Auth token not found in localStorage');
+    // Optionally, redirect user to login page or show a message
+  }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const fetchCartCount = async () => {
+    try {
+      const response = await axios.get(
+        `http://localhost:5000/cart/count/${userId}`,
+        {
+          headers: {
+            token, // Use the token here
+          },
+        }
+      );
+      const data = response.data as { count: number };
+      setCartCount(data.count);
+    } catch (error) {
+      console.error("Failed to fetch cart count:", error);
+    }
+  };
+  
+  
+  
   useEffect(() => {
     const storedUserId = localStorage.getItem("userId");
     const finalUserId = userId || storedUserId;
-
+  
     if (finalUserId) {
       dispatch(fetchCartItems(finalUserId));
+      fetchCartCount(); // No argument passed here
     }
-  }, [dispatch, userId]);
-
+  },  [dispatch, userId, fetchCartCount]);
+    
   const showCart = () => {
     const storedUserId = localStorage.getItem("userId");
     const finalUserId = userId || storedUserId;
@@ -59,7 +97,6 @@ const Navbar: FC = () => {
     });
   };
 
-  // Close auth dropdown on outside click
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (authMenuRef.current && !authMenuRef.current.contains(e.target as Node)) {
@@ -194,6 +231,12 @@ const Navbar: FC = () => {
               onClick={showCart}
             >
               <AiOutlineShoppingCart className="dark:text-white" />
+              <div
+                className="absolute top-[-15px] right-[-10px] bg-red-600 w-[25px] h-[25px] rounded-full text-white text-[14px] grid place-items-center"
+                data-test="cart-item-count"
+              >
+                {cartCount}
+              </div>
             </div>
 
             {/* Dark Mode Toggle */}
