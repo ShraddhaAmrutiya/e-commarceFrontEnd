@@ -1,5 +1,10 @@
+import Modal from 'react-modal';
+
+Modal.setAppElement('#root');
 
 import { useEffect } from "react";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import { Provider } from "react-redux";
 import { store } from "./redux/store";
 import { useAppDispatch } from "./redux/hooks";
@@ -24,14 +29,30 @@ import Register from "./components/Register"
 import Login from "./pages/login";
 import AddCategory from "./components/AddCategory";
 import AddProduct from "./components/Addproduct";
+// import { useEffe ct } from "react";
+import axios from "axios";
 function AppContent() {
   const dispatch = useAppDispatch();
 
+useEffect(() => {
+  const token = localStorage.getItem("accessToken");
+  // const token = localStorage.getItem("authToken");
+  const userId = localStorage.getItem("userId");
+  const role = localStorage.getItem("Role");
+  const userName = localStorage.getItem("userName");
+
+  if (token && userId && role && userName) {
+    axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+    axios.defaults.headers.common["userId"] = userId;
+    axios.defaults.headers.common["Role"] = role;
+    axios.defaults.headers.common["userName"] = userName;
+  }
+}, []);
+
+
   useEffect(() => {
-    // Ensure modal is closed on page load
     dispatch(updateModal(false));
 
-    // 🔥 Load user authentication status
     dispatch(checkAuthStatus());
   }, [dispatch]);
 
@@ -70,6 +91,20 @@ function App() {
   return (
     <Provider store={store}>
       <AppContent />
+      <ToastContainer
+  position="top-right"
+  autoClose={2000}
+  hideProgressBar={false}
+  newestOnTop={false}
+  closeOnClick
+  rtl={false}
+  pauseOnFocusLoss
+  draggable
+  pauseOnHover
+  theme="light" // or "dark" based on your UI
+/>
+
+
     </Provider>
   );
 }

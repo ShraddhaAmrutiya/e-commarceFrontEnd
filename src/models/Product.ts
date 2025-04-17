@@ -10,4 +10,9 @@ export interface Product {
     brand?: string;
   stock?: number;
   discountPercentage?: number;
-}
+  seller?: string | { _id: string };}
+
+export  interface SingleProductProps {
+    product: Product;
+  }
+  

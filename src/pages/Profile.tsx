@@ -24,7 +24,7 @@ const Profile: FC = () => {
 
   useEffect(() => {
     const userId = localStorage.getItem("userId");
-    const token = localStorage.getItem("authToken"); // Retrieve token
+    const token = localStorage.getItem("accessToken"); // Retrieve token
   
     if (!userId) {
       console.error("User ID not found!");

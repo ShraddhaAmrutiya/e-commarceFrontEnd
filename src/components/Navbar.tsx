@@ -8,8 +8,8 @@ import { updateModal } from "../redux/features/authSlice";
 import { Link, useNavigate } from "react-router-dom";
 import { FaUser } from "react-icons/fa";
 import CustomPopup from "./CustomPopup";
-import { updateDarkMode } from "../redux/features/homeSlice";
-import { MdOutlineDarkMode, MdOutlineLightMode } from "react-icons/md";
+// import { updateDarkMode } from "../redux/features/homeSlice";
+// import { MdOutlineDarkMode, MdOutlineLightMode } from "react-icons/md";
 import axios from "axios";
 import { useLocation } from "react-router-dom";
 
@@ -24,7 +24,7 @@ const Navbar: FC = () => {
   const [showNotification, setShowNotification] = useState(false);
   const wishlistCount = useAppSelector((state) => state.wishlistReducer?.wishlistItems?.length);
   const userName = useAppSelector((state) => state.authReducer.userName);
-  const isDarkMode = useAppSelector((state) => state.homeReducer.isDarkMode);
+  // const isDarkMode = useAppSelector((state) => state.homeReducer.isDarkMode);
   const navigate = useNavigate();
   const Role = useAppSelector((state) => state.authReducer.Role) || localStorage.getItem("role");
   const location = useLocation();
@@ -44,11 +44,12 @@ const Navbar: FC = () => {
       setSearchTerm("");
     }
   };
-  const token = localStorage.getItem('authToken');
-  if (!token) {
-    console.error('Auth token not found in localStorage');
-    // Optionally, redirect user to login page or show a message
-  }
+  const token = localStorage.getItem('accessToken');
+  // const token = localStorage.getItem('authToken');
+  // if (!token) {
+  //   console.error('Auth token not found in localStorage');
+  //   // Optionally, redirect user to login page or show a message
+  // }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const fetchCartCount = async () => {
     try {
@@ -56,10 +57,12 @@ const Navbar: FC = () => {
         `http://localhost:5000/cart/count/${userId}`,
         {
           headers: {
-            token, // Use the token here
+            token, 
           },
         }
       );
+      console.log("cartcount token: ",token);
+      
       const data = response.data as { count: number };
       setCartCount(data.count);
     } catch (error) {
@@ -106,7 +109,7 @@ const Navbar: FC = () => {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
-
+  
   return (
     <div className="py-4 bg-white dark:bg-slate-800 top-0 sticky z-10 shadow-lg font-karla">
       <div className="container mx-auto px-4">
@@ -114,7 +117,7 @@ const Navbar: FC = () => {
           <Link to="/" className="text-2xl font-bold dark:text-white">
             My E-commerce website
           </Link>
-
+  
           {/* Search Bar */}
           <div className="lg:flex hidden w-full max-w-[400px]">
             <input
@@ -134,7 +137,7 @@ const Navbar: FC = () => {
               <BsSearch />
             </div>
           </div>
-
+  
           {/* Icons & Links */}
           <div className="flex gap-4 md:gap-8 items-center dark:text-white">
             <Link to="/products" className="text-xl font-bold text-blue-600">
@@ -143,29 +146,34 @@ const Navbar: FC = () => {
             <Link to="/categories" className="text-xl font-bold text-blue-600">
               Categories
             </Link>
-
+  
             {Role === "admin" && (
-              <>
-                <Link
-                  to="/addcategory"
-                  className="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 text-sm md:text-base"
-                >
-                  Add Category
-                </Link>
-                <Link
-                  to="/Addproduct"
-                  className="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 text-sm md:text-base"
-                >
-                  Add Product
-                </Link>
-              </>
+              <Link
+                to="/addcategory"
+                className="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 text-sm md:text-base"
+              >
+                Add Category
+              </Link>
             )}
-
+  
+            {(Role === "admin" || Role === "seller") && (
+              <Link
+                to="/Addproduct"
+                className="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 text-sm md:text-base"
+              >
+                Add Product
+              </Link>
+            )}
+  
             {/* Auth Section */}
             <div className="relative" ref={authMenuRef}>
               {userName ? (
                 <div className="flex items-center gap-2">
-                  <img src="https://robohash.org/Terry.png?set=set4" alt="avatar" className="w-6" />
+                  <img
+                    src="https://robohash.org/Terry.png?set=set4"
+                    alt="avatar"
+                    className="w-6"
+                  />
                   <CustomPopup />
                 </div>
               ) : (
@@ -177,7 +185,7 @@ const Navbar: FC = () => {
                   <span className="dark:text-white">Login</span>
                 </div>
               )}
-
+  
               {/* Dropdown Menu */}
               {!userName && authMenuOpen && (
                 <div className="absolute right-0 mt-2 w-72 bg-white dark:bg-slate-700 rounded-lg shadow-lg border dark:border-gray-600 z-50">
@@ -200,20 +208,20 @@ const Navbar: FC = () => {
                 </div>
               )}
             </div>
-
+  
             {/* Wishlist */}
             <div
               className="text-gray-500 text-[32px] relative hover:cursor-pointer hover:opacity-80"
               onClick={() => {
                 const storedUserId = localStorage.getItem("userId");
                 const finalUserId = userId || storedUserId;
-
+  
                 if (!finalUserId) {
                   setShowNotification(true);
                   setTimeout(() => setShowNotification(false), 3000);
                   return;
                 }
-
+  
                 navigate("/wishlist");
               }}
             >
@@ -224,7 +232,7 @@ const Navbar: FC = () => {
                 </div>
               )}
             </div>
-
+  
             {/* Cart */}
             <div
               className="text-gray-500 text-[32px] relative hover:cursor-pointer hover:opacity-80"
@@ -238,9 +246,9 @@ const Navbar: FC = () => {
                 {cartCount}
               </div>
             </div>
-
+  
             {/* Dark Mode Toggle */}
-            <div
+            {/* <div
               onClick={() => {
                 dispatch(updateDarkMode(!isDarkMode));
                 document.body.classList.toggle("dark");
@@ -251,18 +259,19 @@ const Navbar: FC = () => {
               ) : (
                 <MdOutlineDarkMode className="cursor-pointer" size={30} />
               )}
-            </div>
+            </div> */}
           </div>
         </div>
       </div>
-
+  
       {showNotification && (
-        <div className="fixed bottom-4 left-1/2 transform -translate-x-1/2 bg-green-600 text-black py-2 px-6 rounded-lg shadow-lg">
+        <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-blue-400 text-black py-12 px-16 rounded-lg shadow-lg">
           <span>Please Login to see the items</span>
         </div>
       )}
     </div>
   );
+  
 };
 
 export default Navbar;

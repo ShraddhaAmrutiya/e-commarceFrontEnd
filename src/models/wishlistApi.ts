@@ -23,17 +23,6 @@ export const addToWishlist = async (productId: string, token: string) => {
     console.error((error as Error).message)  }
 };
 
-// export const getWishlist = async (token: string) => {
-//   try {
-//     const response = await axios.get(`${BASE_URL}/wishlist`, {
-//       headers: {
-//         Authorization: `Bearer ${token}`,
-//       },
-//     });
-//     return response.data;
-//   } catch (error) {
-//     toast.error("Error in add to wishlist");
-//     console.error(error)  }  }
 
 export const getWishlist = async (token: string, userId: string) => {
   try {

@@ -1,21 +1,19 @@
-
-
 import React, { useState, FormEvent } from "react";
 import axios from "axios";
-import toast from "react-hot-toast"
+import toast from "react-hot-toast";
 
 interface CategoryResponse {
-    message: string;
-    category?: {
-      _id: string;
-      name: string;
-      description?: string;
-    };
-  }
+  message: string;
+  category?: {
+    _id: string;
+    name: string;
+    description?: string;
+  };
+}
 const AddCategory: React.FC = () => {
   const [name, setName] = useState<string>("");
   const [description, setDescription] = useState<string>("");
-  const [message, setMessage] = useState<string>("");
+  const [message] = useState<string>("");
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -26,13 +24,23 @@ const AddCategory: React.FC = () => {
         description,
       });
 
-      setMessage(res.data.message || "Category created successfully!");
+      toast.success(res.data.message || "Category created successfully!", {
+        position: "top-center",
+        style: {
+          backgroundColor: "#2196F3", // Blue background
+          color: "#fff", // White text
+          borderRadius: "8px",
+          top: "50%",
+          transform: "translateY(-50%)",
+        },
+      });
+
       setName("");
       setDescription("");
-    }  catch (error: unknown) {
-                toast.error("Error in add category");
-            console.error((error as Error).message) 
-              }
+    } catch (error: unknown) {
+      toast.error("Error in add category");
+      console.error((error as Error).message);
+    }
   };
 
   return (
@@ -41,7 +49,9 @@ const AddCategory: React.FC = () => {
       {message && <p className="mb-4 text-blue-500">{message}</p>}
       <form onSubmit={handleSubmit}>
         <div className="mb-4">
-          <label htmlFor="name" className="block font-semibold mb-1">Category Name</label>
+          <label htmlFor="name" className="block font-semibold mb-1">
+            Category Name
+          </label>
           <input
             id="name"
             type="text"
@@ -52,7 +62,9 @@ const AddCategory: React.FC = () => {
           />
         </div>
         <div className="mb-4">
-          <label htmlFor="description" className="block font-semibold mb-1">Description</label>
+          <label htmlFor="description" className="block font-semibold mb-1">
+            Description
+          </label>
           <textarea
             id="description"
             className="w-full border px-2 py-1"
@@ -60,10 +72,7 @@ const AddCategory: React.FC = () => {
             onChange={(e) => setDescription(e.target.value)}
           />
         </div>
-        <button
-          type="submit"
-          className="bg-blue-500 text-white px-4 py-2 rounded"
-        >
+        <button type="submit" className="bg-blue-500 text-white px-4 py-2 rounded">
           Create Category
         </button>
       </form>

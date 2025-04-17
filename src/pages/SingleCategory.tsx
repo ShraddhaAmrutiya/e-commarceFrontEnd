@@ -12,7 +12,7 @@ const SingleCategory: FC = () => {
   const [error, setError] = useState<string | null>(null);
 
   // Assuming you're storing the token in localStorage (you can use a context or state if needed)
-  const token = localStorage.getItem("authToken");
+  const token = localStorage.getItem("accessToken");
 
   useEffect(() => {
     const fetchCategoryDetails = async () => {

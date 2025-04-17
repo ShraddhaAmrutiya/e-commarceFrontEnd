@@ -8,12 +8,15 @@ import { Category } from "../models/Category";
 const AllCategories: FC = () => {
   const dispatch = useAppDispatch();
   const allCategories = useAppSelector((state) => state.productReducer.categories);
-  const token: string = localStorage.getItem("authToken") ?? "";
-  const Role: string = localStorage.getItem("Role") ?? ""; // Get user role for RBAC
+  const token: string = localStorage.getItem("accessToken") ?? "";
+  const Role: string = localStorage.getItem("Role") ?? "";
 
   const [editingId, setEditingId] = useState<string | null>(null);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
+
+  const [showModal, setShowModal] = useState(false);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
 
   const fetchCategories = useCallback(async () => {
     try {
@@ -23,30 +26,29 @@ const AllCategories: FC = () => {
           Authorization: `Bearer ${token}`,
         },
       });
-  
+
       if (!res.ok) {
         const errorText = await res.text();
         throw new Error(`Server Error: ${errorText}`);
       }
-  
+
       const contentType = res.headers.get("content-type");
       if (!contentType || !contentType.includes("application/json")) {
         throw new Error("Invalid JSON response from server");
       }
-  
+
       const data = await res.json();
       dispatch(addCategories(data));
     } catch (error) {
       console.error("Error fetching categories:", error);
       toast.error("Failed to load categories");
     }
-  }, [token, dispatch]); // dependencies required inside fetchCategories
-  
+  }, [token, dispatch]);
 
   useEffect(() => {
     if (allCategories.length === 0) fetchCategories();
   }, [allCategories.length, fetchCategories]);
-  
+
   const handleEdit = (category: Category) => {
     setEditingId(category._id ?? null);
     setName(category.name);
@@ -55,7 +57,6 @@ const AllCategories: FC = () => {
 
   const handleUpdate = async () => {
     if (!editingId) return;
-console.log(editingId);
 
     try {
       const res = await fetch(`http://localhost:5000/category/update/${editingId}`, {
@@ -72,19 +73,23 @@ console.log(editingId);
 
       toast.success("Category updated");
       setEditingId(null);
-      fetchCategories(); // Refresh
+      fetchCategories();
     } catch (error) {
       console.error(error);
       toast.error("Error updating category");
     }
   };
 
-  const handleDelete = async (id: string) => {
-    const confirmDelete = window.confirm("Are you sure you want to delete this category?");
-    if (!confirmDelete) return;
+  const handleDelete = (id: string) => {
+    setDeleteId(id);
+    setShowModal(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteId) return;
 
     try {
-      const res = await fetch(`http://localhost:5000/category/delete/${id}`, {
+      const res = await fetch(`http://localhost:5000/category/delete/${deleteId}`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -95,10 +100,12 @@ console.log(editingId);
       if (!res.ok) throw new Error(data.message || "Failed to delete");
 
       toast.success("Category deleted");
-      fetchCategories(); // Refresh
+      setShowModal(false);
+      fetchCategories();
     } catch (error) {
       console.error(error);
       toast.error("Error deleting category");
+      setShowModal(false);
     }
   };
 
@@ -139,7 +146,6 @@ console.log(editingId);
                     View products
                   </Link>
 
-                  {/* RBAC: Only show buttons to admin */}
                   {Role === "admin" && (
                     <div className="mt-2 flex gap-2">
                       <button
@@ -160,6 +166,36 @@ console.log(editingId);
               )}
             </div>
           ))}
+      </div>
+
+      {showModal && (
+        <DeleteConfirmModal
+          onConfirm={confirmDelete}
+          onCancel={() => setShowModal(false)}
+        />
+      )}
+    </div>
+  );
+};
+
+// Confirmation Modal Component
+const DeleteConfirmModal: FC<{
+  onConfirm: () => void;
+  onCancel: () => void;
+}> = ({ onConfirm, onCancel }) => {
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white p-6 rounded shadow-lg text-center w-80">
+        <h2 className="text-lg font-semibold mb-4 text-black">Confirm Deletion</h2>
+        <p className="text-black mb-4">Are you sure you want to delete this category?</p>
+        <div className="flex justify-center gap-4">
+          <button className="bg-red-500 text-white px-4 py-2 rounded" onClick={onConfirm}>
+            Yes, Delete
+          </button>
+          <button className="bg-gray-300 px-4 py-2 rounded" onClick={onCancel}>
+            Cancel
+          </button>
+        </div>
       </div>
     </div>
   );

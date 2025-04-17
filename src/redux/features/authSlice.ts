@@ -1,6 +1,165 @@
+// import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
+// import axios from "axios";
+// import { AuthSlice } from "../../models/AuthSlice";
+// import { toast } from "react-toastify";
+
+// interface LoginProps {
+//   userName: string;
+//   password: string;
+// }
+
+// interface LoginResponse {
+//   message?: string;
+//   accessToken: string;
+//   userId?: string;
+//   userName: string;
+//   Role: string; // Added Role
+// }
+
+// axios.defaults.baseURL = "http://localhost:5000";
+// axios.defaults.withCredentials = true;
+
+// axios.interceptors.request.use(
+//   (config) => {
+//     const token = localStorage.getItem("accessToken");
+//     if (token) {
+//       config.headers = config.headers || {};
+//       config.headers["token"] = token;
+//     }
+//     return config;
+//   },
+//   (error) => Promise.reject(error)
+// );
+
+// const initialState: AuthSlice = {
+//   isLoggedIn: !!localStorage.getItem("userId"),
+//   modalOpen: false,
+//   userName: localStorage.getItem("userName") || "",
+//   userId: localStorage.getItem("userId") || "",
+//   accessToken: localStorage.getItem("accessToken") || "",
+//   Role: localStorage.getItem("Role") || "", // Load Role from localStorage
+// };
+
+// export const doLogin = createAsyncThunk(
+//   "authSlice/doLogin",
+//   async ({ userName, password }: LoginProps, { rejectWithValue }) => {
+//     try {
+//       const response = await axios.post<LoginResponse>(
+//         "http://localhost:5000/users/login",
+//         { userName, password }
+//       );
+
+//       if (response.data.accessToken) {
+//         localStorage.setItem("accessToken", response.data.accessToken);
+//         localStorage.setItem("Role", response.data.Role);
+
+//         toast.success("Login successful!");
+//       } else {
+//         toast.error("No access token received.");
+//       }
+
+//       return { 
+//         userName, 
+//         isLoggedIn: true, 
+//         userId: response.data.userId ?? "", 
+//         accessToken: response.data.accessToken,
+//         Role: response.data.Role
+//       };
+//     } catch (error: unknown) {
+//       console.log("Error in login:", error); // Log the error to inspect its structure
+    
+//       if (typeof error === "object" && error !== null && "response" in error) {
+//         const err = error as { response: { data: { message: string } } };
+//         const errorMessage = err.response?.data?.message || "Login failed";
+    
+//         toast.error(errorMessage);
+//         return rejectWithValue(errorMessage);
+//       }
+    
+//       toast.error("An unexpected error occurred");
+//       return rejectWithValue("An unexpected error occurred");
+//     }
+    
+//   }
+// );
+
+
+// export const checkAuthStatus = createAsyncThunk(
+//   "authSlice/checkAuthStatus",
+//   async (_, { rejectWithValue }) => {
+//     try {
+//       const userId = localStorage.getItem("userId");
+//       const userName = localStorage.getItem("userName");
+
+//       if (!userId || userId === "undefined") {
+//         console.error("Please login!");
+//         return rejectWithValue("Not authenticated");
+//       }
+
+//       return { userName: userName || "", userId, isLoggedIn: true };
+//     } catch (error) {
+//       console.error("⚠️ Error in checkAuthStatus:", error);
+//       return rejectWithValue("Not authenticated");
+//     }
+//   }
+// );
+
+// const loginSuccess = (state: AuthSlice, action: PayloadAction<{ userName: string; userId: string; isLoggedIn: boolean; accessToken: string; Role: string }>) => {
+//   state.userName = action.payload.userName;
+//   state.userId = action.payload.userId || "";
+//   state.isLoggedIn = true;
+//   state.accessToken = action.payload.accessToken || "";
+//   state.Role = action.payload.Role || ""; // Store Role
+
+//   if (action.payload.accessToken) {
+//     localStorage.setItem("userName", action.payload.userName);
+//     localStorage.setItem("userId", action.payload.userId || "");
+//     localStorage.setItem("Role", action.payload.Role); // Store Role
+//     localStorage.setItem("accessToken", action.payload.accessToken );
+//   } else {
+//     console.error("❌ No access token received, login may have failed.");
+//   }
+// };
+
+// export const authSlice = createSlice({
+//   name: "authSlice",
+//   initialState,
+//   reducers: {
+//     updateModal: (state, action: PayloadAction<boolean>) => {
+//       state.modalOpen = action.payload;
+//     },
+//     doLogout: (state) => {
+//       localStorage.removeItem("userName");
+//       localStorage.removeItem("userId");
+//       localStorage.removeItem("accessToken");
+//       localStorage.removeItem("Role");
+//       state.userName = "";
+//       state.userId = "";
+//       state.isLoggedIn = false;
+//       state.accessToken = "";
+//       state.Role = "";
+//     },
+//   },
+//   extraReducers: (builder) => {
+//     builder.addCase(doLogin.fulfilled, loginSuccess);
+//     builder.addCase(doLogin.rejected, (state) => {
+//       state.isLoggedIn = false;
+//       state.userName = "";
+//       state.userId = "";
+//       state.accessToken = "";
+//       state.Role = "";
+//     });
+
+//   },
+// });
+
+// export const { updateModal, doLogout } = authSlice.actions;
+// export default authSlice.reducer;
+
 import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
 import axios from "axios";
 import { AuthSlice } from "../../models/AuthSlice";
+import { toast } from "react-toastify";
 
 interface LoginProps {
   userName: string;
@@ -12,14 +171,12 @@ interface LoginResponse {
   accessToken: string;
   userId?: string;
   userName: string;
-  Role: string; // Added Role
+  Role: string;
 }
 
-// ✅ Set up Axios defaults
 axios.defaults.baseURL = "http://localhost:5000";
 axios.defaults.withCredentials = true;
 
-// ✅ Attach token to all outgoing requests
 axios.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("accessToken");
@@ -32,17 +189,15 @@ axios.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// ✅ Load userId, userName, and Role from localStorage
 const initialState: AuthSlice = {
   isLoggedIn: !!localStorage.getItem("userId"),
   modalOpen: false,
   userName: localStorage.getItem("userName") || "",
   userId: localStorage.getItem("userId") || "",
   accessToken: localStorage.getItem("accessToken") || "",
-  Role: localStorage.getItem("Role") || "", // Load Role from localStorage
+  Role: localStorage.getItem("Role") || "",
 };
 
-// ✅ Async thunk for user login
 export const doLogin = createAsyncThunk(
   "authSlice/doLogin",
   async ({ userName, password }: LoginProps, { rejectWithValue }) => {
@@ -51,32 +206,42 @@ export const doLogin = createAsyncThunk(
         "http://localhost:5000/users/login",
         { userName, password }
       );
-      
+
       if (response.data.accessToken) {
-        localStorage.setItem("authToken", response.data.accessToken);
-        localStorage.setItem("Role", response.data.Role);  // Store role
+        localStorage.setItem("accessToken", response.data.accessToken);
+        localStorage.setItem("userName", response.data.userName);
+        localStorage.setItem("userId", response.data.userId ?? "");
+        localStorage.setItem("Role", response.data.Role);
+
+        toast.success("Login successful!");
+
+        return {
+          userName: response.data.userName,
+          userId: response.data.userId ?? "",
+          accessToken: response.data.accessToken,
+          Role: response.data.Role,
+          isLoggedIn: true,
+        };
       } else {
-        console.error("❌ No access token received.");
+        toast.error("No access token received.");
+        return rejectWithValue("No access token received.");
       }
-      
-      return { 
-        userName, 
-        isLoggedIn: true, 
-        userId: response.data.userId ?? "", 
-        accessToken: response.data.accessToken,
-        Role: response.data.Role // Return role
-      };
     } catch (error: unknown) {
+      console.log("Error in login:", error);
+
       if (typeof error === "object" && error !== null && "response" in error) {
         const err = error as { response: { data: { message: string } } };
-        return rejectWithValue(err.response?.data?.message || "Login failed");
+        const errorMessage = err.response?.data?.message || "Login failed";
+        toast.error(errorMessage);
+        return rejectWithValue(errorMessage);
       }
+
+      toast.error("An unexpected error occurred");
       return rejectWithValue("An unexpected error occurred");
     }
   }
 );
 
-// ✅ Check authentication status
 export const checkAuthStatus = createAsyncThunk(
   "authSlice/checkAuthStatus",
   async (_, { rejectWithValue }) => {
@@ -97,25 +262,28 @@ export const checkAuthStatus = createAsyncThunk(
   }
 );
 
-// ✅ Handle successful login
-const loginSuccess = (state: AuthSlice, action: PayloadAction<{ userName: string; userId: string; isLoggedIn: boolean; accessToken: string; Role: string }>) => {
+const loginSuccess = (
+  state: AuthSlice,
+  action: PayloadAction<{
+    userName: string;
+    userId: string;
+    accessToken: string;
+    Role: string;
+    isLoggedIn: boolean;
+  }>
+) => {
   state.userName = action.payload.userName;
-  state.userId = action.payload.userId || "";
+  state.userId = action.payload.userId;
+  state.accessToken = action.payload.accessToken;
+  state.Role = action.payload.Role;
   state.isLoggedIn = true;
-  state.accessToken = action.payload.accessToken || "";
-  state.Role = action.payload.Role || ""; // Store Role
 
-  if (action.payload.accessToken) {
-    localStorage.setItem("userName", action.payload.userName);
-    localStorage.setItem("userId", action.payload.userId || "");
-    localStorage.setItem("Role", action.payload.Role); // Store Role
-    localStorage.setItem("accessToken", action.payload.accessToken );
-  } else {
-    console.error("❌ No access token received, login may have failed.");
-  }
+  localStorage.setItem("userName", action.payload.userName);
+  localStorage.setItem("userId", action.payload.userId);
+  localStorage.setItem("accessToken", action.payload.accessToken);
+  localStorage.setItem("Role", action.payload.Role);
 };
 
-// ✅ Create the authentication slice
 export const authSlice = createSlice({
   name: "authSlice",
   initialState,
@@ -123,16 +291,42 @@ export const authSlice = createSlice({
     updateModal: (state, action: PayloadAction<boolean>) => {
       state.modalOpen = action.payload;
     },
+    setAuthUser: (state, action) => {
+      state.userId = action.payload.userId;
+      state.userName = action.payload.userName;
+      state.Role = action.payload.Role;
+    },    
     doLogout: (state) => {
       localStorage.removeItem("userName");
       localStorage.removeItem("userId");
       localStorage.removeItem("accessToken");
       localStorage.removeItem("Role");
+
       state.userName = "";
       state.userId = "";
       state.isLoggedIn = false;
       state.accessToken = "";
       state.Role = "";
+    },
+    setUser: (
+      state,
+      action: PayloadAction<{
+        userName: string;
+        userId: string;
+        accessToken: string;
+        Role: string;
+      }>
+    ) => {
+      state.userName = action.payload.userName;
+      state.userId = action.payload.userId;
+      state.accessToken = action.payload.accessToken;
+      state.Role = action.payload.Role;
+      state.isLoggedIn = true;
+
+      localStorage.setItem("userName", action.payload.userName);
+      localStorage.setItem("userId", action.payload.userId);
+      localStorage.setItem("accessToken", action.payload.accessToken);
+      localStorage.setItem("Role", action.payload.Role);
     },
   },
   extraReducers: (builder) => {
@@ -144,16 +338,8 @@ export const authSlice = createSlice({
       state.accessToken = "";
       state.Role = "";
     });
-    // builder.addCase(checkAuthStatus.fulfilled, loginSuccess);
-    // builder.addCase(checkAuthStatus.rejected, (state) => {
-    //   state.isLoggedIn = false;
-    //   state.userName = "";
-    //   state.userId = "";
-    //   state.accessToken = "";
-    //   state.Role = "";
-    // });
   },
 });
 
-export const { updateModal, doLogout } = authSlice.actions;
+export const { updateModal,setAuthUser, doLogout, setUser } = authSlice.actions;
 export default authSlice.reducer;

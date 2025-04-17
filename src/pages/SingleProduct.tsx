@@ -1,5 +1,3 @@
-
-
 import { FC, useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { addToCart } from "../redux/features/cartSlice";
@@ -11,9 +9,10 @@ import { AiOutlineShoppingCart } from "react-icons/ai";
 import { FaHandHoldingDollar } from "react-icons/fa6";
 import ProductList from "../components/ProductList";
 import useAuth from "../hooks/useAuth";
-import { MdFavoriteBorder } from "react-icons/md";
+import { MdFavoriteBorder, MdFavorite } from "react-icons/md";
 import { useAppDispatch, useAppSelector } from "../redux/hooks";
-import { addWishlistItem } from "../redux/features/WishlistSlice";
+import { addWishlistItem, removeWishlistItem } from "../redux/features/WishlistSlice";
+
 import Modal from "react-modal";
 
 export interface CartItem {
@@ -26,6 +25,8 @@ const SingleProduct: FC = () => {
   const navigate = useNavigate();
   const { _id } = useParams<{ _id?: string }>();
   const [product, setProduct] = useState<Product | null>(null);
+  const [isInWishlist, setIsInWishlist] = useState(false);
+
   const [imgs, setImgs] = useState<string[]>([]);
   const [selectedImg, setSelectedImg] = useState<string>("");
   const [Category, setScategory] = useState<string>("");
@@ -34,7 +35,7 @@ const SingleProduct: FC = () => {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [formData, setFormData] = useState<Partial<Product>>({});
-  const [loading, setLoading] = useState(false);  // Loading state for the product details
+  const [loading, setLoading] = useState(false); // Loading state for the product details
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false); // State for delete confirmation modal
 
   const userId = useAppSelector((state) => state.authReducer.userId) || localStorage.getItem("userId");
@@ -48,7 +49,7 @@ const SingleProduct: FC = () => {
     }
 
     const fetchProduct = async () => {
-      setLoading(true);  // Set loading to true before fetching data
+      setLoading(true); // Set loading to true before fetching data
       try {
         const res = await fetch(`http://localhost:5000/products/${_id}`);
         const data = await res.json();
@@ -74,7 +75,7 @@ const SingleProduct: FC = () => {
         toast.error("Error fetching product details!");
         console.error(error);
       } finally {
-        setLoading(false);  // Set loading to false after fetch completes
+        setLoading(false);
       }
     };
 
@@ -99,7 +100,6 @@ const SingleProduct: FC = () => {
   const handleUpdateProduct = async () => {
     if (!product || !_id || !token) return;
 
-    // Simple validation: Ensure title and description are not empty
     if (!formData.title || !formData.description) {
       toast.error("Please fill in all fields");
       return;
@@ -122,7 +122,7 @@ const SingleProduct: FC = () => {
       setProduct(data.product);
       setIsModalOpen(false);
     } catch (error) {
-      toast.error("❌ Failed to update product.");
+      toast.error(" Failed to update product.");
       console.error("Error during update product", error);
     }
   };
@@ -130,7 +130,7 @@ const SingleProduct: FC = () => {
   const handleDeleteProduct = async () => {
     if (!_id || !token) return;
 
-    setIsDeleteModalOpen(false);  // Close the modal after confirming delete
+    setIsDeleteModalOpen(false); // Close the modal after confirming delete
 
     try {
       const res = await fetch(`http://localhost:5000/products/delete/${_id}`, {
@@ -151,20 +151,51 @@ const SingleProduct: FC = () => {
     }
   };
 
-  const addCart = () => {
-    requireAuth(() => {
-      if (!product) return;
+  const addCart = async () => {
+    requireAuth(async () => {
+      if (!product || !product._id) {
+        toast.error("Product not found!");
+        return;
+      }
 
-      dispatch(addToCart({
-        _id: product._id,
-        title: product.title,
-        price: product.price,
-        rating: product.rating,
-        category: product.category,
-        productId: product,
-        quantity: 1,
-      }));
-      toast.success("Added to cart!");
+      // Dispatch action to update Redux state
+      dispatch(
+        addToCart({
+          _id: product._id,
+          title: product.title,
+          price: product.price,
+          rating: product.rating,
+          category: product.category,
+          productId: product,
+          quantity: 1,
+        })
+      );
+
+      // Make a backend call to save cart to the database
+      try {
+        const res = await fetch("http://localhost:5000/cart/", {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`, // Send token for authentication
+          },
+          body: JSON.stringify({
+            userId, // Assuming the userId is already available
+            productId: product._id,
+            quantity: 1,
+          }),
+        });
+
+        const data = await res.json();
+        if (res.ok) {
+          toast.success("Added to cart!");
+        } else {
+          throw new Error(data.message || "Failed to add to cart.");
+        }
+      } catch (error) {
+        console.error("Error adding product to cart:", error);
+        toast.error("Failed to add product to cart!");
+      }
     });
   };
 
@@ -191,15 +222,17 @@ const SingleProduct: FC = () => {
           throw new Error(errorData.message);
         }
 
-        dispatch(addToCart({
-          _id: product._id,
-          title: product.title,
-          price: product.price,
-          rating: product.rating,
-          category: product.category,
-          productId: product,
-          quantity: 1,
-        }));
+        dispatch(
+          addToCart({
+            _id: product._id,
+            title: product.title,
+            price: product.price,
+            rating: product.rating,
+            category: product.category,
+            productId: product,
+            quantity: 1,
+          })
+        );
         toast.success("Order placed!");
       } catch (error) {
         console.error("Error order product:", error);
@@ -208,28 +241,85 @@ const SingleProduct: FC = () => {
     });
   };
 
-  const addWishlist = async () => {
+  // const addWishlist = async () => {
+  //   requireAuth(async () => {
+  //     if (!product || !_id) return;
+
+  //     const token = localStorage.getItem("accessToken");
+
+  //     if (!token) {
+  //       toast.error("Authentication failed! Please log in.");
+  //       return;
+  //     }
+  //     const imageUrl = product.image ? product.image : "";
+
+  //     const wishlistItem = {
+  //       id: _id,
+  //       productId: _id,
+  //       name: product.title,
+  //       price: product.price,
+  //       image: imageUrl,
+  //     };
+  //     setIsInWishlist(true);
+  //     dispatch(addWishlistItem(wishlistItem));
+  //     toast.success("Item added to your wishlist");
+  //   });
+  // };
+
+  const handleWishlistToggle = async () => {
     requireAuth(async () => {
       if (!product || !_id) return;
 
       const token = localStorage.getItem("accessToken");
-
       if (!token) {
         toast.error("Authentication failed! Please log in.");
         return;
       }
-      const imageUrl = product.image ? product.image : "";
 
       const wishlistItem = {
         id: _id,
         productId: _id,
         name: product.title,
         price: product.price,
-        image: imageUrl,
+        image: imgs[0] || "",
       };
 
-      dispatch(addWishlistItem(wishlistItem));
-      toast.success("Item added to your wishlist");
+      try {
+        if (isInWishlist) {
+          await fetch(`http://localhost:5000/wishlist/remove/${_id}`, {
+            method: "DELETE",
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          });
+
+          dispatch(removeWishlistItem({ productId: _id }));
+          setIsInWishlist(false);
+          toast.success("Item removed from wishlist");
+        } else {
+          await fetch("http://localhost:5000/wishlist/add", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({
+              userId,
+              productId: _id,
+              name: product.title,
+              price: product.price,
+              image: imgs[0] || "",
+            }),
+          });
+
+          dispatch(addWishlistItem(wishlistItem));
+          setIsInWishlist(true);
+          toast.success("Item added to wishlist");
+        }
+      } catch (error) {
+        console.error("Wishlist toggle error:", error);
+        toast.error("Failed to update wishlist");
+      }
     });
   };
 
@@ -244,7 +334,9 @@ const SingleProduct: FC = () => {
               <img
                 key={img}
                 src={img}
-                className={`w-12 cursor-pointer hover:border-2 hover:border-black ${img === selectedImg ? "border-2 border-black" : ""}`}
+                className={`w-12 cursor-pointer hover:border-2 hover:border-black ${
+                  img === selectedImg ? "border-2 border-black" : ""
+                }`}
                 onClick={() => setSelectedImg(img)}
               />
             ))}
@@ -254,14 +346,31 @@ const SingleProduct: FC = () => {
         <div className="px-2">
           <h2 className="text-2xl">{product?.title}</h2>
           {product?.rating && <RatingStar rating={product.rating} />}
-          {product?.discountPercentage && <PriceSection discountPercentage={product.discountPercentage} price={product.price} />}
+          {product?.discountPercentage && (
+            <PriceSection discountPercentage={product.discountPercentage} price={product.price} />
+          )}
 
           {product && (
             <table className="mt-2">
               <tbody>
-                {product.brand && <tr><td className="pr-2 font-bold">Brand</td><td>{product.brand}</td></tr>}
-                {typeof product.category === "object" && product.category?.name && <tr><td className="pr-2 font-bold">Category</td><td>{product.category.name}</td></tr>}
-                {product.description && <tr><td className="pr-2 font-bold">Description</td><td>{product.description}</td></tr>}
+                {product.brand && (
+                  <tr>
+                    <td className="pr-2 font-bold">Brand</td>
+                    <td>{product.brand}</td>
+                  </tr>
+                )}
+                {typeof product.category === "object" && product.category?.name && (
+                  <tr>
+                    <td className="pr-2 font-bold">Category</td>
+                    <td>{product.category.name}</td>
+                  </tr>
+                )}
+                {product.description && (
+                  <tr>
+                    <td className="pr-2 font-bold">Description</td>
+                    <td>{product.description}</td>
+                  </tr>
+                )}
               </tbody>
             </table>
           )}
@@ -276,23 +385,27 @@ const SingleProduct: FC = () => {
           </div>
 
           <div className="flex mt-4 items-center space-x-2">
-            <button className="text-xl dark:text-white" onClick={addWishlist}><MdFavoriteBorder /></button>
+            <button className="flex items-center text-red-500 text-2xl ml-4" onClick={handleWishlistToggle}>
+              {isInWishlist ? <MdFavorite /> : <MdFavoriteBorder />}
+            </button>
+
             <span>Add to Wishlist</span>
           </div>
 
           {/* Conditionally render buttons based on role */}
-          {Role === "admin" && (
+          {(Role === "admin" || (Role === "seller" && product?.seller === userId)) && (
             <div className="mt-6 space-x-3">
-              <button onClick={() => setIsModalOpen(true)} className="bg-blue-600 text-white px-4 py-2 rounded">Edit Product</button>
-              <button onClick={() => setIsDeleteModalOpen(true)} className="bg-red-600 text-white px-4 py-2 rounded">Delete Product</button>
+              <button onClick={() => setIsModalOpen(true)} className="bg-blue-600 text-white px-4 py-2 rounded">
+                Edit Product
+              </button>
+              <button onClick={() => setIsDeleteModalOpen(true)} className="bg-red-600 text-white px-4 py-2 rounded">
+                Delete Product
+              </button>
             </div>
           )}
         </div>
       </div>
-
       {similar.length > 0 && <ProductList title="Similar Products" products={similar} />}
-
-      {/* Modal for updating product */}
       <Modal
         isOpen={isModalOpen}
         onRequestClose={() => {
@@ -320,12 +433,19 @@ const SingleProduct: FC = () => {
             placeholder="Description"
           />
           <div className="flex justify-between space-x-2">
-            <button type="button" onClick={handleUpdateProduct} className="w-full bg-blue-600 text-white p-2 rounded">Update</button>
-            <button type="button" onClick={() => setIsModalOpen(false)} className="w-full bg-gray-600 text-white p-2 rounded">Cancel</button>
+            <button type="button" onClick={handleUpdateProduct} className="w-full bg-blue-600 text-white p-2 rounded">
+              Update
+            </button>
+            <button
+              type="button"
+              onClick={() => setIsModalOpen(false)}
+              className="w-full bg-gray-600 text-white p-2 rounded"
+            >
+              Cancel
+            </button>
           </div>
         </form>
       </Modal>
-
       {/* Modal for delete confirmation */}
       <Modal
         isOpen={isDeleteModalOpen}
@@ -334,8 +454,12 @@ const SingleProduct: FC = () => {
       >
         <h2 className="text-xl font-bold mb-4">Are you sure you want to delete this product?</h2>
         <div className="flex justify-between space-x-2">
-          <button onClick={handleDeleteProduct} className="w-full bg-red-600 text-white p-2 rounded">Yes, Delete</button>
-          <button onClick={() => setIsDeleteModalOpen(false)} className="w-full bg-gray-600 text-white p-2 rounded">Cancel</button>
+          <button onClick={handleDeleteProduct} className="w-full bg-red-600 text-white p-2 rounded">
+            Yes, Delete
+          </button>
+          <button onClick={() => setIsDeleteModalOpen(false)} className="w-full bg-gray-600 text-white p-2 rounded">
+            Cancel
+          </button>
         </div>
       </Modal>
     </div>

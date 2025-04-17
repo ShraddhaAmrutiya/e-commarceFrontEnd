@@ -63,7 +63,7 @@ const Wishlist: React.FC = () => {
 
               {/* Product Details */}
               <h3 className="text-lg font-semibold mt-2">
-                {product.title || "Unknown Product"}
+                {product.title}
               </h3>
               <p className="text-gray-600">
                 Price: ₹{product.price ? product.price.toFixed(2) : "N/A"}

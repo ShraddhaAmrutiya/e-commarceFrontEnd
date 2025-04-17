@@ -23,7 +23,6 @@ const Login: FC = () => {
     }
   };
 
-  // ✅ Redirect on login success
   useEffect(() => {
     if (isLoggedIn && userId) {
       navigate("/");

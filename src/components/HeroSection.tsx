@@ -14,11 +14,11 @@ const HeroSection: FC = () => {
               puma shouse
             </h2>
             <h3 className="text-2xl dark:text-white">
-              Exclusive offer <span className="text-red-600">-10%</span> off
+              Exclusive offer <span className="text-red-600">-15%</span> off
               this week
             </h3>
             <Link
-              to="/products/67ebde56a8ee7c1965d73659"
+              to="/products/67ff76a134124cec91fb958a"
               data-test="hero-btn"
               className="inline-block bg-white rounded-md px-6 py-3 hover:bg-blue-500 hover:text-white"
             >
@@ -27,7 +27,7 @@ const HeroSection: FC = () => {
           </div>
         </div>
         <div>
-          <img src="	http://localhost:5000/uploads/1743511126721-shouse.jpg" alt="Smart phone" className="ml-auto" />
+          <img src="	http://localhost:5000/uploads/1744795297865-shouse.jpg" alt="Shouse" className="ml-auto" />
         </div>
       </div>
     </div>

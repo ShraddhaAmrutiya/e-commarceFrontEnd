@@ -1,12 +1,9 @@
-
-
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { useEffect, useState } from 'react';
 import { useAppSelector } from '../redux/hooks';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-
 
 interface Product {
   _id: string;
@@ -27,7 +24,7 @@ interface CartItem {
 interface CartResponse {
   cartItems: CartItem[];
   cartCount: number;
-  message:string
+  message: string;
 }
 
 const Cart = () => {
@@ -35,12 +32,17 @@ const Cart = () => {
   const [error, setError] = useState<string>('');
   const [showModal, setShowModal] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
-  const [showNotification, setShowNotification] = useState(false);
+  const [
+    // showNotification
+    , setShowNotification] = useState(false);
+  const [itemToRemove, setItemToRemove] = useState<string | null>(null); 
 
   const userId =
     useAppSelector((state) => state.authReducer.userId) || localStorage.getItem('userId');
-  const token = localStorage.getItem('authToken');
+  const token = localStorage.getItem('accessToken');
+
   const navigate = useNavigate();
+
   useEffect(() => {
     const fetchCartItems = async () => {
       try {
@@ -48,17 +50,16 @@ const Cart = () => {
           setError('User is not authenticated.');
           return;
         }
-  
+
         const response = await axios.get<CartResponse>(
           `http://localhost:5000/cart/${userId}`,
           {
             headers: { Authorization: `Bearer ${token}` },
           }
         );
-  
-        console.log('Cart Items Response:', response.data.cartItems); // Log the response for inspection
+
         setCartItems(response.data.cartItems);
-      }catch (err) {
+      } catch (err) {
         console.error('Error fetching cart items:', err);
         setShowNotification(true); // Show the login popup notification
         setTimeout(() => {
@@ -66,39 +67,54 @@ const Cart = () => {
         }, 3000);
       }
     };
-  
+
     if (userId && token) {
       fetchCartItems();
     }
   }, [userId, token]);
-  
 
   const handleRemoveFromCart = async (productId: string) => {
+    if (cartItems.length === 1) {
+      // If this is the last item in the cart, show the confirmation modal
+      setItemToRemove(productId);
+      setShowModal(true);
+    } else {
+      // Directly remove the item if it's not the last one
+      await removeItem(productId);
+    }
+  };
+
+  const removeItem = async (productId: string) => {
     try {
       if (!userId || !token) return;
-  
+
       const config = {
         headers: { Authorization: `Bearer ${token}` },
         data: { userId, productId },
       };
-  
-      // Send DELETE request to remove the item from the database
+
       const response = await axios.delete('http://localhost:5000/cart', config);
-  
+
       if (response.status === 200) {
-        // Update the frontend state immediately after successful database removal
         setCartItems(cartItems.filter((item) => item.productId._id !== productId));
-        toast.success('Item removed from cart successfully!');
+        // toast.success('Item removed from cart successfully!');
       } else {
         throw new Error('Failed to remove item from cart.');
       }
     } catch (err) {
       console.error('Error removing item from cart:', err);
       setError('Failed to remove item from cart.');
-      toast.error('Failed to remove item from cart.'); // Show error message if something goes wrong
+      toast.error('Failed to remove item from cart.');
     }
   };
-  
+
+  const confirmRemoveLastItem = async () => {
+    if (itemToRemove) {
+      await removeItem(itemToRemove);
+      setShowModal(false);
+    }
+  };
+
   const confirmClearCart = async () => {
     try {
       await axios.delete(`http://localhost:5000/cart/${userId}`, {
@@ -112,36 +128,13 @@ const Cart = () => {
     }
   };
 
-  // const handleQuantityChange = async (
-  //   userId: string,
-  //   productId: string,
-  //   newQuantity: number
-  // ) => {
-  //   if (newQuantity < 1) return;
-
-  //   try {
-  //     const { data } = await axios.put<CartResponse>(
-  //       'http://localhost:5000/cart',
-  //       { userId, productId, quantity: newQuantity },
-  //       {
-  //         headers: { Authorization: `Bearer ${token}` },
-  //       }
-  //     );
-
-  //     setCartItems(data.cartItems);
-  //   } catch (err) {
-  //     console.error('Error updating item quantity:', err);
-  //     setError('Failed to update quantity.');
-  //   }
-  // };
-
   const handleQuantityChange = async (
     userId: string,
     productId: string,
     newQuantity: number
   ) => {
     if (newQuantity < 1) return;
-  
+
     try {
       const { data } = await axios.put<CartResponse>(
         'http://localhost:5000/cart',
@@ -150,16 +143,16 @@ const Cart = () => {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
-  
+
       setCartItems(data.cartItems);
-      toast.success(data.message); // ✅ Show green success message
+      toast.success(data.message);
     } catch (err) {
       console.error('Error updating item quantity:', err);
       setError('Failed to update quantity.');
-      toast.error('Failed to update quantity.'); // Optional error toast
+      toast.error('Failed to update quantity.');
     }
   };
-  
+
   const handleCheckout = () => {
     setLoading(true);
     setTimeout(() => {
@@ -174,9 +167,6 @@ const Cart = () => {
 
   return (
     <div className="container relative">
-      {/* Cart Count Box */}
-    
-
       <h1 className="text-center text-2xl font-bold mb-6 mt-6">🛒 Shopping Cart</h1>
 
       <div className="cart-items space-y-6">
@@ -218,11 +208,6 @@ const Cart = () => {
                 </button>
               </div>
             </div>
-            {showNotification && (
-  <div className="fixed bottom-4 left-1/2 transform -translate-x-1/2 bg-red-600 text-white py-2 px-6 rounded-lg shadow-lg">
-    <span>Please log in again to view your cart</span>
-  </div>
-)}
 
             <button
               className="bg-red-500 text-white px-4 py-2 rounded"
@@ -263,15 +248,28 @@ const Cart = () => {
       {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
           <div className="bg-white p-6 rounded-lg shadow-lg text-center w-96">
-            <h2 className="text-xl font-bold mb-4">Clear Cart</h2>
-            <p className="mb-6">Are you sure you want to clear your cart?</p>
+            <h2 className="text-xl font-bold mb-4">
+              {itemToRemove ? 'Are you sure you want to remove this item?' : 'Clear Cart'}
+            </h2>
+            <p className="mb-6">
+              {itemToRemove ? 'You are about to remove the last item in your cart.' : 'Are you sure you want to clear your cart?'}
+            </p>
             <div className="flex justify-center space-x-4">
-              <button
-                className="bg-red-500 text-white px-4 py-2 rounded"
-                onClick={confirmClearCart}
-              >
-                Yes, Clear
-              </button>
+              {itemToRemove ? (
+                <button
+                  className="bg-red-500 text-white px-4 py-2 rounded"
+                  onClick={confirmRemoveLastItem}
+                >
+                  Yes, Remove
+                </button>
+              ) : (
+                <button
+                  className="bg-red-500 text-white px-4 py-2 rounded"
+                  onClick={confirmClearCart}
+                >
+                  Yes, Clear
+                </button>
+              )}
               <button
                 className="bg-gray-300 text-black px-4 py-2 rounded"
                 onClick={() => setShowModal(false)}

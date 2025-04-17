@@ -19,7 +19,6 @@ const LoginModal: FC = () => {
     dispatch(doLogin({ userName, password }));
   };
 
-  // ✅ Auto-close modal on successful login
   useEffect(() => {
     if (userId) {
       dispatch(updateModal(false));

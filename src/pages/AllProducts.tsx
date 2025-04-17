@@ -75,7 +75,7 @@ const AllProducts: FC = () => {
 
   const sortProducts = (sortValue: string) => {
     if (sortValue === "default") {
-      setCurrentProducts(allProducts); // ✅ Reset to original order
+      setCurrentProducts(allProducts); 
       return;
     }
     const sortedProducts = [...currentProducts].sort((a, b) => {
