@@ -5,7 +5,7 @@
  
   const RatingStar: FC<{ rating?: number }> = ({ rating = 0 }) => {
     if (typeof rating !== "number" || isNaN(rating)) {
-      console.error("Invalid rating:", rating);
+      // console.error("Invalid rating:", rating);
       return null;
     }
   

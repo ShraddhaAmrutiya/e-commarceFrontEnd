@@ -29,6 +29,9 @@ import Register from "./components/Register"
 import Login from "./pages/login";
 import AddCategory from "./components/AddCategory";
 import AddProduct from "./components/Addproduct";
+import CheckoutPage from "./pages/CheckoutPage";
+import OrdersPage from "./pages//orderPge";
+
 // import { useEffe ct } from "react";
 import axios from "axios";
 function AppContent() {
@@ -76,8 +79,11 @@ useEffect(() => {
           <Route path="/wishlist" element={<Wishlist />} />
           <Route path="/account" element={<Profile />} />
           <Route path="/addCategory" element={<AddCategory />} />
+          <Route path="/checkout" element={<CheckoutPage />} />
+          <Route path="/orders" element={<OrdersPage />} />
+
           <Route path="/Addproduct" element={<AddProduct />} />
-          <Route path="/cart/:_userId" element={<Cart />} /> {/* Add Cart route here */}
+          <Route path="/cart/:_userId" element={<Cart />} />
         </Route>
       </Routes>
       <Toaster position="bottom-center" reverseOrder={false} />

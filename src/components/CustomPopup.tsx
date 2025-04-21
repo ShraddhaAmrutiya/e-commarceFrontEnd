@@ -1,7 +1,7 @@
-import { FC, useState } from "react";
+
+import { FC, useEffect, useRef, useState } from "react";
 import { useAppDispatch, useAppSelector } from "../redux/hooks";
 import {
-  // MdFavoriteBorder,
   MdOutlineAccountCircle,
   MdOutlineLogout,
 } from "react-icons/md";
@@ -12,6 +12,7 @@ const CustomPopup: FC = () => {
   const dispatch = useAppDispatch();
   const [isVisible, setVisible] = useState(false);
   const userName = useAppSelector((state) => state.authReducer.userName);
+  const popupRef = useRef<HTMLDivElement>(null);
 
   const handlePopup = () => {
     setVisible((v) => !v);
@@ -26,8 +27,28 @@ const CustomPopup: FC = () => {
     setVisible(false);
   };
 
+  // Outside click handling
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (popupRef.current && !popupRef.current.contains(e.target as Node)) {
+        hidePopup();
+      }
+    };
+
+    if (isVisible) {
+      document.addEventListener("mousedown", handleClickOutside);
+    } else {
+      document.removeEventListener("mousedown", handleClickOutside);
+    }
+
+    // Cleanup
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isVisible]);
+
   return (
-    <div className="relative font-karla">
+    <div className="relative font-karla" ref={popupRef}>
       <div
         className="inline-block cursor-pointer hover:opacity-85 dark:text-white"
         onClick={handlePopup}
@@ -52,7 +73,7 @@ const CustomPopup: FC = () => {
                   </Link>
                 </td>
               </tr>
-             
+
               <tr>
                 <td className="text-center">
                   <MdOutlineLogout />
@@ -74,5 +95,3 @@ const CustomPopup: FC = () => {
 };
 
 export default CustomPopup;
-
-

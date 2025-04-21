@@ -173,6 +173,7 @@
 // };
 
 // export default AddProduct;
+
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import toast from "react-hot-toast";
@@ -199,7 +200,7 @@ const AddProduct = () => {
     description: "",
     price: "",
     salePrice: "",
-    discountPercentage: "",
+    discountPercentage: "0",
     stock: "",
     brand: "",
     rating: "",
@@ -225,7 +226,7 @@ const AddProduct = () => {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
 
-    if (name === 'discountPercentage') {
+    if (name === "discountPercentage") {
       // Calculate sale price based on discount percentage and price
       const discount = parseFloat(value);
       const price = parseFloat(formData.price);
@@ -370,36 +371,25 @@ const AddProduct = () => {
 
         <div className="form-group">
           <label>
-            Price <span style={{ color: "red" }}>*</span>
+            Price (₹) <span style={{ color: "red" }}>*</span>
           </label>
           <input type="number" name="price" value={formData.price} onChange={handleChange} required />
           {formErrors.price && <p className="error">{formErrors.price}</p>}
         </div>
 
         <div className="form-group">
-          <label>
-            Sale Price <span style={{ color: "gray" }}>(optional)</span>
-          </label>
-          <input type="number" name="salePrice" value={formData.salePrice} onChange={handleChange} />
-          {formErrors.salePrice && <p className="error">{formErrors.salePrice}</p>}
+          <label>Sale Price (auto-calculated)</label>
+          <input type="number" name="salePrice" value={formData.salePrice} disabled />
         </div>
 
         <div className="form-group">
           <label>
             Discount % <span style={{ color: "gray" }}>(optional)</span>
           </label>
-          <input
-            type="number"
-            name="discountPercentage"
-            value={formData.discountPercentage}
-            onChange={handleChange}
-          />
+          <input type="number" name="discountPercentage" value={formData.discountPercentage} onChange={handleChange}  min="1"
+  max="100"/>
           {formErrors.discountPercentage && <p className="error">{formErrors.discountPercentage}</p>}
         </div>
-
-        <p style={{ fontSize: "0.9rem", color: "#888", marginTop: "-0.5rem", marginBottom: "1rem" }}>
-          <strong>Note:</strong> Fill either <em>Sale Price</em> or <em>Discount Percentage</em>
-        </p>
 
         <div className="form-group">
           <label>
