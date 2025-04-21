@@ -31,7 +31,7 @@ const SingleProduct: FC = () => {
   const [Category, setScategory] = useState<string>("");
   const [similar, setSimilar] = useState<Product[]>([]);
   const { requireAuth } = useAuth();
-
+  const [formErrors, setFormErrors] = useState<{ [key: string]: string }>({});
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [formData, setFormData] = useState<Partial<Product>>({});
   const [loading, setLoading] = useState(false); // Loading state for the product details
@@ -93,83 +93,64 @@ const SingleProduct: FC = () => {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-  
-    if (name === 'discountPercentage') {
-      // Parse the discount percentage to a number (it will be a string from the input, so we need to convert it to a number)
+
+    if (name === "discountPercentage") {
       const discount = parseFloat(value);
-  
-      // Ensure the price is a number (fallback to 0 if undefined or invalid)
+
       const price = parseFloat(formData.price?.toString() || "0");
-  
+
       if (!isNaN(discount) && !isNaN(price)) {
-        // Calculate the sale price
         const salePrice = price - (price * discount) / 100;
-  
-        // Set the updated state, storing discountPercentage as a number
+
         setFormData((prev) => ({
           ...prev,
           [name]: discount, // Store discount as a number
           salePrice: parseFloat(salePrice.toFixed(2)), // Store salePrice as a number
         }));
       } else {
-        // If discount or price is invalid, just update the discount field
         setFormData((prev) => ({
           ...prev,
           [name]: discount, // Store discount as a number
         }));
       }
     } else {
-      // For other fields, just update the form data normally
       setFormData((prev) => ({ ...prev, [name]: value }));
     }
   };
-  
-  // const handleUpdateProduct = async () => {
-  //   if (!product || !_id || !token) return;
 
-  //   if (!formData.title || !formData.description) {
-  //     toast.error("Please fill in all fields");
-  //     return;
-  //   }
+  const validateForm = () => {
+    const errors: { [key: string]: string } = {}; // Declare errors as an object
 
-  //   try {
-  //     const res = await fetch(`http://localhost:5000/products/update/${_id}`, {
-  //       method: "PUT",
-  //       headers: {
-  //         "Content-Type": "application/json",
-  //         Authorization: `Bearer ${token}`,
-  //       },
-  //       body: JSON.stringify(formData),
-  //     });
-   
-  //     const data = await res.json();
-  //     if (!res.ok) {
-  //       throw new Error(data.message || "Update failed");
-  //     }
-   
-  //     toast.success("Product updated!");
-  //     setProduct(data.product);
-  //     setIsModalOpen(false);
-  //   } catch (error) {
-  //     console.error("Error during update product:", error); // This will give more detailed error info
-  //     toast.error(`Failed to update product: ${(error as Error).message}`); // Displaying error message
-  //   }
-  // }
+    if (!formData.title || formData.title.trim() === "") errors.title = "Title is required.";
+    if (formData.price === undefined || formData.price <= 0) errors.price = "Price must be greater than 0.";
+    if (
+      formData.discountPercentage !== undefined &&
+      (formData.discountPercentage < 0 || formData.discountPercentage > 100)
+    )
+      errors.discountPercentage = "Discount must be between 0 and 100.";
+    if (formData.stock === undefined || formData.stock < 0) errors.stock = "Stock must be a positive number.";
+    if (formData.rating !== undefined && (formData.rating < 0 || formData.rating > 5))
+      errors.rating = "Rating must be between 0 and 5.";
+    if (!formData.brand || formData.brand.trim() === "") errors.brand = "Brand is required.";
+
+    return errors;
+  };
+
   const handleUpdateProduct = async () => {
     if (!product || !_id || !token) return;
-  
-    // if (!formData.title || !formData.description) {
-    //   toast.error("Please fill in all fields");
-    //   return;
-    // }
-  
+
+    const errors = validateForm();
+    setFormErrors(errors); // Update form errors state
+
+    if (Object.keys(errors).length > 0) return;
+
     try {
       const updatedData = {
         ...formData,
         image: selectedImg, // Just pass the selectedImg as a string instead of an array
       };
-      console.log("image..................",updatedData.image);
-  
+      console.log("image..................", updatedData.image);
+
       const res = await fetch(`http://localhost:5000/products/update/${_id}`, {
         method: "PUT",
         headers: {
@@ -178,12 +159,12 @@ const SingleProduct: FC = () => {
         },
         body: JSON.stringify(updatedData),
       });
-  
+
       const data = await res.json();
       if (!res.ok) {
         throw new Error(data.message || "Update failed");
       }
-  
+
       toast.success("Product updated!");
       setProduct(data.product);
       setIsModalOpen(false);
@@ -192,7 +173,7 @@ const SingleProduct: FC = () => {
       toast.error(`Failed to update product: ${(error as Error).message}`);
     }
   };
-  
+
   const handleDeleteProduct = async () => {
     if (!_id || !token) return;
 
@@ -237,7 +218,6 @@ const SingleProduct: FC = () => {
         })
       );
 
-      // Make a backend call to save cart to the database
       try {
         const res = await fetch("http://localhost:5000/cart/", {
           method: "PUT",
@@ -409,8 +389,8 @@ const SingleProduct: FC = () => {
           </div>
         </div>
 
-        <div className="px-2">
-          <h2 className="text-2xl">{product?.title}</h2>
+        <div className="px-2 max-h-[80vh] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-400">
+        <h2 className="text-2xl">{product?.title}</h2>
           {product?.rating && <RatingStar rating={product.rating} />}
           {product?.discountPercentage && (
             <PriceSection discountPercentage={product.discountPercentage} price={product.price} />
@@ -494,144 +474,180 @@ const SingleProduct: FC = () => {
       </div>
       {similar.length > 0 && <ProductList title="Similar Products" products={similar} />}
       <Modal
-        isOpen={isModalOpen}
-        onRequestClose={() => {
-          setIsModalOpen(false);
-          setFormData({});
-        }}
-        className="bg-white p-6 rounded-md shadow-md max-w-md mx-auto mt-20"
-      >
-        <h2 className="text-xl font-bold mb-4">Edit Product</h2>
-        <form className="space-y-3">
-  <div className="space-y-1">
-    <label htmlFor="title" className="text-sm font-medium text-gray-700">Title</label>
-    <input
-      type="text"
-      name="title"
-      id="title"
-      value={formData.title || ""}
-      onChange={handleInputChange}
-      className="w-full p-2 border"
-      placeholder="Title"
-    />
+  isOpen={isModalOpen}
+  onRequestClose={() => {
+    setIsModalOpen(false);
+    setFormData({});
+  }}
+  className="bg-white p-5 rounded-md shadow-md max-w-md h-[80vh] mx-auto mt-20 overflow-hidden"
+>
+  <h2 className="text-xl font-bold mb-4">Edit Product</h2>
+
+  <div className="overflow-y-auto h-[calc(100%-2rem)] pr-2 space-y-3">
+    <form className="space-y-3">
+      <div className="space-y-1">
+        <label htmlFor="title" className="text-sm font-medium text-gray-700">
+          Title
+        </label>
+        <input
+          type="text"
+          name="title"
+          id="title"
+          value={formData.title || ""}
+          onChange={handleInputChange}
+          className="w-full p-2 border"
+          placeholder="Title"
+        />
+        {formErrors.title && <p className="text-red-500 text-sm">{formErrors.title}</p>}
+      </div>
+
+      {/* Description Field */}
+      <div className="space-y-1">
+        <label htmlFor="description" className="text-sm font-medium text-gray-700">
+          Description
+        </label>
+        <input
+          type="text"
+          name="description"
+          id="description"
+          value={formData.description || ""}
+          onChange={handleInputChange}
+          className="w-full p-2 border"
+          placeholder="Description"
+        />
+        {formErrors.description && <p className="text-red-500 text-sm">{formErrors.description}</p>}
+      </div>
+
+      {/* Price Field */}
+      <div className="space-y-1">
+        <label htmlFor="price" className="text-sm font-medium text-gray-700">
+          Price
+        </label>
+        <input
+          type="number"
+          name="price"
+          id="price"
+          value={formData.price || ""}
+          onChange={handleInputChange}
+          className="w-full p-2 border"
+          placeholder="Price"
+        />
+        {formErrors.price && <p className="text-red-500 text-sm">{formErrors.price}</p>}
+      </div>
+
+      {/* Sale Price Field */}
+      <div className="space-y-1">
+        <label htmlFor="salePrice" className="text-sm font-medium text-gray-700">
+          Sale Price (sale price is disabled , it update on the basis of discount %)
+        </label>
+        <input
+          type="number"
+          name="salePrice"
+          id="salePrice"
+          value={formData.salePrice || ""}
+          className="w-full p-2 border"
+          placeholder="Sale Price"
+          disabled // This disables the field
+        />
+      </div>
+
+      {/* Discount Percentage Field */}
+      <div className="space-y-1">
+        <label htmlFor="discountPercentage" className="text-sm font-medium text-gray-700">
+          Discount %
+        </label>
+        <input
+          type="number"
+          name="discountPercentage"
+          id="discountPercentage"
+          value={formData.discountPercentage}
+          onChange={handleInputChange} // Update the formData
+          className="w-full p-2 border"
+          placeholder="Discount %"
+          min="0"
+          max="100"
+        />
+        {formErrors.discountPercentage && <p className="text-red-500 text-sm">{formErrors.discountPercentage}</p>}
+      </div>
+
+      {/* Stock Quantity Field */}
+      <div className="space-y-1">
+        <label htmlFor="stock" className="text-sm font-medium text-gray-700">
+          Stock Quantity
+        </label>
+        <input
+          type="number"
+          name="stock"
+          id="stock"
+          value={formData.stock || ""}
+          onChange={handleInputChange}
+          className="w-full p-2 border"
+          placeholder="Stock Quantity"
+        />
+        {formErrors.stock && <p className="text-red-500 text-sm">{formErrors.stock}</p>}
+      </div>
+
+      {/* Rating Field */}
+      <div className="space-y-1">
+        <label htmlFor="rating" className="text-sm font-medium text-gray-700">
+          Rating
+        </label>
+        <input
+          type="number"
+          name="rating"
+          id="rating"
+          min="0"
+          max="5"
+          step="0.1"
+          value={formData.rating || ""}
+          onChange={handleInputChange}
+          className="w-full p-2 border"
+          placeholder="Rating (0 to 5)"
+        />
+        {formErrors.rating && <p className="text-red-500 text-sm">{formErrors.rating}</p>}
+      </div>
+
+      {/* Brand Field */}
+      <div className="space-y-1">
+        <label htmlFor="brand" className="text-sm font-medium text-gray-700">
+          Brand
+        </label>
+        <input
+          type="text"
+          name="brand"
+          id="brand"
+          value={formData.brand || ""}
+          onChange={handleInputChange}
+          className="w-full p-2 border"
+          placeholder="Brand"
+        />
+        {formErrors.brand && <p className="text-red-500 text-sm">{formErrors.brand}</p>}
+      </div>
+
+      {/* Image Upload Field */}
+      <div className="form-group">
+        <label>Image</label>
+        <input type="file" name="image" accept="image/*" onChange={handleUpdateProduct} />
+        {formErrors.image && <p className="text-red-500 text-sm">{formErrors.image}</p>}
+      </div>
+
+      {/* Buttons */}
+      <div className="flex justify-between space-x-2">
+        <button type="button" onClick={handleUpdateProduct} className="w-full bg-blue-600 text-white p-2 rounded">
+          Update
+        </button>
+        <button
+          type="button"
+          onClick={() => setIsModalOpen(false)}
+          className="w-full bg-gray-600 text-white p-2 rounded"
+        >
+          Cancel
+        </button>
+      </div>
+    </form>
   </div>
+</Modal>
 
-  <div className="space-y-1">
-    <label htmlFor="description" className="text-sm font-medium text-gray-700">Description</label>
-    <input
-      type="text"
-      name="description"
-      id="description"
-      value={formData.description || ""}
-      onChange={handleInputChange}
-      className="w-full p-2 border"
-      placeholder="Description"
-    />
-  </div>
-
-  <div className="space-y-1">
-    <label htmlFor="price" className="text-sm font-medium text-gray-700">Price</label>
-    <input
-      type="number"
-      name="price"
-      id="price"
-      value={formData.price || ""}
-      onChange={handleInputChange}
-      className="w-full p-2 border"
-      placeholder="Price"
-    />
-  </div>
-
-<div className="space-y-1">
-  <label htmlFor="salePrice" className="text-sm font-medium text-gray-700">Sale Price</label>
-  <input
-    type="number"
-    name="salePrice"
-    id="salePrice"
-    value={formData.salePrice || ""}
-    className="w-full p-2 border"
-    placeholder="Sale Price"
-    disabled // This disables the field
-  />
-</div>
-
-<div className="space-y-1">
-  <label htmlFor="discountPercentage" className="text-sm font-medium text-gray-700">Discount %</label>
-  <input
-    type="number"
-    name="discountPercentage"
-    id="discountPercentage"
-    value={formData.discountPercentage || ""}
-    onChange={handleInputChange} // Update the formData
-    className="w-full p-2 border"
-    placeholder="Discount %"
-  />
-</div>
-
-
-  <div className="space-y-1">
-    <label htmlFor="stock" className="text-sm font-medium text-gray-700">Stock Quantity</label>
-    <input
-      type="number"
-      name="stock"
-      id="stock"
-      value={formData.stock || ""}
-      onChange={handleInputChange}
-      className="w-full p-2 border"
-      placeholder="Stock Quantity"
-    />
-  </div>
-  <div className="space-y-1">
-  <label htmlFor="rating" className="text-sm font-medium text-gray-700">Rating</label>
-  <input
-    type="number"
-    name="rating"
-    id="rating"
-    min="0"
-    max="5"
-    step="0.1"
-    value={formData.rating || ""}
-    onChange={handleInputChange}
-    className="w-full p-2 border"
-    placeholder="Rating (0 to 5)"
-  />
-</div>
-
-  <div className="space-y-1">
-    <label htmlFor="brand" className="text-sm font-medium text-gray-700">Brand</label>
-    <input
-      type="text"
-      name="brand"
-      id="brand"
-      value={formData.brand || ""}
-      onChange={handleInputChange}
-      className="w-full p-2 border"
-      placeholder="Brand"
-    />
-  </div>
-
-
-  <div className="form-group">
-          <label>Image</label>
-          <input type="file" name="image" accept="image/*" onChange={handleUpdateProduct} />
-        </div>
-
-
-  <div className="flex justify-between space-x-2">
-    <button type="button" onClick={handleUpdateProduct} className="w-full bg-blue-600 text-white p-2 rounded">
-      Update
-    </button>
-    <button
-      type="button"
-      onClick={() => setIsModalOpen(false)}
-      className="w-full bg-gray-600 text-white p-2 rounded"
-    >
-      Cancel
-    </button>
-  </div>
-</form>
-
-      </Modal>
       {/* Modal for delete confirmation */}
       <Modal
         isOpen={isDeleteModalOpen}

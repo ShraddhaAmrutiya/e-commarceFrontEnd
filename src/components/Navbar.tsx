@@ -111,7 +111,7 @@ const Navbar: FC = () => {
   }, []);
   
   return (
-    <div className="py-4 bg-white dark:bg-slate-800 top-0 sticky z-10 shadow-lg font-karla">
+    <div className="py-4 bg-white dark:bg-slate-600 top-0 sticky z-10 shadow-lg font-karla">
       <div className="container mx-auto px-4">
         <div className="flex justify-between items-center">
           <Link to="/" className="text-2xl font-bold dark:text-white">
