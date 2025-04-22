@@ -315,6 +315,8 @@
 // };
 
 // export default Cart;
+
+
 import { useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
 import { useAppSelector } from '../redux/hooks';
@@ -346,14 +348,17 @@ interface CartResponse {
 
 const Cart = () => {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [cartCount, setCartCount] = useState<number>(0);
   const [showModal, setShowModal] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
   const [removeLoading, setRemoveLoading] = useState<boolean>(false);
   const [itemToRemove, setItemToRemove] = useState<string | null>(null);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [error, setError] = useState<string | null>(null);
-console.log(cartCount,error, 'cartCount,error');
 
+  console.log(cartCount,error);
+  
   const navigate = useNavigate();
   const userId =
     useAppSelector((state) => state.authReducer.userId) || localStorage.getItem('userId');
@@ -392,7 +397,6 @@ console.log(cartItems, 'cartItems');
       );
       setCartItems(data.cartItems);
       setCartCount(data.cartCount);
-      toast.success(data.message);
     } catch {
       toast.error('Failed to update quantity.');
     }
@@ -414,7 +418,7 @@ console.log(cartItems, 'cartItems');
           prev.filter((item) => item.productId._id !== productId)
         );
         setCartCount((prev) => prev - 1);
-        toast.success('Item removed from cart!');
+        // toast.success('Item removed from cart!');
       }
     } catch {
       toast.error('Failed to remove item from cart.');
@@ -455,7 +459,8 @@ console.log(cartItems, 'cartItems');
   const handleCheckout = () => {
     setLoading(true);
     setTimeout(() => {
-      navigate('/checkout');
+      navigate('/checkout',{ state: { cartItems } }
+      );
     }, 500);
   };
 

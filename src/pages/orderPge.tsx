@@ -1,36 +1,47 @@
-import  { useEffect } from "react";
+import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchOrders } from "../redux/features/OrderSlice"; // async thunk
-import { RootState, AppDispatch } from "../redux/store"; // Import the AppDispatch type
+import { fetchOrders,OrderItem } from "../redux/features/orderSlice";
+import { RootState, AppDispatch } from "../redux/store";
 
 const OrdersPage = () => {
-  const dispatch = useDispatch<AppDispatch>();  // Type the dispatch function
-
-  // Corrected selector: state.orderReducer.orders
-  const orders = useSelector((state: RootState) => state.orderReducer.orders);
-  const user = useSelector((state: RootState) => state.authReducer); // Corrected to state.authReducer
+  const dispatch = useDispatch<AppDispatch>();
+  const orderResponse = useSelector((state: RootState) => state.orderReducer.orders);
+  const pastOrders = orderResponse?.pastOrders || [];
+  const user = useSelector((state: RootState) => state.authReducer);
 
   useEffect(() => {
     if (user.userId) {
-      dispatch(fetchOrders(user.userId));  // Dispatch correctly typed thunk
+      dispatch(fetchOrders(user.userId));
     }
   }, [dispatch, user.userId]);
 
   return (
     <div className="p-4">
       <h2 className="text-2xl font-bold mb-4">Your Orders</h2>
-      {orders.length === 0 ? (
+      {pastOrders.length === 0 ? (
         <p>No orders found.</p>
       ) : (
-        orders.map((order) => (
-          <div key={order._id} className="border p-3 rounded mb-4">
-            <h3 className="text-lg font-semibold">Order #{order._id}</h3>
-            <p>Date: {new Date(order.createdAt).toLocaleDateString()}</p>
-            <p>Total: ${order.totalAmount}</p>
-            <ul>
-              {order.items.map((item) => (
-                <li key={item._id}>
-                  {item.name} - {item.quantity} × ${item.price}
+        pastOrders.map((order) => (
+          <div key={order.orderId} className="border p-4 rounded mb-6 shadow">
+            <h3 className="text-lg font-semibold mb-2">Order #{order.orderId}</h3>
+            <p className="text-sm text-gray-600">Date: {new Date(order.createdAt).toLocaleDateString()}</p>
+            <p className="text-sm text-gray-600 mb-2">Status: {order.status}</p>
+            <p className="font-medium mb-4">Total: ₹{order.orderTotal.toFixed(2)}</p>
+            <ul className="space-y-3">
+              {order.products.map((item: OrderItem, index: number) => (
+                <li key={index} className="flex items-start gap-4 border-b pb-3">
+                  <img
+                    src={`http://localhost:5000${item.image}`}
+                    alt={item.name}
+                    className="w-20 h-20 object-cover rounded"
+                  />
+                  <div className="flex-1">
+                    <p className="font-medium text-lg">{item.name}</p>
+                    <p className="text-sm text-gray-700">Quantity: {item.quantity}</p>
+                    <p className="text-sm text-gray-700">
+                      Price: ₹{item.salePrice} × {item.quantity} = ₹{item.orderTotal}
+                    </p>
+                  </div>
                 </li>
               ))}
             </ul>

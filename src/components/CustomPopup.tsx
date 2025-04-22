@@ -73,7 +73,14 @@ const CustomPopup: FC = () => {
                   </Link>
                 </td>
               </tr>
-
+              <tr>
+    <td className="text-center">🧾</td>
+    <td className="hover:underline cursor-pointer text-lg pl-2">
+      <Link to="/orders" onClick={hidePopup}>
+        Orders
+      </Link>
+    </td>
+  </tr>
               <tr>
                 <td className="text-center">
                   <MdOutlineLogout />

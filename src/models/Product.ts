@@ -9,7 +9,7 @@ export interface Product {
   category: string | { name: string };
     brand?: string;
   stock?: number;
-  discountPercentage?: number;
+  discountPercentage?: number ;
   seller?: string | { _id: string };}
 
 export  interface SingleProductProps {

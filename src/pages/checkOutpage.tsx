@@ -1,121 +1,213 @@
-import { useSelector, useDispatch } from "react-redux";
-import { placeOrder } from "../redux/features/OrderSlice";
-import { useNavigate } from "react-router-dom";
-import { useState, useEffect } from "react";
+// import { useLocation } from 'react-router-dom';
+// import { useState } from 'react';
 
-import { ThunkDispatch } from "@reduxjs/toolkit";
-import { AnyAction } from "redux";
+// interface Product {
+//   _id: string;
+//   title: string;
+//   description: string;
+//   image: string;
+//   price: number;
+//   salePrice: number;
+//   discountPercentage: number;
+// }
 
-interface RootState {
-  cartReducer: {
-    cartItems: OrderItem[];
-    cartOpen: boolean;
-    cartCount: number;
-    totalQuantity: number;
-    totalPrice: number;
-  };
-  authReducer: {
-    isLoggedIn: boolean;
-    userName: string;
-    userId: string;
-    accessToken: string;
-    Role: string;
-  };
+// interface CartItem {
+//   _id: string;
+//   productId: Product;
+//   quantity: number;
+// }
+
+// const CheckoutPage = () => {
+//   const location = useLocation();
+//   const cartItems = location.state?.cartItems;
+
+//   const [loading, setLoading] = useState(false);
+
+//   if (!Array.isArray(cartItems) || cartItems.length === 0) {
+//     return (
+//       <div className="flex justify-center items-center h-screen">
+//         <p className="text-xl text-gray-600">Your cart is empty. Please add items to the cart before proceeding.</p>
+//       </div>
+//     );
+//   }
+
+//   const handlePlaceOrder = () => {
+//     setLoading(true);
+//     // Order placement logic here...
+//     setTimeout(() => setLoading(false), 1500);
+//   };
+
+//   const totalAmount = cartItems.reduce(
+//     (acc: number, item: CartItem) =>
+//       acc + (item.productId.salePrice ?? item.productId.price) * item.quantity,
+//     0
+//   );
+
+//   return (
+//     <div className="max-w-4xl mx-auto p-6">
+//       <h2 className="text-3xl font-bold mb-6 text-center">Checkout</h2>
+
+//       <div className="grid gap-6">
+//         {cartItems.map((item: CartItem) => (
+//           <div key={item._id} className="flex items-center gap-4 bg-white shadow-md rounded-2xl p-4">
+//             <img
+//               src={item.productId.image}
+//               alt={item.productId.title}
+//               className="w-24 h-24 object-cover rounded-lg"
+//             />
+//             <div className="flex-1">
+//               <h3 className="text-xl font-semibold">{item.productId.title}</h3>
+//               <p className="text-gray-600">Quantity: {item.quantity}</p>
+//               <p className="text-gray-600">
+//                 Price: ₹{item.productId.salePrice ?? item.productId.price}
+//               </p>
+//               <p className="text-gray-800 font-medium">
+//                 Total: ₹{(item.productId.salePrice ?? item.productId.price) * item.quantity}
+//               </p>
+//             </div>
+//           </div>
+//         ))}
+//       </div>
+
+//       <div className="mt-8 flex flex-col items-end">
+//         <div className="text-xl font-bold mb-4">Total Amount: ₹{totalAmount.toFixed(2)}</div>
+//         <button
+//           onClick={handlePlaceOrder}
+//           className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white text-lg rounded-xl shadow-md transition duration-200"
+//           disabled={loading}
+//         >
+//           {loading ? "Placing Order..." : "Place Order"}
+//         </button>
+//       </div>
+//     </div>
+//   );
+// };
+
+// export default CheckoutPage;
+
+
+import { useLocation, useNavigate } from 'react-router-dom';
+import { useState } from 'react';
+import axios from 'axios';
+
+interface Product {
+  _id: string;
+  title: string;
+  description: string;
+  image: string;
+  price: number;
+  salePrice: number;
+  discountPercentage: number;
 }
 
-interface OrderItem {
+interface CartItem {
   _id: string;
-  name: string;
-  salePrice: number;
+  productId: Product;
   quantity: number;
 }
 
 const CheckoutPage = () => {
-  const cartItems = useSelector((state: RootState) => state.cartReducer.cartItems);
-  const { userId, userName, accessToken, Role } = useSelector((state: RootState) => state.authReducer);
-console.log("cartItems", cartItems);
-
-  const dispatch: ThunkDispatch<RootState, unknown, AnyAction> = useDispatch();
+  const location = useLocation();
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(false);
+  const cartItems = location.state?.cartItems;
+  const userId = localStorage.getItem("userId"); 
+  const token = localStorage.getItem("accessToken");
 
-  useEffect(() => {
-    console.log("Redux full state on CheckoutPage mount:", {
-      cartItems,
-      userId,
-      userName,
-      accessToken,
-      Role,
-    });
-  }, [cartItems, userId, userName, accessToken, Role]);
+
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState("");
+
+  if (!Array.isArray(cartItems) || cartItems.length === 0) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <p className="text-xl text-gray-600">Your cart is empty. Please add items to the cart before proceeding.</p>
+      </div>
+    );
+  }
 
   const handlePlaceOrder = async () => {
-    console.log("Cart Items in Checkout:", cartItems);
-    console.log("Cart Items Length:", cartItems?.length);
-
-    if (cartItems.length === 0) {
-      alert("Your cart is empty. Please add items to the cart before proceeding.");
-      return;
-    }
-
     setLoading(true);
-
     try {
-      const orderData = {
-        userId,
-        items: cartItems.map(item => ({
-          _id: item._id,
-          name: item.name,
-          price: item.salePrice,
-          quantity: item.quantity,
-        })),
-        totalAmount: cartItems.reduce((acc, item) => acc + item.salePrice * item.quantity, 0),
-      };
+      const response = await axios.post(
+        `http://localhost:5000/order/cart/${userId}`,
+        {}, 
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            userId,  
+          },
+        }
+      );
 
-      console.log("Placing Order with data:", orderData);
+      setMessage("Order placed successfully!");
+      console.log("Order Response:", response.data);
 
-      const res = await dispatch(placeOrder(orderData));
-
-      if (res.meta.requestStatus === "fulfilled") {
-        navigate("/orders");
+      // Optionally navigate to a success page
+      setTimeout(() => {
+        navigate('/orders', { replace: true });
+      }, 1500);
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        console.error("Error placing order:", error.message);
+        setMessage("Failed to place order. Please try again.");
       } else {
-        alert("Failed to place order. Please try again.");
+        console.error("Unexpected error:", error);
+        setMessage("Something went wrong.");
       }
-    } catch (error) {
-      console.error("Error placing order:", error);
-      alert("An error occurred while placing the order.");
-    } finally {
+    }
+    finally {
       setLoading(false);
     }
   };
 
-  if (cartItems.length === 0) {
-    console.log("Cart is empty at render.");
-    return <p>Your cart is empty. Please add items to the cart before proceeding.</p>;
-  }
+  const totalAmount = cartItems.reduce(
+    (acc: number, item: CartItem) =>
+      acc + (item.productId.salePrice ?? item.productId.price) * item.quantity,
+    0
+  );
 
   return (
-    <div className="p-4">
-      <h2 className="text-2xl font-bold mb-4">Checkout</h2>
-      {cartItems.map((item) => (
-        <div key={item._id} className="border p-2 rounded mb-2">
-          <h3 className="text-lg font-semibold">{item.name}</h3>
-          <p>Quantity: {item.quantity}</p>
-          <p>Price: ₹{item.salePrice}</p>
-          <p>Total: ₹{item.salePrice * item.quantity}</p>
+    <div className="max-w-4xl mx-auto p-6">
+      <h2 className="text-3xl font-bold mb-6 text-center">Checkout</h2>
+
+      {message && (
+        <div className={`text-center mb-4 ${message.includes("success") ? "text-green-600" : "text-red-500"}`}>
+          {message}
         </div>
-      ))}
-      <div className="font-bold mt-4">
-        Total Amount: ₹
-        {cartItems.reduce((acc, item) => acc + item.salePrice * item.quantity, 0)}
+      )}
+
+      <div className="grid gap-6">
+        {cartItems.map((item: CartItem) => (
+          <div key={item._id} className="flex items-center gap-4 bg-white shadow-md rounded-2xl p-4">
+            <img
+ src={`http://localhost:5000${item.productId.image}`}
+               alt={item.productId.title}
+              className="w-24 h-24 object-cover rounded-lg"
+            />
+            <div className="flex-1">
+              <h3 className="text-xl font-semibold">{item.productId.title}</h3>
+              <p className="text-gray-600">Quantity: {item.quantity}</p>
+              <p className="text-gray-600">
+                Price: ₹{item.productId.salePrice ?? item.productId.price}
+              </p>
+              <p className="text-gray-800 font-medium">
+                Total: ₹{(item.productId.salePrice ?? item.productId.price) * item.quantity}
+              </p>
+            </div>
+          </div>
+        ))}
       </div>
-      <button
-        onClick={handlePlaceOrder}
-        className="mt-4 px-4 py-2 bg-blue-500 text-white rounded"
-        disabled={loading}
-      >
-        {loading ? "Placing Order..." : "Place Order"}
-      </button>
+
+      <div className="mt-8 flex flex-col items-end">
+        <div className="text-xl font-bold mb-4">Total Amount: ₹{totalAmount.toFixed(2)}</div>
+        <button
+          onClick={handlePlaceOrder}
+          className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white text-lg rounded-xl shadow-md transition duration-200"
+          disabled={loading}
+        >
+          {loading ? "Placing Order..." : "Place Order"}
+        </button>
+      </div>
     </div>
   );
 };

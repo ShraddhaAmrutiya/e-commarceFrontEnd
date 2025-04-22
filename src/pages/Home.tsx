@@ -28,8 +28,8 @@ const Home: FC = () => {
                 _id: product._id,
                 title: product.title,
                 image:
-                  product.image && product.image.startsWith("/")
-                    ? `http://localhost:5000${product.image}`
+                typeof product.image === "string" && product.image.startsWith("/")
+                ? `http://localhost:5000${product.image}`
                     : product.image || "default_image_url", 
 
                 price: product.price,

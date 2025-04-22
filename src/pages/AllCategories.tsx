@@ -1,4 +1,4 @@
-import { FC, useEffect, useState, useCallback } from "react";
+import { FC, useEffect, useState, useCallback, useRef } from "react";
 import { useAppDispatch, useAppSelector } from "../redux/hooks";
 import { addCategories } from "../redux/features/productSlice";
 import { Link } from "react-router-dom";
@@ -10,6 +10,7 @@ const AllCategories: FC = () => {
   const allCategories = useAppSelector((state) => state.productReducer.categories);
   const token: string = localStorage.getItem("accessToken") ?? "";
   const Role: string = localStorage.getItem("Role") ?? "";
+  const descriptionRef = useRef<HTMLInputElement>(null);
 
   const [editingId, setEditingId] = useState<string | null>(null);
   const [name, setName] = useState("");
@@ -17,6 +18,8 @@ const AllCategories: FC = () => {
 
   const [showModal, setShowModal] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
+
+ 
 
   const fetchCategories = useCallback(async () => {
     try {
@@ -125,12 +128,27 @@ const AllCategories: FC = () => {
                     className="w-full p-1 mb-1 text-black"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        descriptionRef.current?.focus();
+                      }
+                    }}
                   />
+
                   <input
+                    ref={descriptionRef}
                     className="w-full p-1 mb-2 text-black"
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        handleUpdate();
+                      }
+                    }}
                   />
+
                   <button className="bg-blue-500 text-white px-2 py-1 mr-2" onClick={handleUpdate}>
                     Save
                   </button>
@@ -168,12 +186,7 @@ const AllCategories: FC = () => {
           ))}
       </div>
 
-      {showModal && (
-        <DeleteConfirmModal
-          onConfirm={confirmDelete}
-          onCancel={() => setShowModal(false)}
-        />
-      )}
+      {showModal && <DeleteConfirmModal onConfirm={confirmDelete} onCancel={() => setShowModal(false)} />}
     </div>
   );
 };

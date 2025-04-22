@@ -29,8 +29,8 @@ import Register from "./components/Register"
 import Login from "./pages/login";
 import AddCategory from "./components/AddCategory";
 import AddProduct from "./components/Addproduct";
-import CheckoutPage from "./pages/CheckoutPage";
-import OrdersPage from "./pages//orderPge";
+import CheckoutPage from "./pages/checkOutpage";
+import OrdersPage from "./pages/orderPge";
 
 // import { useEffe ct } from "react";
 import axios from "axios";

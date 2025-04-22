@@ -4,7 +4,7 @@ import cartReducer from "./features/cartSlice";
 import productReducer from "./features/productSlice";
 import homeReducer from "./features/homeSlice";
 import wishlistReducer from "./features/WishlistSlice";
-import orderReducer from "./features/OrderSlice";
+import orderReducer from "./features/orderSlice";
 
 export const store = configureStore({
   reducer: {

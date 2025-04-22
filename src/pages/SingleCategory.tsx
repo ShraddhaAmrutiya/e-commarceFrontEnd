@@ -1,8 +1,8 @@
-
 import { FC, useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { Product } from "../models/Product";
 import ProductCard from "../components/ProductCard";
+import { Link } from "react-router-dom";
 
 const SingleCategory: FC = () => {
   const { id } = useParams();
@@ -66,7 +66,9 @@ const SingleCategory: FC = () => {
   return (
     <div className="container mx-auto min-h-[83vh] p-4 font-karla">
       <div className="flex items-center space-x-2 text-lg dark:text-white">
-        <span>Categories</span>
+        <Link to="/categories" className="hover:underline text-blue-600 dark:text-blue-400">
+          Categories
+        </Link>
         <span> {">"} </span>
         <span className="font-bold">{loading ? "Loading..." : categoryName}</span>
       </div>

@@ -225,30 +225,48 @@ const AddProduct = () => {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-
+  
     if (name === "discountPercentage") {
-      // Calculate sale price based on discount percentage and price
-      const discount = parseFloat(value);
+      let discount = parseFloat(value);
       const price = parseFloat(formData.price);
 
-      if (!isNaN(discount) && !isNaN(price)) {
-        const salePrice = price - (price * discount) / 100;
-        setFormData((prev) => ({
-          ...prev,
-          [name]: value,
-          salePrice: salePrice.toFixed(2), // Save the calculated sale price to the state
-        }));
-      } else {
-        setFormData((prev) => ({
-          ...prev,
-          [name]: value,
-        }));
+  // If the discount is 0, salePrice should be equal to price
+  if (discount === 0) {
+    setFormData((prev) => ({
+      ...prev,
+      [name]: String(discount),  // Store discount as a string
+      salePrice: price.toString(), // salePrice is equal to price when discount is 0
+    }));
+  } else if (!isNaN(discount) && !isNaN(price)) {
+    const salePrice = price - (price * discount) / 100;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: String(discount),  // Store discount as a string
+      salePrice: Math.round(salePrice).toString(), // Round sale price for cleaner output
+    }));
+  } else {
+    setFormData((prev) => ({
+      ...prev,
+      [name]: String(discount),  // Store discount as a string
+    }));
+  }
+      // If the value is invalid or empty, set it to 0
+      if (isNaN(discount) || discount < 0) {
+        discount = 0;
+      } else if (discount > 100) {
+        discount = 100; // Ensure the discount doesn't exceed 100
       }
+  
+      // Handle Sale Price Calculation
+  
+      
     } else {
+      // For other fields, just update normally
       setFormData((prev) => ({ ...prev, [name]: value }));
     }
   };
-
+  
+  
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       setImage(e.target.files[0]);
@@ -298,7 +316,7 @@ const AddProduct = () => {
         if (!isNaN(parsedValue)) {
           data.append(key, String(parsedValue));
         } else {
-          data.append(key, "0"); // Set to 0 if invalid
+          data.append(key, "0");
         }
       } else {
         data.append(key, value);
@@ -386,7 +404,7 @@ const AddProduct = () => {
           <label>
             Discount % <span style={{ color: "gray" }}>(optional)</span>
           </label>
-          <input type="number" name="discountPercentage" value={formData.discountPercentage} onChange={handleChange}  min="1"
+          <input type="number" name="discountPercentage" value={formData.discountPercentage} onChange={handleChange}  min="0"
   max="100"/>
           {formErrors.discountPercentage && <p className="error">{formErrors.discountPercentage}</p>}
         </div>

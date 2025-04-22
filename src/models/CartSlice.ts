@@ -60,9 +60,9 @@ export const fetchCartItems = createAsyncThunk(
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      // console.log("🛒 Backend cart data:", response.data);
 
       return {
+
         cartItems: response.data.cartItems,
         cartCount: response.data.cartCount,
       };

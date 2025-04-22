@@ -61,7 +61,7 @@ const Navbar: FC = () => {
           },
         }
       );
-      console.log("cartcount token: ",token);
+      // console.log("cartcount token: ",token);
       
       const data = response.data as { count: number };
       setCartCount(data.count);

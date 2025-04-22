@@ -92,12 +92,19 @@ const ProductCard: FC<Product> = ({
       <div className="text-center border-b border-gray-200">
         <Link to={`/products/${_id}`}>
           {image ? (
-            <img
-              src={image.startsWith("http") ? image : `http://localhost:5000${image}`} // Add server base URL if needed
-              alt={title}
-              loading="lazy"
-              className="inline-block h-60 transition-transform duration-200 hover:scale-110"
-            />
+           <img
+           src={
+             typeof image === "string"
+               ? image.startsWith("http")
+                 ? image
+                 : `http://localhost:5000${image}`
+               : URL.createObjectURL(image)
+           }
+           alt={title}
+           loading="lazy"
+           className="inline-block h-60 transition-transform duration-200 hover:scale-110"
+         />
+         
           ) : (
             <p className="text-gray-400">No Image Available</p>
           )}

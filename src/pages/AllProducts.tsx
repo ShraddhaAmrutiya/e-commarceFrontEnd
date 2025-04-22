@@ -41,10 +41,13 @@ const AllProducts: FC = () => {
         const baseUrl = "http://localhost:5000";
         const allProducts = data.categories.flatMap((cat: { category: string; products: Product[] }) =>
           (cat.products || []).map((product) => {
-            const imageUrl = product.image?.startsWith("/")
+            const imageUrl =
+            typeof product.image === "string" && product.image.startsWith("/")
               ? `${baseUrl}${product.image}`
-              : product.image || `${baseUrl}/uploads/default-image.jpg`; 
-
+              : typeof product.image === "string"
+              ? product.image
+              : `${baseUrl}/uploads/default-image.jpg`; // fallback for File or undefined
+          
             return {
               ...product,
               image: imageUrl, 
