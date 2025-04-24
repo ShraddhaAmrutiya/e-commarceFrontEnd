@@ -1,21 +1,27 @@
-
-
-import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
+import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 import { RootState } from "../store";
 
-// ** Define Wishlist Item Type **
+// Wishlist item structure
 interface WishlistItem {
   _id: string;
-  productId: {
+  userId: string;
+  products: {
+    productId: {
+      _id: string;
+      title: string;
+      description: string;
+      image: string;
+      price: number;
+      salePrice: number;
+      discountPercentage: number;
+    };
+    quantity: number;
     _id: string;
-    title: string;
-    description: string;
-    image: string;
-    price: number;
-    salePrice: number;
-    discountPercentage: number;
-  };
+  }[];
+  createdAt: string;
+  updatedAt: string;
+  __v: number;
 }
 
 interface WishlistState {
@@ -24,70 +30,37 @@ interface WishlistState {
   error: string | null;
 }
 
-// ** Fetch Wishlist Items **
-export const fetchWishlistItems = createAsyncThunk<
-  WishlistItem[],
-  void,
-  { state: RootState }
->(
-  "wishlist/fetchWishlistItems",
+// Fetch Wishlist Items
+export const fetchWishlistItems = createAsyncThunk<WishlistItem[], void, { state: RootState }>(
+  "wishlist/fetchWishlistItems", 
   async (_, { rejectWithValue, getState }) => {
     try {
       const state = getState();
       const userId = state.authReducer.userId;
       const token = localStorage.getItem("accessToken");
 
-      if (!userId) return rejectWithValue("User ID is missing");
+      if (!userId || !token) return rejectWithValue("User ID or access token is missing");
 
-      const response = await axios.get(
-        `http://localhost:5000/wishlist/${userId}`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      const response = await axios.get(`http://localhost:5000/wishlist/${userId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
 
       return response.data as WishlistItem[];
     } catch (error: unknown) {
-      return rejectWithValue(
-        error instanceof Error ? error.message : "Failed to fetch wishlist"
-      );
+      const err = error as { response?: { data?: { message?: string } } };
+      if (err.response?.data?.message) {
+        return rejectWithValue(err.response.data.message);
+      }
+      if (error instanceof Error) {
+        return rejectWithValue(error.message);
+      }
+      return rejectWithValue("An unknown error occurred");
     }
   }
 );
 
-  // ** Add Item to Wishlist **
-  // export const addWishlistItem = createAsyncThunk<
-  //   WishlistItem,
-  //   { productId: string },
-  //   { state: RootState }
-  // >(
-  //   "wishlist/addWishlistItem",
-  //   async ({ productId }, { rejectWithValue, getState }) => {
-  //     try {
-  //       const state = getState();
-  //       const userId = state.authReducer.userId;
-  //       const token = localStorage.getItem("accessToken");
-
-  //       if (!userId) return rejectWithValue("User ID is missing.............................");
-
-  //       const response = await axios.post(
-  //         `http://localhost:5000/wishlist/add`,
-  //         { productId },
-  //         { headers: { Authorization: `Bearer ${token}`, userId } }
-  //       );
-
-  //       return response.data as WishlistItem;
-  //     } catch (error: unknown) {
-  //       return rejectWithValue(
-  //         error instanceof Error ? error.message : "Failed to add item to wishlist"
-  //       );
-  //     }
-  //   }
-  // );
-
-  export const addWishlistItem = createAsyncThunk<
-  WishlistItem,                      // ✅ Return type
-  { productId: string },             // ✅ Payload argument type
-  { state: RootState }               // ✅ ThunkAPI type
->(
+// Add Item to Wishlist
+export const addWishlistItem = createAsyncThunk<WishlistItem, { productId: string }, { state: RootState }>(
   "wishlist/addWishlistItem",
   async ({ productId }, { rejectWithValue, getState }) => {
     try {
@@ -95,9 +68,7 @@ export const fetchWishlistItems = createAsyncThunk<
       const userId = state.authReducer.userId;
       const token = localStorage.getItem("accessToken");
 
-      if (!userId || !token) {
-        return rejectWithValue("User ID or access token is missing");
-      }
+      if (!userId || !token) return rejectWithValue("User ID or access token is missing");
 
       const response = await axios.post(
         "http://localhost:5000/wishlist/add",
@@ -105,106 +76,122 @@ export const fetchWishlistItems = createAsyncThunk<
         {
           headers: {
             Authorization: `Bearer ${token}`,
-            userId, // This gets converted to lowercase by Node
+            userId,
           },
         }
       );
 
       return response.data as WishlistItem;
     } catch (error: unknown) {
-      // Handle errors generically
-      if (error instanceof Error) {
-        // Check if the error has a response object (Axios error structure)
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        if ((error as any).response) {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const errorMessage = (error as any).response.data?.message || "Error adding to wishlist";
-          return rejectWithValue(errorMessage);
-        }
-        return rejectWithValue(error.message || "Failed to add item to wishlist");
+      const err = error as { response?: { data?: { message?: string } } };
+      if (err.response?.data?.message) {
+        return rejectWithValue(err.response.data.message);
       }
-
-      // Fallback for any unknown error
-      return rejectWithValue("Failed to add item to wishlist");
+      if (error instanceof Error) {
+        return rejectWithValue(error.message);
+      }
+      return rejectWithValue("An unknown error occurred");
     }
-  
   }
 );
 
-// ** Remove Item from Wishlist **
-export const removeWishlistItem = createAsyncThunk<
-  string, // Returns productId if successful
-  { productId: string },
-  { state: RootState }
->(
-  "wishlist/removeWishlistItem",
+// Remove Item from Wishlist
+export const removeWishlistItem = createAsyncThunk<string, { productId: string }, { state: RootState }>(
+  "wishlist/removeWishlistItem", 
   async ({ productId }, { rejectWithValue, getState }) => {
     try {
       const state = getState();
       const userId = state.authReducer.userId;
       const token = localStorage.getItem("accessToken");
 
-      if (!userId) return rejectWithValue("User ID is missing");
+      if (!userId || !token) return rejectWithValue("User ID or access token is missing");
 
-      await axios.delete(
-        `http://localhost:5000/wishlist/remove/${productId}`,
-        { headers: { Authorization: `Bearer ${token}`, userId } }
-      );
+      await axios.delete(`http://localhost:5000/wishlist/remove/${productId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          userId,
+        },
+      });
 
-      return productId; // Return productId to update Redux state
+      return productId;
     } catch (error: unknown) {
-      return rejectWithValue(
-        error instanceof Error ? error.message : "Failed to remove item from wishlist"
-      );
+      const err = error as { response?: { data?: { message?: string } } };
+      if (err.response?.data?.message) {
+        return rejectWithValue(err.response.data.message);
+      }
+      if (error instanceof Error) {
+        return rejectWithValue(error.message);
+      }
+      return rejectWithValue("An unknown error occurred");
     }
   }
 );
 
-// ** Initial State **
+// Initial State
 const initialState: WishlistState = {
   wishlistItems: [],
   loading: false,
   error: null,
 };
 
-// ** Wishlist Slice **
+// Wishlist Slice
 const wishlistSlice = createSlice({
   name: "wishlist",
-
-
   initialState,
-  reducers: {},
+  reducers: {
+    // Reset the wishlist items
+    resetWishlistItems(state) {
+      state.wishlistItems = []; // Clear the wishlist
+    },
+  },
   extraReducers: (builder) => {
     builder
-      //  Fetch Wishlist Items
+      // Fetch
       .addCase(fetchWishlistItems.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
-      .addCase(fetchWishlistItems.fulfilled, (state, action: PayloadAction<WishlistItem[]>) => {
+      .addCase(fetchWishlistItems.fulfilled, (state, action) => {
         state.loading = false;
         state.wishlistItems = action.payload;
       })
-      .addCase(fetchWishlistItems.rejected, (state, action: PayloadAction<unknown>) => {
+      .addCase(fetchWishlistItems.rejected, (state, action) => {
         state.loading = false;
-        state.error = typeof action.payload === "string" ? action.payload : "An error occurred";
+        state.error = typeof action.payload === "string" ? action.payload : "Failed to fetch wishlist";
       })
 
-      //  Add Wishlist Item
-      .addCase(addWishlistItem.fulfilled, (state, action: PayloadAction<WishlistItem>) => {
+      // Add
+      .addCase(addWishlistItem.fulfilled, (state, action) => {
         if (!state.wishlistItems.some((item) => item._id === action.payload._id)) {
           state.wishlistItems.push(action.payload);
         }
       })
-
-      //  Remove Wishlist Item - Fix for UI Update
-      .addCase(removeWishlistItem.fulfilled, (state, action: PayloadAction<string>) => {
-        state.wishlistItems = state.wishlistItems.filter(
-          (item) => item.productId._id !== action.payload
-        );
+      .addCase(addWishlistItem.rejected, (state, action) => {
+        state.error = typeof action.payload === "string" ? action.payload : "Failed to add item to wishlist";
       })
-      
+
+      // Remove item from wishlist
+      .addCase(removeWishlistItem.fulfilled, (state, action) => {
+        state.wishlistItems = state.wishlistItems
+          .map((wishlist) => {
+            const filteredProducts = wishlist.products.filter(
+              (item) => item.productId._id !== action.payload
+            );
+
+            if (filteredProducts.length > 0) {
+              return { ...wishlist, products: filteredProducts };
+            }
+            return null;
+          })
+          .filter((wishlist) => wishlist !== null) as WishlistItem[];
+      })
+      .addCase(removeWishlistItem.rejected, (state, action) => {
+        state.error = typeof action.payload === "string" ? action.payload : "Failed to remove item from wishlist";
+      });
   },
 });
+
+// Export the resetWishlistItems action
+export const { resetWishlistItems } = wishlistSlice.actions;
 
 export default wishlistSlice.reducer;

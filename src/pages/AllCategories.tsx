@@ -41,12 +41,16 @@ const AllCategories: FC = () => {
       }
 
       const data = await res.json();
-      dispatch(addCategories(data));
+      dispatch(addCategories(data)); // Dispatch fetched categories to Redux store
     } catch (error) {
       console.error("Error fetching categories:", error);
       toast.error("Failed to load categories");
     }
   }, [token, dispatch]);
+
+  useEffect(() => {
+    fetchCategories(); // Fetch categories on component mount
+  }, [fetchCategories]);
 
   useEffect(() => {
     if (allCategories.length === 0) fetchCategories();

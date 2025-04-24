@@ -386,7 +386,6 @@ const Register = () => {
         axios.defaults.headers.common["userName"] = data.userName;
   
         toast.success("Registration & login successful!");
-        console.log("🔐 Axios default headers set:", axios.defaults.headers.common);
   
         // Force refresh to update all components
         setTimeout(() => {

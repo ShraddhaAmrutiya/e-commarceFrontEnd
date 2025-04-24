@@ -8,8 +8,15 @@ const initialState: CartState = {
   cartCount: 0,
   totalQuantity: 0,
   totalPrice: 0,
+  loading:true,
+  error:null
 };
 
+const recalculateCartState = (state: CartState) => {
+  state.cartCount = state.cartItems.length;
+  state.totalQuantity = state.cartItems.reduce((acc, item) => acc + item.quantity, 0);
+  state.totalPrice = state.cartItems.reduce((acc, item) => acc + item.quantity * item.productId.price, 0);
+};
 
 export const cartSlice = createSlice({
   name: "cartSlice",
@@ -20,7 +27,9 @@ export const cartSlice = createSlice({
       state.cartOpen = !state.cartOpen;
     },
 
-
+    resetCartItems(state) {
+      state.cartItems = []; // Reset cart to an empty array
+    },
 
     addToCart: (state, action: PayloadAction<CartItem>) => {
       const accessToken = localStorage.getItem("accessToken");
@@ -37,29 +46,44 @@ export const cartSlice = createSlice({
       } else {
         state.cartItems[existingIndex].quantity += 1;
       }
+      recalculateCartState(state); 
+    
+      // Recalculate cart count, total quantity, and total price
+      state.cartCount = state.cartItems.length;
+      state.totalQuantity = state.cartItems.reduce((acc, item) => acc + item.quantity, 0);
+      state.totalPrice = state.cartItems.reduce((acc, item) => acc + item.quantity * item.productId.price, 0);
     },
     
 
 
+
+  
+setCartItems: (state, action: PayloadAction<CartItem[]>) => {
+  state.cartItems = action.payload;
+  recalculateCartState(state); // 👈 Use helper
+},  reduceFromCart: (state, action: PayloadAction<string>) => {
+  const { cartItems } = state;
+  const itemIndex = cartItems.findIndex(item => item.productId._id === action.payload);
+
+  if (itemIndex !== -1) {
+    const item = cartItems[itemIndex];
+    if (item.quantity > 1) {
+      cartItems[itemIndex].quantity -= 1;
+    } else {
+      cartItems.splice(itemIndex, 1);
+    }
+  }
+},
+    
     removeFromCart: (state, action: PayloadAction<string>) => {
-      state.cartItems = state.cartItems.filter(
-        (item: CartItem) => item.productId._id !== action.payload
-      );
-    },
-    
-    reduceFromCart: (state, action: PayloadAction<string>) => {
-      const { cartItems } = state;
-      const itemIndex = cartItems.findIndex(item => item.productId._id === action.payload);
-    
-      if (itemIndex !== -1) {
-        const item = cartItems[itemIndex];
-        if (item.quantity > 1) {
-          cartItems[itemIndex].quantity -= 1;
-        } else {
-          cartItems.splice(itemIndex, 1);
-        }
+      const index = state.cartItems.findIndex(item => item.productId._id === action.payload);
+      if (index !== -1) {
+        state.cartItems.splice(index, 1);
       }
+    
+      recalculateCartState(state); // 👈 Use helper
     },
+    
     
     setCartState: (state, action: PayloadAction<boolean>) => {
       return { ...state, cartOpen: action.payload };
@@ -69,15 +93,19 @@ export const cartSlice = createSlice({
       return { ...state, cartItems: [] };
     },
   },
+
+
 });
 
 export const {
   addToCart,
+  resetCartItems,
   toggleCart1,
   removeFromCart,
   setCartState,
   reduceFromCart,
   emptyCart,
+  setCartItems
 } = cartSlice.actions;
 
 export default cartSlice.reducer;
