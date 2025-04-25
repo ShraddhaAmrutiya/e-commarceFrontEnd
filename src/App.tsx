@@ -31,6 +31,7 @@ import AddCategory from "./components/AddCategory";
 import AddProduct from "./components/Addproduct";
 import CheckoutPage from "./pages/checkOutpage";
 import OrdersPage from "./pages/orderPge";
+import ResetPassword from "./pages/Resetpassword";
 
 // import { useEffe ct } from "react";
 import axios from "axios";
@@ -72,6 +73,7 @@ useEffect(() => {
         <Route path="category/:id" element={<SingleCategory />} />
         <Route path="/search" element={<SearchPage />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/reset-password/:token" element={<ResetPassword />} />
 
 
         {/* Protected Routes */}
