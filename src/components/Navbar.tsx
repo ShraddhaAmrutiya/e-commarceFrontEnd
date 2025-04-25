@@ -26,8 +26,9 @@ const Navbar: FC = () => {
   const Role = useAppSelector((state) => state.authReducer.Role) || localStorage.getItem("role");
   const cartCount = useAppSelector((state) => {
     const cartItems = state.cartReducer?.cartItems;
-    return Array.isArray(cartItems) ? cartItems.reduce((total, item) => total + item.quantity, 0) : 0;
+    return Array.isArray(cartItems) ? cartItems.length : 0;
   });
+  
 
   const wishlistCount = useAppSelector((state) => {
     const wishlistItems = state.wishlistReducer?.wishlistItems;

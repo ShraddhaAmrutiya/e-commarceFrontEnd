@@ -223,48 +223,52 @@ const AddProduct = () => {
     fetchCategories();
   }, []);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+  ) => {
     const { name, value } = e.target;
   
     if (name === "discountPercentage") {
       let discount = parseFloat(value);
-      const price = parseFloat(formData.price);
-
-  // If the discount is 0, salePrice should be equal to price
-  if (discount === 0) {
-    setFormData((prev) => ({
-      ...prev,
-      [name]: String(discount),  // Store discount as a string
-      salePrice: price.toString(), // salePrice is equal to price when discount is 0
-    }));
-  } else if (!isNaN(discount) && !isNaN(price)) {
-    const salePrice = price - (price * discount) / 100;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: String(discount),  // Store discount as a string
-      salePrice: Math.round(salePrice).toString(), // Round sale price for cleaner output
-    }));
-  } else {
-    setFormData((prev) => ({
-      ...prev,
-      [name]: String(discount),  // Store discount as a string
-    }));
-  }
-      // If the value is invalid or empty, set it to 0
-      if (isNaN(discount) || discount < 0) {
-        discount = 0;
-      } else if (discount > 100) {
-        discount = 100; // Ensure the discount doesn't exceed 100
-      }
+      const price = parseFloat(formData.price?.toString() || "0");
   
-      // Handle Sale Price Calculation
+      // Validate and normalize discount
+      if (isNaN(discount) || discount < 0) discount = 0;
+      if (discount > 100) discount = 100;
   
-      
+      // Calculate sale price
+      const salePrice = discount === 0
+        ? price
+        : price - (price * discount) / 100;
+  
+        setFormData((prev) => ({
+          ...prev,
+          discountPercentage: String(discount),  // Convert to string
+          salePrice: String(salePrice.toFixed(2)),  // Convert to string
+        }));
+    } else if (name === "price") {
+      const price = parseFloat(value);
+      const discount = parseFloat(formData.discountPercentage?.toString() || "0");
+  
+      const salePrice = discount === 0
+        ? price
+        : price - (price * discount) / 100;
+  
+        setFormData((prev) => ({
+          ...prev,
+          price: String(price),  // Convert to string
+          salePrice: String(parseFloat(salePrice.toFixed(2))),  // Convert to string
+        }));
     } else {
-      // For other fields, just update normally
-      setFormData((prev) => ({ ...prev, [name]: value }));
+      setFormData((prev) => ({
+        ...prev,
+        [name]: value,
+      }));
     }
   };
+  
+  
+  
   
   
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -281,8 +285,12 @@ const AddProduct = () => {
     const rating = parseFloat(formData.rating);
 
     if (!formData.category) errors.category = "Category is required";
-    if (!formData.title.trim()) errors.title = "Title is required";
-    if (!formData.price || price <= 0) errors.price = "Valid price is required";
+    if (!formData.title || formData.title.trim() === "") {
+      errors.title = "Title is required.";
+    } else if (formData.title.trim().length < 3) {
+      errors.title = "Title should be at least 3 characters long.";
+    }
+        if (!formData.price || price <= 0) errors.price = "Valid price is required";
     if (!formData.stock || stock < 0) errors.stock = "Stock is required";
     if (!formData.brand.trim()) errors.brand = "Brand is required";
 
