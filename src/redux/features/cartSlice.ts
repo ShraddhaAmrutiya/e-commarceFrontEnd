@@ -1,3 +1,4 @@
+
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { CartItem } from "../../models/CartItem";
 import { CartState } from "../../models/CartSlice";
@@ -8,8 +9,8 @@ const initialState: CartState = {
   cartCount: 0,
   totalQuantity: 0,
   totalPrice: 0,
-  loading:true,
-  error:null
+  loading: true,
+  error: null
 };
 
 const recalculateCartState = (state: CartState) => {
@@ -34,6 +35,7 @@ export const cartSlice = createSlice({
     addToCart: (state, action: PayloadAction<CartItem>) => {
       const accessToken = localStorage.getItem("accessToken");
       if (!accessToken) return state;
+
     
       const { cartItems } = state;
       const existingIndex = cartItems.findIndex(
@@ -47,58 +49,50 @@ export const cartSlice = createSlice({
         state.cartItems[existingIndex].quantity += 1;
       }
       recalculateCartState(state); 
-    
-      // Recalculate cart count, total quantity, and total price
-      state.cartCount = state.cartItems.length;
-      state.totalQuantity = state.cartItems.reduce((acc, item) => acc + item.quantity, 0);
-      state.totalPrice = state.cartItems.reduce((acc, item) => acc + item.quantity * item.productId.price, 0);
     },
-    
 
-
-
-  
-setCartItems: (state, action: PayloadAction<CartItem[]>) => {
-  state.cartItems = action.payload;
-  recalculateCartState(state); // 👈 Use helper
-},  reduceFromCart: (state, action: PayloadAction<string>) => {
-  const { cartItems } = state;
-  const itemIndex = cartItems.findIndex(item => item.productId._id === action.payload);
-
-  if (itemIndex !== -1) {
-    const item = cartItems[itemIndex];
-    if (item.quantity > 1) {
-      cartItems[itemIndex].quantity -= 1;
-    } else {
-      cartItems.splice(itemIndex, 1);
-    }
-  }
-},
-    
-    removeFromCart: (state, action: PayloadAction<string>) => {
-      const index = state.cartItems.findIndex(item => item.productId._id === action.payload);
-      if (index !== -1) {
-        state.cartItems.splice(index, 1);
-      }
-    
+    setCartItems: (state, action: PayloadAction<CartItem[]>) => {
+      state.cartItems = action.payload;
       recalculateCartState(state); // 👈 Use helper
     },
-    
-    
+
+    reduceFromCart: (state, action: PayloadAction<string>) => {
+      const { cartItems } = state;
+      const itemIndex = cartItems.findIndex(item => item.productId._id === action.payload);
+
+      if (itemIndex !== -1) {
+        const item = cartItems[itemIndex];
+        if (item.quantity > 1) {
+          cartItems[itemIndex].quantity -= 1;
+        } else {
+          cartItems.splice(itemIndex, 1);
+        }
+      }
+      recalculateCartState(state);
+    },
+  
+    removeFromCart: (state, action: PayloadAction<string>) => {
+      
+      state.cartItems = state.cartItems.filter(item => item.productId._id !== action.payload); // Remove item using filter
+      recalculateCartState(state); // 👈 Use helper to recalculate
+
+    },
+    updateCartCount: (state, action: PayloadAction<number>) => {
+      state.cartCount = action.payload;
+    },
     setCartState: (state, action: PayloadAction<boolean>) => {
       return { ...state, cartOpen: action.payload };
     },
 
     emptyCart: (state) => {
-      return { ...state, cartItems: [] };
+      return { ...state, cartItems: [] }; // Empty cart
     },
   },
-
-
 });
 
 export const {
   addToCart,
+  updateCartCount,
   resetCartItems,
   toggleCart1,
   removeFromCart,

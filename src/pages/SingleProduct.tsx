@@ -43,7 +43,7 @@
     const token = localStorage.getItem("accessToken");
     const Role = useAppSelector((state) => state.authReducer.Role);
     useEffect(() => {
-      dispatch(fetchWishlistItems()); // Fetch on mount
+      dispatch(fetchWishlistItems()); 
     }, [dispatch]);
     useEffect(() => {
       if (!_id) {
@@ -207,29 +207,87 @@
       }
     };
 
-    const handleDeleteProduct = async () => {
-      if (!_id || !token) return;
+    // const handleDeleteProduct = async () => {
+    //   if (!_id || !token) return;
 
-      setIsDeleteModalOpen(false); 
+    //   setIsDeleteModalOpen(false); 
 
-      try {
-        const res = await fetch(`http://localhost:5000/products/delete/${_id}`, {
-          method: "DELETE",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+    //   try {
+    //     const res = await fetch(`http://localhost:5000/products/delete/${_id}`, {
+    //       method: "DELETE",
+    //       headers: {
+    //         Authorization: `Bearer ${token}`,
+    //       },
+    //     });
 
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.message || "Delete failed");
+    //     const data = await res.json();
+    //     if (!res.ok) throw new Error(data.message || "Delete failed");
 
-        toast.success("Product deleted");
-        navigate("/");
-      } catch (error) {
-        console.error("Error delete product:", error);
-        toast.error("Failed to delete product");
+    //     toast.success("Product deleted");
+    //     navigate("/");
+    //   } catch (error) {
+    //     console.error("Error delete product:", error);
+    //     toast.error("Failed to delete product");
+    //   }
+    // };
+   
+   
+const handleDeleteProduct = async () => {
+  if (!_id || !token) return;
+
+  setIsDeleteModalOpen(false); // Close the delete confirmation modal
+
+  try {
+    // Step 1: Delete the product from the backend
+    const res = await fetch(`http://localhost:5000/products/delete/${_id}`, {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || "Delete failed");
+
+    // Step 2: Remove from cart
+    const userId = localStorage.getItem('userId');
+    if (userId) {
+      const response = await fetch(`http://localhost:5000/cart/${userId}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ productId: _id }),
+      });
+
+      await response.json();
+      if (response.ok) {
+        toast.success("Product deleted and removed from cart.");
+      } else {
+        toast.error("Failed to remove product from cart.");
       }
-    };
+    }
+
+    // Step 3: Remove from wishlist
+    // const dispatch = useDispatch(); // Create dispatch to trigger actions
+    await dispatch(removeWishlistItem({ productId: _id }))
+      .unwrap() // Use unwrap to catch success/error
+      .then(() => {
+        toast.success("Product removed from wishlist.");
+      })
+      .catch((error) => {
+        toast.error(`Failed to remove product from wishlist: ${error.message}`);
+      });
+
+    toast.success("Product deleted successfully.");
+    navigate("/");
+
+  } catch (error) {
+    console.error("Error deleting product:", error);
+    toast.error("Failed to delete product.");
+  }
+};
+   
     const cartItems = useSelector((state: RootState) => state.cartReducer.cartItems);
 
       const addCart = async () => {
@@ -304,7 +362,7 @@
             body: JSON.stringify({
               userId,
               productId: _id,
-              stock: 1,
+              quantity: 1,
             }),
           });
 
@@ -335,15 +393,18 @@
 
      
   const wishlistItems = useAppSelector((state) => state.wishlistReducer.wishlistItems);
-  useEffect(() => {
-    if (product) {
-      const isProductInWishlist = wishlistItems.some((wishlistItem) =>
-        wishlistItem.products.some((item) => item.productId._id === product._id)
-      );
-      setIsInWishlist(isProductInWishlist);
-    }
-  }, [wishlistItems, product]);
-  
+
+useEffect(() => {
+  if (product) {
+    const isProductInWishlist = wishlistItems.some((wishlistItem) =>
+      wishlistItem.products.some(
+        (item) => item.productId && item.productId._id === product._id
+      )
+    );
+    setIsInWishlist(isProductInWishlist);
+  }
+}, [wishlistItems, product]);
+
     
   const handleWishlistToggle = async () => {
     if (!product) return;

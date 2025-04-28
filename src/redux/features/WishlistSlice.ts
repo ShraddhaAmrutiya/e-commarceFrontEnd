@@ -165,7 +165,7 @@ const wishlistSlice = createSlice({
         if (!state.wishlistItems.some((item) => item._id === action.payload._id)) {
           state.wishlistItems.push(action.payload);
         }
-      })
+      })      
       .addCase(addWishlistItem.rejected, (state, action) => {
         state.error = typeof action.payload === "string" ? action.payload : "Failed to add item to wishlist";
       })
@@ -175,16 +175,17 @@ const wishlistSlice = createSlice({
         state.wishlistItems = state.wishlistItems
           .map((wishlist) => {
             const filteredProducts = wishlist.products.filter(
-              (item) => item.productId._id !== action.payload
+              (item) => item.productId && item.productId._id !== action.payload
             );
-
+      
             if (filteredProducts.length > 0) {
               return { ...wishlist, products: filteredProducts };
             }
             return null;
           })
-          .filter((wishlist) => wishlist !== null) as WishlistItem[];
+          .filter((wishlist): wishlist is WishlistItem => wishlist !== null);
       })
+      
       .addCase(removeWishlistItem.rejected, (state, action) => {
         state.error = typeof action.payload === "string" ? action.payload : "Failed to remove item from wishlist";
       });

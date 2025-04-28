@@ -7,7 +7,7 @@ import { useAppSelector, useAppDispatch } from "../redux/hooks";
 import { fetchCartItems } from "../models/CartSlice";
 import { toggleCart1, setCartItems } from "../redux/features/cartSlice";
 import { updateModal } from "../redux/features/authSlice";
-import { fetchWishlistItems } from "../redux/features/WishlistSlice"; 
+import { fetchWishlistItems } from "../redux/features/WishlistSlice";
 import CustomPopup from "./CustomPopup";
 import { CartItem } from "../models/CartItem";
 
@@ -26,13 +26,12 @@ const Navbar: FC = () => {
   const Role = useAppSelector((state) => state.authReducer.Role) || localStorage.getItem("role");
   const cartCount = useAppSelector((state) => {
     const cartItems = state.cartReducer?.cartItems;
-    return Array.isArray(cartItems) ? cartItems.length : 0;
+    return Array.isArray(cartItems) && cartItems.length > 0 ? cartItems.length : 0;
   });
   
-
   const wishlistCount = useAppSelector((state) => {
     const wishlistItems = state.wishlistReducer?.wishlistItems;
-    return Array.isArray(wishlistItems) ? wishlistItems.reduce((total, item) => total + item.products.length, 0) : 0;
+    return Array.isArray(wishlistItems) ? wishlistItems.reduce((total, item) => total + item. products.length, 0) : 0;
   });
 
   const location = useLocation();
@@ -59,11 +58,11 @@ const Navbar: FC = () => {
     if (userId) {
       dispatch(fetchWishlistItems()).then((response) => {
         if (response.meta.requestStatus === "fulfilled") {
-          console.log("Fetched Wishlist Items:", response.payload);
+          return response.payload
         }
       });
     }
-  }, [dispatch, userId]);
+  }, [dispatch, userId]); 
 
   const showCart = () => {
     const storedUserId = localStorage.getItem("userId");
@@ -168,7 +167,6 @@ const Navbar: FC = () => {
                   <span className="dark:text-white">Login</span>
                 </div>
               )}
-
               {!userName && authMenuOpen && (
                 <div className="absolute right-0 mt-2 w-72 bg-white dark:bg-slate-700 rounded-lg shadow-lg border dark:border-gray-600 z-50">
                   <div
@@ -212,7 +210,7 @@ const Navbar: FC = () => {
             </div>
 
             {/* Cart */}
-            {!location.pathname.includes("/cart") && (
+            {/* {!location.pathname.includes("/cart") && ( */}
               <div
                 className="text-gray-500 text-[32px] relative hover:cursor-pointer hover:opacity-80"
                 onClick={showCart}
@@ -222,7 +220,7 @@ const Navbar: FC = () => {
                   {cartCount}
                 </div>
               </div>
-            )}
+            {/* )} */}
           </div>
         </div>
       </div>
@@ -235,5 +233,8 @@ const Navbar: FC = () => {
     </div>
   );
 };
+
+
+
 
 export default Navbar;

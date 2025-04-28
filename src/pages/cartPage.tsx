@@ -4,6 +4,8 @@ import { useAppSelector } from '../redux/hooks';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import 'react-toastify/dist/ReactToastify.css';
+import { useAppDispatch } from '../redux/hooks';
+import { removeFromCart } from '../redux/features/cartSlice';
 
 interface Product {
   _id: string;
@@ -28,47 +30,41 @@ interface CartResponse {
 }
 
 const Cart = () => {
+  const dispatch = useAppDispatch();
+
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [cartCount, setCartCount] = useState<number>(0);
   const [showModal, setShowModal] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
   const [removeLoading, setRemoveLoading] = useState<boolean>(false);
   const [itemToRemove, setItemToRemove] = useState<string | null>(null);
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [error, setError] = useState<string | null>(null);
-console.log(error);
 
-  
   const navigate = useNavigate();
   const userId =
     useAppSelector((state) => state.authReducer.userId) || localStorage.getItem('userId');
   const token = localStorage.getItem('accessToken');
 
   const headers = { Authorization: `Bearer ${token}` };
+
+  // Fetch Cart Items Function
+  const fetchCartItems = async () => {
+    if (!userId || !token) return;
+    try {
+      const { data } = await axios.get<CartResponse>(
+        `http://localhost:5000/cart/${userId}`,
+        { headers }
+      );
+      setCartItems(data.cartItems);
+      setCartCount(data.cartCount);
+    } catch {
+      toast.error('Failed to fetch cart.');
+    }
+  };
+
   useEffect(() => {
-    setCartCount(cartItems.length);
-  }, [cartItems]);
-  
-  useEffect(() => {
-    const fetchCartItems = async () => {
-      if (!userId || !token) return;
-      try {
-        const { data } = await axios.get<CartResponse>(
-          `http://localhost:5000/cart/${userId}`,
-          { headers }
-        );
-        setCartItems(data.cartItems);
-        setCartCount(data.cartCount);
-      } catch {
-        setError('Failed to fetch cart.');
-        toast.error('Failed to fetch cart.');
-      }
-    };
     fetchCartItems();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId, token]);
-// console.log(cartItems, 'cartItems');
 
   const handleQuantityChange = async (productId: string, quantity: number) => {
     if (!userId || !token || quantity < 1) return;
@@ -86,95 +82,133 @@ console.log(error);
     }
   };
 
-  const removeItem = async (productId: string) => {
-    if (!userId || !token) return;
-  
-    setRemoveLoading(true);
-    try {
-      const config = {
-        headers,
-        data: { userId, productId },
-      };
-      const response = await axios.delete<CartResponse>('http://localhost:5000/cart', config);
-  
-      if (response.status === 200) {
-        const updatedCartItems = cartItems.filter(item => item.productId._id !== productId);
-        const backendMessage = response.data?.message || 'Item removed from cart';
-        // const itemName = removedItem?.productId?.title || 'Item';
-  
-        setCartItems(updatedCartItems);
-        setCartCount(updatedCartItems.length);
-  
-        toast.success(` ${backendMessage}`, {
-          position: "top-center",
-          autoClose: 2000, // correct key for react-toastify
-          style: {
-            backgroundColor: "#f44336",
-            color: "#fff",
-            borderRadius: "8px",
-            top: "50%",
-            transform: "translateY(-50%)",
-          },
-        });
-  
+const removeItem = async (productId: string) => {
+  if (!userId || !token) return;
+
+  setRemoveLoading(true);
+  try {
+    const config = {
+      headers,
+      data: { userId, productId },
+    };
+
+    const response = await axios.delete<CartResponse>('http://localhost:5000/cart', config);
+
+    if (response.status === 200) {
+      const backendMessage = response.data?.message || 'Item removed from cart';
+
+      const updatedCartItems = response.data.cartItems;
+      if (updatedCartItems && updatedCartItems.length === 0) {
+        setCartCount(0);
       }
-    } catch {
+
+      setCartItems(updatedCartItems);
+
+      toast.success(`${backendMessage}`, {
+        position: 'top-center',
+        autoClose: 2000,
+        style: {
+          backgroundColor: '#f44336',
+          color: '#fff',
+          borderRadius: '8px',
+          top: '50%',
+          transform: 'translateY(-50%)',
+        },
+      });
+    } else {
       toast.error('Failed to remove item from cart.');
-    } finally {
-      setRemoveLoading(false);
     }
-  };
-  
-  
-  
+  } catch (error) {
+    // In case the error is thrown in the catch block, display the error message
+    console.error('Error during item removal:', error);
+    toast.error('Failed to remove item from cart.');
+  } finally {
+    setRemoveLoading(false);
+  }
+};
 
   const handleRemoveFromCart = async (productId: string) => {
+    if (!userId || !token) return;
+  
+    // If there is only one item in the cart, show the confirmation modal
     if (cartItems.length === 1) {
       setItemToRemove(productId);
       setShowModal(true);
     } else {
-      await removeItem(productId);
+      // Proceed with immediate item removal from cart
+      setRemoveLoading(true);
+  
+      try {
+        const config = {
+          headers: { Authorization: `Bearer ${token}` },
+          data: { userId, productId },
+        };
+        await axios.delete('http://localhost:5000/cart', config);
+  
+        // Update Redux store after removal
+        dispatch(removeFromCart(productId));
+  
+        // Optimistic UI update
+        setCartItems((prevItems) => prevItems.filter(item => item.productId._id !== productId));
+        setCartCount((prevCount) => prevCount - 1);
+  
+        toast.success('Item removed from cart.');
+      } catch (error) {
+        toast.error('Failed to remove item.');
+      } finally {
+        setRemoveLoading(false);
+      }
     }
   };
+  
 
   const confirmRemoveLastItem = async () => {
     if (itemToRemove) {
       await removeItem(itemToRemove);
+      window.location.reload();
+      setCartCount(0);
       setItemToRemove(null);
-      setShowModal(false);
+      setShowModal(false);  
+
     }
   };
 
-  const confirmClearCart = async () => {
-    if (!userId || !token) return;
-    try {
-      await axios.delete(`http://localhost:5000/cart/${userId}`, { headers });
-      setCartItems([]);
-      setCartCount(0);
-      setShowModal(false);
-    } catch {
-      toast.error('Failed to clear cart.');
-    }
-  };
+const confirmClearCart = async () => {
+  if (!userId || !token) return;
+
+  try {
+    await axios.delete(`http://localhost:5000/cart/${userId}`, { headers });
+    setCartCount(0);
+    setCartItems([]);
+    setShowModal(false);
+
+    window.location.reload();
+
+  } catch {
+    toast.error('Failed to clear cart.');
+  }
+};
 
   const handleCheckout = () => {
     setLoading(true);
     setTimeout(() => {
-      navigate('/checkout',{ state: { cartItems } }
-      );
+      navigate('/checkout', { state: { cartItems } });
     }, 500);
   };
 
-  if (cartItems.length === 0) {
+  if (!Array.isArray(cartItems) || cartItems.length === 0) {
     return <h2 className="text-center text-xl mt-6">🛒 Your cart is empty</h2>;
   }
+  
+  
 
   return (
     <div className="container relative">
       <h1 className="text-center text-2xl font-bold mb-6 mt-6">🛒 Shopping Cart</h1>
+
       <div className="absolute top-1 right-4 bg-blue-800 text-white px-5 py-2 rounded-full text-sm shadow">
-  Items in cart: {cartCount}
-</div>
+        Items in cart: {cartCount}
+      </div>
 
       <div className="space-y-8">
         {cartItems.map((item) => (
@@ -286,20 +320,20 @@ console.log(error);
 
       <style>
         {`
-        .checkout-btn {
-          background-color: rgb(15, 87, 241);
-          color: white;
-          padding: 12px;
-          border-radius: 5px;
-          width: 100%;
-          cursor: pointer;
-          margin-top: 20px;
-        }
+          .checkout-btn {
+            background-color: rgb(15, 87, 241);
+            color: white;
+            padding: 12px;
+            border-radius: 5px;
+            width: 100%;
+            cursor: pointer;
+            margin-top: 20px;
+          }
 
-        .checkout-btn:disabled {
-          background-color: #ccc;
-          cursor: not-allowed;
-        }
+          .checkout-btn:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+          }
         `}
       </style>
     </div>

@@ -277,6 +277,7 @@ export const removeCartItem = createAsyncThunk<string, { productId: string, user
           userId,
         },
       });
+      
       return productId;
     } catch (error: unknown) {
       const err = error as { response?: { data?: { message?: string } } };
@@ -314,13 +315,15 @@ export const cartSlice = createSlice({
       recalculateQuantityAndPrice(state);
     },
 
-    removeFromCart: (state, action: PayloadAction<string>) => {
-      // Directly remove the item from the cartItems array without storing it in removedItem
-      state.cartItems = state.cartItems.filter(item => item._id !== action.payload);
+    // removeFromCart: (state, action: PayloadAction<string>) => {
+    //   console.log('Entering removeFromCart reducer'); // Add this to check if the reducer is being triggered
+    //   state.cartItems = state.cartItems.filter(item => item._id !== action.payload);
     
-      // Recalculate totals and count
-      recalculateQuantityAndPrice(state);
-    },
+    //   // Recalculate totals and count
+    //   recalculateQuantityAndPrice(state);
+    //   console.log('Updated cart items:', state.cartItems); // Check updated cart items
+
+    // },
     
 
 
@@ -380,6 +383,8 @@ export const cartSlice = createSlice({
       state.loading = true;
     })
     .addCase(removeCartItem.fulfilled, (state, action) => {
+      console.log('✅ Successfully removed item from cart:', action.payload);
+
       state.loading = false;
       state.cartItems = state.cartItems.filter((item) => item.productId._id !== action.payload);
       state.cartCount -= 1; // Adjust cart count
@@ -402,7 +407,7 @@ export const selectTotalPrice = (state: RootState) => state.cartReducer.totalPri
 export const {
   toggleCart1,
   addToCart,
-  removeFromCart,
+  // removeFromCart,
   reduceFromCart,
   emptyCart,
   setCartState,
