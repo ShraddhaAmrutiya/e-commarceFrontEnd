@@ -44,7 +44,7 @@ const CheckoutDirectPage = () => {
     setLoading(true);
     try {
       await axios.post(
-        '${BASE_URL}/order/direct',
+        `${BASE_URL}/order/direct`,
         {
           userId,
           productId: product.productId,
