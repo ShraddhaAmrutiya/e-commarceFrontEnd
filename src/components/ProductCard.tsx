@@ -9,7 +9,7 @@ import { Link } from "react-router-dom";
 import PriceSection from "./PriceSection";
 import useAuth from "../hooks/useAuth";
 import { CartItem } from "../models/CartItem";
-
+import BASE_URL from "../config/apiconfig";
 
 const ProductCard: FC<Product> = ({
   _id,
@@ -58,7 +58,7 @@ const ProductCard: FC<Product> = ({
   
       // Make the API call to update the cart on the backend
       try {
-        const res = await fetch("http://localhost:5000/cart", {
+        const res = await fetch(`${BASE_URL}/cart`, {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
@@ -124,7 +124,7 @@ const ProductCard: FC<Product> = ({
              typeof image === "string"
                ? image.startsWith("http")
                  ? image
-                 : `http://localhost:5000${image}`
+                 : `${BASE_URL}${image}`
                : URL.createObjectURL(image)
            }
            alt={title}

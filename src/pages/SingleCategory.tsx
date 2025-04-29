@@ -17,7 +17,7 @@ const SingleCategory: FC = () => {
   useEffect(() => {
     const fetchCategoryDetails = async () => {
       try {
-        const response = await fetch(`http://localhost:5000/category/${id}`, {
+        const response = await fetch(`${BASE_URL}/category/${id}`, {
           method: "GET",
           headers: {
             Authorization: `Bearer ${token}`, // Include token for authentication
@@ -35,7 +35,7 @@ const SingleCategory: FC = () => {
 
     const fetchProducts = async () => {
       try {
-        const response = await fetch(`http://localhost:5000/category/products/${id}`, {
+        const response = await fetch(`${BASE_URL}/category/products/${id}`, {
           method: "GET",
           headers: {
             Authorization: `Bearer ${token}`, // Include token for authentication

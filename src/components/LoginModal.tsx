@@ -27,7 +27,7 @@ const LoginModal: FC = () => {
     setIsSending(true);
 
     try {
-      const response = await fetch(`http://localhost:5000/users/forgot-password/`, {
+      const response = await fetch(`${BASE_URL}/users/forgot-password/`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

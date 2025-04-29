@@ -32,6 +32,7 @@ import AddProduct from "./components/Addproduct";
 import CheckoutPage from "./pages/checkOutpage";
 import OrdersPage from "./pages/orderPge";
 import ResetPassword from "./pages/Resetpassword";
+import CheckoutDirectPage from "./pages/checkoutDirect"
 
 // import { useEffe ct } from "react";
 import axios from "axios";
@@ -82,6 +83,7 @@ useEffect(() => {
           <Route path="/account" element={<Profile />} />
           <Route path="/addCategory" element={<AddCategory />} />
           <Route path="/checkout" element={<CheckoutPage />} />
+          <Route path="/checkoutDirect" element={<CheckoutDirectPage />} />
           <Route path="/orders" element={<OrdersPage />} />
 
           <Route path="/Addproduct" element={<AddProduct />} />

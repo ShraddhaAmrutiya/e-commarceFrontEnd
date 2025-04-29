@@ -22,7 +22,7 @@ const SearchPage = () => {
     const fetchData = async () => {
       try {
         if (query) {
-          const res = await axios.get<Product[]>(`http://localhost:5000/products/search?q=${query}`);
+          const res = await axios.get<Product[]>(`${BASE_URL}/products/search?q=${query}`);
           setProducts(res.data);
         }
       } catch (err) {
@@ -48,7 +48,7 @@ const SearchPage = () => {
               className="border p-4 rounded shadow cursor-pointer hover:shadow-lg transition-all dark:bg-slate-700"
             >
               <img
-                src={`http://localhost:5000${product.image}`}
+                src={`${BASE_URL}${product.image}`}
                 alt={product.title}
                 className="w-full h-40 object-cover mb-2 rounded"
                 onError={(e) => {

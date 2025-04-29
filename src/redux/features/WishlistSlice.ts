@@ -1,7 +1,7 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 import { RootState } from "../store";
-
+import BASE_URL from "../../config/apiconfig";
 // Wishlist item structure
 interface WishlistItem {
   _id: string;
@@ -41,7 +41,7 @@ export const fetchWishlistItems = createAsyncThunk<WishlistItem[], void, { state
 
       if (!userId || !token) return rejectWithValue("User ID or access token is missing");
 
-      const response = await axios.get(`http://localhost:5000/wishlist/${userId}`, {
+      const response = await axios.get(`${BASE_URL}/wishlist/${userId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -71,7 +71,7 @@ export const addWishlistItem = createAsyncThunk<WishlistItem, { productId: strin
       if (!userId || !token) return rejectWithValue("User ID or access token is missing");
 
       const response = await axios.post(
-        "http://localhost:5000/wishlist/add",
+        `${BASE_URL}/wishlist/add`,
         { productId },
         {
           headers: {
@@ -106,7 +106,7 @@ export const removeWishlistItem = createAsyncThunk<string, { productId: string }
 
       if (!userId || !token) return rejectWithValue("User ID or access token is missing");
 
-      await axios.delete(`http://localhost:5000/wishlist/remove/${productId}`, {
+      await axios.delete(`${BASE_URL}/wishlist/remove/${productId}`, {
         headers: {
           Authorization: `Bearer ${token}`,
           userId,

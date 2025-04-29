@@ -5,7 +5,7 @@ import { addProducts } from "../redux/features/productSlice";
 import ProductCard from "../components/ProductCard";
 import { Product } from "../models/Product";
 import { useNavigate } from "react-router-dom";
-
+import BASE_URL from "../config/apiconfig";
 const AllProducts: FC = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
@@ -20,7 +20,7 @@ const AllProducts: FC = () => {
     const fetchProducts = async () => {
       setLoading(true);
       try {
-        const response = await fetch("http://localhost:5000/products/all", {
+        const response = await fetch(`${BASE_URL}/products/all`, {
           headers: {
             Authorization: `Bearer YOUR_TOKEN_HERE`, // Replace with actual token
             Accept: "application/json",
@@ -38,15 +38,14 @@ const AllProducts: FC = () => {
           throw new Error("Invalid API response format");
         }
 
-        const baseUrl = "http://localhost:5000";
         const allProducts = data.categories.flatMap((cat: { category: string; products: Product[] }) =>
           (cat.products || []).map((product) => {
             const imageUrl =
             typeof product.image === "string" && product.image.startsWith("/")
-              ? `${baseUrl}${product.image}`
+              ? `${BASE_URL}${product.image}`
               : typeof product.image === "string"
               ? product.image
-              : `${baseUrl}/uploads/default-image.jpg`; // fallback for File or undefined
+              : `${BASE_URL}/uploads/default-image.jpg`; // fallback for File or undefined
           
             return {
               ...product,

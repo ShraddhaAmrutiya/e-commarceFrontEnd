@@ -49,7 +49,7 @@ const Wishlist: React.FC = () => {
 
                 const imageUrl =
                   product.image && product.image.startsWith("/")
-                    ? `http://localhost:5000${product.image}`
+                    ? `${BASE_URL}${product.image}`
                     : product.image || "/placeholder.jpg";
 
                 return (

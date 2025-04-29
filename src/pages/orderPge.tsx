@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchOrders,OrderItem } from "../redux/features/orderSlice";
+import { fetchOrders,OrderItem } from "../redux/features/OrderSlice";
 import { RootState, AppDispatch } from "../redux/store";
 
 const OrdersPage = () => {
@@ -31,7 +31,7 @@ const OrdersPage = () => {
               {order.products.map((item: OrderItem, index: number) => (
                 <li key={index} className="flex items-start gap-4 border-b pb-3">
                   <img
-                    src={`http://localhost:5000${item.image}`}
+                    src={`${BASE_URL}${item.image}`}
                     alt={item.name}
                     className="w-20 h-20 object-cover rounded"
                   />

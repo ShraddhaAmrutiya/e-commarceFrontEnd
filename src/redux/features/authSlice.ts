@@ -2,7 +2,7 @@ import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
 import axios from "axios";
 import { AuthSlice } from "../../models/AuthSlice";
 import { toast } from "react-toastify";
-
+import BASE_URL from "../../config/apiconfig";
 interface LoginProps {
   userName: string;
   password: string;
@@ -16,7 +16,7 @@ interface LoginResponse {
   Role: string;
 }
 
-axios.defaults.baseURL = "http://localhost:5000";
+axios.defaults.baseURL = `${BASE_URL}`;
 axios.defaults.withCredentials = true;
 
 axios.interceptors.request.use(
@@ -45,7 +45,7 @@ export const doLogin = createAsyncThunk(
   async ({ userName, password }: LoginProps, { rejectWithValue }) => {
     try {
       const response = await axios.post<LoginResponse>(
-        "http://localhost:5000/users/login",
+        `${BASE_URL}/users/login`,
         { userName, password }
       );
 

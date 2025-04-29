@@ -1,7 +1,7 @@
 
 import { FC, useEffect, useState, FormEvent } from "react";
 import { toast } from "react-toastify";
-
+import BASE_URL from "../config/apiconfig";
 interface Address {
   address: string;
   city: string;
@@ -33,7 +33,7 @@ const Profile: FC = () => {
 
     if (!userId || !token) return;
 
-    fetch(`http://localhost:5000/users/${userId}`, {
+    fetch(`${BASE_URL}/users/${userId}`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -58,7 +58,7 @@ const Profile: FC = () => {
     }
   
     try {
-      const response = await fetch("http://localhost:5000/users/reset-passwordwitholdpassword/", {
+      const response = await fetch(`${BASE_URL}/users/reset-passwordwitholdpassword/`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

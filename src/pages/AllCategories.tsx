@@ -4,7 +4,7 @@ import { addCategories } from "../redux/features/productSlice";
 import { Link } from "react-router-dom";
 import toast from "react-hot-toast";
 import { Category } from "../models/Category";
-
+import BASE_URL from "../config/apiconfig";
 const AllCategories: FC = () => {
   const dispatch = useAppDispatch();
   const allCategories = useAppSelector((state) => state.productReducer.categories);
@@ -23,7 +23,7 @@ const AllCategories: FC = () => {
 
   const fetchCategories = useCallback(async () => {
     try {
-      const res = await fetch("http://localhost:5000/category/list", {
+      const res = await fetch(`${BASE_URL}/category/list`, {
         method: "GET",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -66,7 +66,7 @@ const AllCategories: FC = () => {
     if (!editingId) return;
 
     try {
-      const res = await fetch(`http://localhost:5000/category/update/${editingId}`, {
+      const res = await fetch(`${BASE_URL}/category/update/${editingId}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -96,7 +96,7 @@ const AllCategories: FC = () => {
     if (!deleteId) return;
 
     try {
-      const res = await fetch(`http://localhost:5000/category/delete/${deleteId}`, {
+      const res = await fetch(`${BASE_URL}/category/delete/${deleteId}`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${token}`,

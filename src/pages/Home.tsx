@@ -3,6 +3,7 @@ import HeroSection from "../components/HeroSection";
 import Features from "../components/Features";
 import TrendingProducts from "../components/TrendingProducts";
 import { useAppDispatch } from "../redux/hooks";
+import BASE_URL from "../config/apiconfig";
 interface Category {
   category: string;
   products: Product[];
@@ -15,7 +16,7 @@ const Home: FC = () => {
   const dispatch = useAppDispatch();
   useEffect(() => {
     const fetchProducts = () => {
-      fetch("http://localhost:5000/products/all?limit=24")
+      fetch(`${BASE_URL}/products/all?limit=24`)
         .then((res) => res.json())
         .then(({ categories }) => {
           // console.log("API Response:", categories);
@@ -29,7 +30,7 @@ const Home: FC = () => {
                 title: product.title,
                 image:
                 typeof product.image === "string" && product.image.startsWith("/")
-                ? `http://localhost:5000${product.image}`
+                ? `${BASE_URL}${product.image}`
                     : product.image || "default_image_url", 
 
                 price: product.price,
