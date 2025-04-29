@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchOrders,OrderItem } from "../redux/features/OrderSlice";
 import { RootState, AppDispatch } from "../redux/store";
-
+import BASE_URL from "../config/apiconfig";
 const OrdersPage = () => {
   const dispatch = useDispatch<AppDispatch>();
   const orderResponse = useSelector((state: RootState) => state.orderReducer.orders);

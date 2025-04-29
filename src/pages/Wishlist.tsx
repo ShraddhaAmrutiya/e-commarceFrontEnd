@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "../redux/store";
 import { fetchWishlistItems, removeWishlistItem } from "../redux/features/WishlistSlice";
 import { useNavigate } from "react-router-dom";
-
+import BASE_URL from "../config/apiconfig";
 const Wishlist: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();

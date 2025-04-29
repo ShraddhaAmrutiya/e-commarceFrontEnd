@@ -1,7 +1,7 @@
 import { useState, FormEvent } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-
+import BASE_URL from "../config/apiconfig";
 const ResetPassword = () => {
   const { token } = useParams<{ token: string }>();
   const navigate = useNavigate();

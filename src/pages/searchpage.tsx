@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import BASE_URL from "../config/apiconfig";
 import axios from "axios";
 type Product = {
     _id: string;

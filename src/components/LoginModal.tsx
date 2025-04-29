@@ -5,7 +5,7 @@ import { FaUnlock } from "react-icons/fa";
 import { RiLockPasswordFill, RiUser3Fill } from "react-icons/ri";
 import { RxCross1 } from "react-icons/rx";
 import { toast } from "react-toastify";
-
+import BASE_URL from "../config/apiconfig";
 const LoginModal: FC = () => {
   const [userName, setUserName] = useState("");
   const [password, setPassword] = useState("");

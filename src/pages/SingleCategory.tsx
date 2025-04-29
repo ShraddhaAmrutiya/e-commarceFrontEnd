@@ -3,7 +3,7 @@ import { useParams } from "react-router-dom";
 import { Product } from "../models/Product";
 import ProductCard from "../components/ProductCard";
 import { Link } from "react-router-dom";
-
+import BASE_URL from "../config/apiconfig";
 const SingleCategory: FC = () => {
   const { id } = useParams();
   const [productList, setProductList] = useState<Product[]>([]);
