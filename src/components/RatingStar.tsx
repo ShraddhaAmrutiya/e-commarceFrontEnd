@@ -14,13 +14,13 @@ const RatingStar: FC<{ rating?: number }> = ({ rating = 0 }) => {
       <ReactStarRatings
         rating={ratingNum} 
         starRatedColor="#ffb21d" 
-        starEmptyColor="#d3d3d3" 
+        starEmptyColor="#F6F6F6" 
         numberOfStars={5} 
         name="rating" 
         starDimension="25px" 
         starSpacing="1px"
       />
-      <span className="ml-2 text-gray-600 font-semibold dark:text-white">
+      <span className="ml-2 text-white-600 font-semibold dark:text-white">
         {rating.toFixed(1)}
       </span>
     </div>

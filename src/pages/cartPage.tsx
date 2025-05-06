@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import { useAppSelector } from "../redux/hooks";
@@ -7,7 +6,7 @@ import axios from "axios";
 import "react-toastify/dist/ReactToastify.css";
 import { useAppDispatch } from "../redux/hooks";
 import { removeFromCart } from "../redux/features/cartSlice";
-import BASE_URL from '../config/apiconfig';
+import BASE_URL from "../config/apiconfig";
 
 interface Product {
   _id: string;
@@ -58,23 +57,25 @@ const Cart = () => {
 
   useEffect(() => {
     fetchCartItems();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId, token]);
 
   useEffect(() => {
     const initialQuantities = cartItems.reduce((acc, item) => {
-      acc[item.productId._id] = item.quantity; // Initialize with current quantity
+      if (item.productId) {
+        acc[item.productId._id] = item.quantity;
+      }
       return acc;
     }, {} as { [key: string]: number });
-    
+
     setQuantityMap(initialQuantities);
   }, [cartItems]);
 
   const handleQuantityChange = async (productId: string, quantity: number) => {
     if (quantity < 1) return;
 
-    const item = cartItems.find((item) => item.productId._id === productId);
-    if (item && quantity > item.productId.stock) {
+    const item = cartItems.find((item) => item.productId?._id === productId);
+    if (item && quantity > item.productId?.stock) {
       toast.error(`Only ${item.productId.stock} items in stock.`);
       return;
     }
@@ -85,11 +86,7 @@ const Cart = () => {
     }));
 
     try {
-      const { data } = await axios.put<CartResponse>(
-        `${BASE_URL}/cart`,
-        { userId, productId, quantity },
-        { headers }
-      );
+      const { data } = await axios.put<CartResponse>(`${BASE_URL}/cart`, { userId, productId, quantity }, { headers });
       setCartItems(data.cartItems);
     } catch {
       toast.error("Failed to update quantity.");
@@ -140,7 +137,7 @@ const Cart = () => {
 
         dispatch(removeFromCart(productId));
 
-        setCartItems((prevItems) => prevItems.filter((item) => item.productId._id !== productId));
+        setCartItems((prevItems) => prevItems.filter((item) => item.productId?._id !== productId));
 
         toast.success("Item removed from cart.");
       } catch (error) {
@@ -189,59 +186,65 @@ const Cart = () => {
       <h1 className="text-center text-2xl font-bold mb-6 mt-6">🛒 Shopping Cart</h1>
 
       <div className="space-y-8">
-        {cartItems.map((item) => (
-          <div key={item._id} className="flex items-center space-x-5 border p-4 rounded-lg shadow">
-            <img
-              src={`${BASE_URL}${item.productId.image}`}
-              alt={item.productId.title}
-              className="w-24 h-24 object-cover rounded-lg cursor-pointer"
-              onClick={() => navigate(`/products/${item.productId._id}`)}
-            />
-            <div className="flex-grow">
-              <h2 className="text-xl font-semibold">{item.productId.title}</h2>
-              <p className="text-gray-600">{item.productId.description}</p>
-              <p className="text-green-600 font-bold">Price: ₹{item.productId.salePrice || item.productId.price}</p>
-              <div className="flex items-center space-x-2 mt-1">
-                <button
-                  className="bg-gray-200 px-2 rounded"
-                  disabled={quantityMap[item.productId._id] === 1}
-                  onClick={() => handleQuantityChange(item.productId._id, quantityMap[item.productId._id] - 1)}
-                >
-                  -
-                </button>
+        {cartItems
+          .filter((item) => item.productId)
+          .map((item) => (
+            <div key={item._id} className="flex items-center space-x-5 border p-4 rounded-lg shadow">
+              <img
+                src={`${BASE_URL}${item.productId?.image}`}
+                alt={item.productId?.title}
+                className="w-24 h-24 object-cover rounded-lg cursor-pointer"
+                onClick={() => navigate(`/products/${item.productId?._id}`)}
+              />
+              <div className="flex-grow">
+                <h2 className="text-xl font-semibold">{item.productId?.title}</h2>
+                <p className="text-gray-600">{item.productId?.description}</p>
+                <p className="text-green-600 font-bold">Price: ₹{item.productId?.salePrice || item.productId?.price}</p>
+                {(item.productId?.stock === 0 || item.productId?.stock === undefined) && (
+                  <p className="text-red-500 font-semibold">This product is out of stock.</p>
+                )}
+                <div className="flex items-center space-x-2 mt-1">
+                  <button
+                    className="bg-gray-200 px-2 rounded"
+                    disabled={quantityMap[item.productId?._id] === 1}
+                    onClick={() => handleQuantityChange(item.productId?._id, quantityMap[item.productId?._id] - 1)}
+                  >
+                    -
+                  </button>
 
-                <input
-                  type="number"
-                  min="1"
-                  max={item.productId.stock}
-                  value={quantityMap[item.productId._id] || 1}
-                  onChange={(e) => handleQuantityChange(item.productId._id, parseInt(e.target.value))}
-                  className="w-16 text-center border rounded px-2 py-1"
-                />
+                  <input
+                    type="number"
+                    min="1"
+                    max={item.productId?.stock}
+                    value={quantityMap[item.productId?._id] || 1}
+                    onChange={(e) => handleQuantityChange(item.productId?._id, parseInt(e.target.value))}
+                    className="w-16 text-center border rounded px-2 py-1"
+                  />
 
-                <button
-                  className="bg-gray-200 px-2 rounded"
-                  onClick={() => handleQuantityChange(item.productId._id, quantityMap[item.productId._id] + 1)}
-                >
-                  +
-                </button>
+                  <button
+                    className="bg-gray-200 px-2 rounded"
+                    onClick={() => handleQuantityChange(item.productId?._id, quantityMap[item.productId?._id] + 1)}
+                  >
+                    +
+                  </button>
+                </div>
               </div>
+              <button
+                className="bg-red-500 text-white px-4 py-2 rounded"
+                onClick={() => handleRemoveFromCart(item.productId?._id)}
+                disabled={removeLoading}
+              >
+                {removeLoading ? "Removing..." : "Remove"}
+              </button>
             </div>
-            <button
-              className="bg-red-500 text-white px-4 py-2 rounded"
-              onClick={() => handleRemoveFromCart(item.productId._id)}
-              disabled={removeLoading}
-            >
-              {removeLoading ? "Removing..." : "Remove"}
-            </button>
-          </div>
-        ))}
+          ))}
       </div>
 
       <h2 className="text-right text-xl font-bold mt-6">
         Total: ₹
         {cartItems
-          .reduce((acc, item) => acc + item.quantity * (item.productId.salePrice || item.productId.price), 0)
+          .filter((item) => item.productId) // Ensure we only calculate for valid products
+          .reduce((acc, item) => acc + item.quantity * (item.productId?.salePrice || item.productId?.price), 0)
           .toFixed(2)}
       </h2>
 

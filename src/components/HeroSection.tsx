@@ -11,14 +11,14 @@ const HeroSection: FC = () => {
               Starting At <span className="font-bold">rupees 2375</span>
             </p>
             <h2 className="text-black font-bold text-4xl md:text-5xl dark:text-white">
-              puma shouse
+              Laptop
             </h2>
             <h3 className="text-2xl dark:text-white">
-              Exclusive offer <span className="text-red-600">-15%</span> off
+              Exclusive offer <span className="text-red-600">-12%</span> off
               this week
             </h3>
             <Link
-              to="/products/680a0b85265e9b419acc8ce6"
+              to="/products/6819a9f7b4e776a35a8a09f2"
               data-test="hero-btn"
               className="inline-block bg-white rounded-md px-6 py-3 hover:bg-blue-500 hover:text-white"
             >
@@ -27,7 +27,7 @@ const HeroSection: FC = () => {
           </div>
         </div>
         <div>
-          <img src="http://localhost:5000/uploads/1745488773823-shouse.jpg" alt="Shouse" className="ml-auto" />
+          <img src="http://localhost:5000/uploads/1746512375601-download.jpg" alt="Shoes" className="ml-auto" />
         </div>
       </div>
     </div>

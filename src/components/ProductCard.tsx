@@ -2,7 +2,7 @@ import { FC } from "react";
 import { Product } from "../models/Product";
 import RatingStar from "./RatingStar";
 import { addToCart } from "../redux/features/cartSlice";
-import { useAppDispatch,useAppSelector  } from "../redux/hooks";
+import { useAppDispatch, useAppSelector } from "../redux/hooks";
 import toast from "react-hot-toast";
 import { AiOutlineShoppingCart } from "react-icons/ai";
 import { Link } from "react-router-dom";
@@ -11,19 +11,10 @@ import useAuth from "../hooks/useAuth";
 import { CartItem } from "../models/CartItem";
 import BASE_URL from "../config/apiconfig";
 
-const ProductCard: FC<Product> = ({
-  _id,
-  price,
-  image,
-  title,
-  category,
-  rating,
-  discountPercentage,
-}) => {
+const ProductCard: FC<Product> = ({ _id, price, image, title, category, rating, discountPercentage,stock  }) => {
   const cartItems = useAppSelector((state) => state.cartReducer.cartItems);
   const dispatch = useAppDispatch();
   const { requireAuth } = useAuth();
-
 
   const addCart = async () => {
     requireAuth(async () => {
@@ -38,13 +29,6 @@ const ProductCard: FC<Product> = ({
         return;
       }
   
-      // Check if the product is already in the cart
-      const alreadyInCart = cartItems.some((item) => item.productId._id === _id);
-      if (alreadyInCart) {
-        toast("This product is already in your cart!");
-        return;
-      }
-  
       // Create the product object
       const product: Product = {
         _id,
@@ -54,9 +38,26 @@ const ProductCard: FC<Product> = ({
         category,
         rating,
         discountPercentage,
+        stock 
       };
   
-      // Make the API call to update the cart on the backend
+      // Check if product is already in cart
+      const existingCartItem = cartItems.find((item) => item.productId._id === _id);
+  
+      if (product.stock === undefined) {
+        toast("Product stock information is unavailable.");
+        return;
+      }
+      const maxQuantity = product.stock ;
+      const newQuantity = existingCartItem
+        ? Math.min(existingCartItem.quantity + 1, maxQuantity )
+        : 1;
+  
+      if (existingCartItem && existingCartItem.quantity >= maxQuantity) {
+        toast("You've reached the maximum quantity for this product.");
+        return;
+      }
+  
       try {
         const res = await fetch(`${BASE_URL}/cart`, {
           method: "PUT",
@@ -67,21 +68,18 @@ const ProductCard: FC<Product> = ({
           body: JSON.stringify({
             userId,
             productId: _id,
-            quantity: 1,
+            quantity: newQuantity,
           }),
         });
   
         const data = await res.json();
   
-        // Log the data to check what the backend is returning
-  
-        // Check if the response indicates a successful cart update
         if (res.ok && data.cartItems) {
-          // Create the cart item to dispatch to Redux
+          // Prepare cart item
           const cartItem: CartItem = {
-            _id: 'unique-cart-id',  // You can replace this with a unique id if needed
+            _id: existingCartItem?._id || "unique-cart-id",
             productId: product,
-            quantity: 1,
+            quantity: newQuantity,
             title,
             price,
             image,
@@ -90,20 +88,11 @@ const ProductCard: FC<Product> = ({
             discountPercentage,
           };
   
-          // Dispatch the action to add the item to the Redux store
-          dispatch(addToCart(cartItem));
+          dispatch(addToCart(cartItem)); 
   
-          // Show success toast with backend message
-          toast.success(data.message || "Added to cart!");
-  
-          // Optionally, you can update the cart count or other relevant UI elements
-          // For example, you can update the cartCount directly from the response:
-          // console.log(`Cart count updated: ${data.cartCount}`);
+          toast.success(existingCartItem ? "Quantity increased in cart!" : "Added to cart!");
         } else {
-          // If there's no cartItems or res.ok is false, show the backend message as an error
-          const errorMessage = data.message || "Failed to add to cart!";
-          console.error("Backend error:", errorMessage);
-          toast.error(errorMessage);
+          toast.error(data.message || "Failed to add to cart!");
         }
       } catch (error) {
         console.error("Error adding to cart:", error);
@@ -112,26 +101,23 @@ const ProductCard: FC<Product> = ({
     });
   };
   
-  
-  
   return (
     <div className="border border-gray-200 font-lato" data-test="product-card">
       <div className="text-center border-b border-gray-200">
         <Link to={`/products/${_id}`}>
           {image ? (
-           <img
-           src={
-             typeof image === "string"
-               ? image.startsWith("http")
-                 ? image
-                 : `${BASE_URL}${image}`
-               : URL.createObjectURL(image)
-           }
-           alt={title}
-           loading="lazy"
-           className="inline-block h-60 transition-transform duration-200 hover:scale-110"
-         />
-         
+            <img
+              src={
+                typeof image === "string"
+                  ? image.startsWith("http")
+                    ? image
+                    : `${BASE_URL}${image}`
+                  : URL.createObjectURL(image)
+              }
+              alt={title}
+              loading="lazy"
+              className="inline-block h-60 transition-transform duration-200 hover:scale-110"
+            />
           ) : (
             <p className="text-gray-400">No Image Available</p>
           )}
@@ -154,12 +140,12 @@ const ProductCard: FC<Product> = ({
       </div>
       {/* <span>{cartItems.length}</span> */}
       <div className="flex flex-wrap items-center justify-between px-4 pb-4">
-        {discountPercentage && <PriceSection discountPercentage={discountPercentage} price={price} />}
+         <PriceSection discountPercentage={discountPercentage ??0} price={price} />
         <button
           type="button"
           className="flex items-center space-x-2 hover:bg-blue-500 text-white py-2 px-4 rounded bg-pink-500"
           onClick={(e) => {
-            e.stopPropagation(); 
+            e.stopPropagation();
             addCart();
           }}
           data-test="add-cart-btn"

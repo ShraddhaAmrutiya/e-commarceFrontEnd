@@ -223,57 +223,110 @@ const SingleProduct: FC = () => {
     }
   };
 
+  // const handleDeleteProduct = async () => {
+  //   if (!_id || !token) return;
+
+  //   setIsDeleteModalOpen(false);
+
+  //   try {
+  //     const res = await fetch(`${BASE_URL}/products/delete/${_id}`, {
+  //       method: "DELETE",
+  //       headers: {
+  //         Authorization: `Bearer ${token}`,
+  //       },
+  //     });
+
+  //     const data = await res.json();
+  //     if (!res.ok) throw new Error(data.message || "Delete failed");
+
+  //     const userId = localStorage.getItem("userId");
+  //     if (userId) {
+  //       const response = await fetch(`${BASE_URL}/cart/${userId}`, {
+  //         method: "DELETE",
+  //         headers: {
+  //           Authorization: `Bearer ${token}`,
+  //         },
+  //         body: JSON.stringify({ productId: _id }),
+  //       });
+
+  //       await response.json();
+  //       if (response.ok) {
+  //         toast.success("Product deleted and removed from cart.");
+  //       } else {
+  //         toast.error("Failed to remove product from cart.");
+  //       }
+  //     }
+
+  //     await dispatch(removeWishlistItem({ productId: _id }))
+  //       .unwrap()
+  //       .then(() => {
+  //         toast.success("Product removed from wishlist.");
+  //       })
+  //       .catch((error) => {
+  //         console.error(`Failed to remove product from wishlist: ${error.message}`);
+  //       });
+
+  //     toast.success("Product deleted successfully.");
+  //     navigate("/");
+  //   } catch (error) {
+  //     // console.error("Error deleting product:", error);
+  //     toast.error("Failed to delete product.");
+  //   }
+  // };
   const handleDeleteProduct = async () => {
     if (!_id || !token) return;
-
+  
     setIsDeleteModalOpen(false);
-
+  
     try {
+      // 1. Delete the product
       const res = await fetch(`${BASE_URL}/products/delete/${_id}`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
-
+  
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "Delete failed");
-
+  
+      // 2. Optional: Remove from admin's cart (or skip this if backend handles globally)
       const userId = localStorage.getItem("userId");
       if (userId) {
         const response = await fetch(`${BASE_URL}/cart/${userId}`, {
           method: "DELETE",
           headers: {
             Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
           },
           body: JSON.stringify({ productId: _id }),
         });
-
+  
         await response.json();
         if (response.ok) {
-          toast.success("Product deleted and removed from cart.");
+          toast.success("Product removed from your cart.");
         } else {
-          toast.error("Failed to remove product from cart.");
+          toast.error("Failed to remove product from your cart.");
         }
       }
-
+  
+      // 3. Remove from wishlist in Redux (assumes local session)
       await dispatch(removeWishlistItem({ productId: _id }))
         .unwrap()
         .then(() => {
           toast.success("Product removed from wishlist.");
         })
         .catch((error) => {
-          toast.error(`Failed to remove product from wishlist: ${error.message}`);
+          console.error(`Failed to remove product from wishlist: ${error.message}`);
         });
-
+  
       toast.success("Product deleted successfully.");
       navigate("/");
     } catch (error) {
-      // console.error("Error deleting product:", error);
       toast.error("Failed to delete product.");
     }
   };
-
+  
   const cartItems = useSelector((state: RootState) => state.cartReducer.cartItems);
 
   const addCart = async () => {
@@ -285,21 +338,14 @@ const SingleProduct: FC = () => {
 
       const existingProductIndex = cartItems.findIndex((item) => item.productId._id === product._id);
 
-      if (existingProductIndex !== -1) {
-        toast("This product is already in your cart!");
+      const existingCartItem = cartItems[existingProductIndex];
+      const maxQuantity = product.stock || 10; // fallback default max quantity
+      const newQuantity = existingCartItem ? Math.min(existingCartItem.quantity + 1, maxQuantity) : 1;
+
+      if (existingCartItem && existingCartItem.quantity >= maxQuantity) {
+        toast("You've reached the maximum quantity for this product.");
         return;
       }
-      dispatch(
-        addToCart({
-          _id: product._id,
-          title: product.title,
-          price: product.price,
-          rating: product.rating,
-          category: product.category,
-          productId: product,
-          quantity: 1,
-        })
-      );
 
       try {
         const res = await fetch(`${BASE_URL}/cart`, {
@@ -311,13 +357,28 @@ const SingleProduct: FC = () => {
           body: JSON.stringify({
             userId,
             productId: product._id,
-            quantity: 1,
+            quantity: newQuantity,
           }),
         });
 
         const data = await res.json();
+
         if (res.ok) {
-          toast.success("Added to cart!");
+          dispatch(
+            addToCart({
+              _id: existingCartItem?._id || "unique-cart-id",
+              title: product.title,
+              price: product.price,
+              rating: product.rating,
+              category: product.category,
+              productId: product,
+              quantity: newQuantity,
+              image: product.image,
+              discountPercentage: product.discountPercentage,
+            })
+          );
+
+          toast.success(existingCartItem ? "Quantity increased!" : "Added to cart!");
         } else {
           throw new Error(data.message || "Failed to add to cart.");
         }
@@ -429,8 +490,8 @@ const SingleProduct: FC = () => {
         <div className="px-2 max-h-[80vh] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-400">
           <h2 className="text-2xl">{product?.title}</h2>
           {product?.rating && <RatingStar rating={product.rating} />}
-          {product?.discountPercentage && (
-            <PriceSection discountPercentage={product.discountPercentage} price={product.price} />
+          {product?.price !== undefined && (
+            <PriceSection discountPercentage={product.discountPercentage ?? 0} price={product.price} />
           )}
 
           {product && (
@@ -583,7 +644,7 @@ const SingleProduct: FC = () => {
                 type="number"
                 name="salePrice"
                 id="salePrice"
-                value={formData.salePrice || ""}
+                value={formData.salePrice !== undefined && formData.salePrice !== null ? formData.salePrice : ""}
                 className="w-full p-2 border"
                 placeholder="Sale Price"
                 disabled // This disables the field

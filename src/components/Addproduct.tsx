@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { Product } from "../models/Product";
@@ -34,7 +35,7 @@ const AddProduct = () => {
   const [imageError, setImageError] = useState<string>(""); 
   const [loading, setLoading] = useState(false);
 
-  const MAX_IMAGE_SIZE = 200 * 1024 ; // 200kb
+  const MAX_IMAGE_SIZE = 700 * 1024 ; // 700kb
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -62,6 +63,7 @@ const AddProduct = () => {
       }));
     }
   }, [formData.price, formData.discountPercentage]);
+
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
@@ -124,7 +126,7 @@ const AddProduct = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!validateForm() || imageError) return; // Prevent submit if there are errors
+    if (!validateForm() || imageError) return; 
 
     setLoading(true);
     const data = new FormData();
@@ -164,7 +166,7 @@ const AddProduct = () => {
         rating: "",
       });
       setImage(null);
-      setImageError(""); // Reset image error
+      setImageError(""); 
       setFormErrors({});
     } catch (error: unknown) {
       toast.error("Error in adding product");

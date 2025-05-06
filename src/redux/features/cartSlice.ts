@@ -16,8 +16,12 @@ const initialState: CartState = {
 const recalculateCartState = (state: CartState) => {
   state.cartCount = state.cartItems.length;
   state.totalQuantity = state.cartItems.reduce((acc, item) => acc + item.quantity, 0);
-  state.totalPrice = state.cartItems.reduce((acc, item) => acc + item.quantity * item.productId.price, 0);
+  state.totalPrice = state.cartItems.reduce((acc, item) => {
+    const price = item.productId?.price ?? 0;
+    return acc + item.quantity * price;
+  }, 0);
 };
+
 
 export const cartSlice = createSlice({
   name: "cartSlice",
@@ -52,10 +56,14 @@ export const cartSlice = createSlice({
     },
 
     setCartItems: (state, action: PayloadAction<CartItem[]>) => {
-      state.cartItems = action.payload;
-      recalculateCartState(state); // 👈 Use helper
+      // Filter out items with missing productId (e.g., deleted products)
+      state.cartItems = action.payload.filter(
+        (item) => item.productId && typeof item.productId === "object"
+      );
+    
+      recalculateCartState(state);
     },
-
+    
     reduceFromCart: (state, action: PayloadAction<string>) => {
       const { cartItems } = state;
       const itemIndex = cartItems.findIndex(item => item.productId._id === action.payload);

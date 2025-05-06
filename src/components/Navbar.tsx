@@ -29,11 +29,17 @@ const Navbar: FC = () => {
     return Array.isArray(cartItems) && cartItems.length > 0 ? cartItems.length : 0;
   });
   
+  // const wishlistCount = useAppSelector((state) => {
+  //   const wishlistItems = state.wishlistReducer?.wishlistItems;
+  //   return Array.isArray(wishlistItems) ? wishlistItems.reduce((total, item) => total + item. products.length, 0) : 0;
+  // });
   const wishlistCount = useAppSelector((state) => {
     const wishlistItems = state.wishlistReducer?.wishlistItems;
-    return Array.isArray(wishlistItems) ? wishlistItems.reduce((total, item) => total + item. products.length, 0) : 0;
+    return Array.isArray(wishlistItems)
+      ? wishlistItems.reduce((total, item) => total + (item.products?.length || 0), 0)
+      : 0;
   });
-
+  
   const location = useLocation();
   const navigate = useNavigate();
 

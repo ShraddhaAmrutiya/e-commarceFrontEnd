@@ -34,14 +34,12 @@ import OrdersPage from "./pages/orderPge";
 import ResetPassword from "./pages/Resetpassword";
 import CheckoutDirectPage from "./pages/checkoutDirect"
 
-// import { useEffe ct } from "react";
 import axios from "axios";
 function AppContent() {
   const dispatch = useAppDispatch();
 
 useEffect(() => {
   const token = localStorage.getItem("accessToken");
-  // const token = localStorage.getItem("authToken");
   const userId = localStorage.getItem("userId");
   const role = localStorage.getItem("Role");
   const userName = localStorage.getItem("userName");
@@ -111,7 +109,7 @@ function App() {
   pauseOnFocusLoss
   draggable
   pauseOnHover
-  theme="light" // or "dark" based on your UI
+  theme="light" 
 />
 
 

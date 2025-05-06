@@ -3,18 +3,19 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
 interface OrderSuccessPageProps {
-  userId: string; // or you can get userId from context or state
+  userId: string;
 }
 
 const OrderSuccessPage: React.FC<OrderSuccessPageProps> = ({ userId }) => {
   const [redirectUrl, setRedirectUrl] = useState<string | null>(null);
-  const navigate = useNavigate(); // Use `useNavigate` instead of `useHistory`
+  const navigate = useNavigate(); 
 
   useEffect(() => {
-    // Fetch the URL to redirect to the past orders page
     const getPastOrdersUrl = async () => {
       try {
         const response = await axios.get<{ redirectUrl: string }>(`/orders/redirect/${userId}`);
+        console.log('Order data:', response.data);
+
         if (response.data.redirectUrl) {
           setRedirectUrl(response.data.redirectUrl);
         }
@@ -28,7 +29,7 @@ const OrderSuccessPage: React.FC<OrderSuccessPageProps> = ({ userId }) => {
 
   const handleRedirect = () => {
     if (redirectUrl) {
-      navigate(redirectUrl); // Use `navigate` for redirection in v6
+      navigate(redirectUrl); 
     }
   };
 
