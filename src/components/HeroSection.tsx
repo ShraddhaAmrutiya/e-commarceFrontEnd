@@ -8,7 +8,7 @@ const HeroSection: FC = () => {
         <div className="flex items-center">
           <div className="max-w-[450px] space-y-4">
             <p className="text-black dark:text-white">
-              Starting At <span className="font-bold">rupees 2375</span>
+              Starting At <span className="font-bold">rupees 66000</span>
             </p>
             <h2 className="text-black font-bold text-4xl md:text-5xl dark:text-white">
               Laptop
@@ -27,7 +27,7 @@ const HeroSection: FC = () => {
           </div>
         </div>
         <div>
-          <img src="http://localhost:5000/uploads/1746512375601-download.jpg" alt="Shoes" className="ml-auto" />
+          <img src="http://localhost:5000/uploads/1746522947240-download.jpg" alt="Shoes" className="ml-auto" />
         </div>
       </div>
     </div>

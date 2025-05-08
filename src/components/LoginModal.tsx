@@ -93,6 +93,7 @@ const LoginModal: FC = () => {
                 className="border w-full py-2 px-8 rounded"
                 value={userName}
                 onChange={(e) => setUserName(e.target.value)}
+                autoComplete="username"
               />
               <RiUser3Fill className="absolute top-3 left-2 text-lg" />
             </div>
@@ -103,6 +104,7 @@ const LoginModal: FC = () => {
                 className="border w-full py-2 px-8 rounded"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                autoComplete="current-password"
               />
               <RiLockPasswordFill className="absolute top-3 left-2 text-lg" />
             </div>

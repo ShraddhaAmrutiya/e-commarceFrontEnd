@@ -1,6 +1,6 @@
-import Modal from 'react-modal';
+import Modal from "react-modal";
 
-Modal.setAppElement('#root');
+Modal.setAppElement("#root");
 
 import { useEffect } from "react";
 import { ToastContainer } from "react-toastify";
@@ -22,36 +22,35 @@ import AllProducts from "./pages/AllProducts";
 import ScrollToTopButton from "./components/ScrollToTopButton";
 import AllCategories from "./pages/AllCategories";
 import SingleCategory from "./pages/SingleCategory";
-import Cart from "./pages/cartPage"; 
+import Cart from "./pages/cartPage";
 import { checkAuthStatus } from "./redux/features/authSlice";
 import SearchPage from "./pages/searchpage";
-import Register from "./components/Register"
+import Register from "./components/Register";
 import Login from "./pages/login";
 import AddCategory from "./components/AddCategory";
 import AddProduct from "./components/Addproduct";
 import CheckoutPage from "./pages/checkOutpage";
 import OrdersPage from "./pages/orderPge";
 import ResetPassword from "./pages/Resetpassword";
-import CheckoutDirectPage from "./pages/checkoutDirect"
+import CheckoutDirectPage from "./pages/checkoutDirect";
 
 import axios from "axios";
 function AppContent() {
   const dispatch = useAppDispatch();
 
-useEffect(() => {
-  const token = localStorage.getItem("accessToken");
-  const userId = localStorage.getItem("userId");
-  const role = localStorage.getItem("Role");
-  const userName = localStorage.getItem("userName");
+  useEffect(() => {
+    const token = localStorage.getItem("accessToken");
+    const userId = localStorage.getItem("userId");
+    const role = localStorage.getItem("Role");
+    const userName = localStorage.getItem("userName");
 
-  if (token && userId && role && userName) {
-    axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-    axios.defaults.headers.common["userId"] = userId;
-    axios.defaults.headers.common["Role"] = role;
-    axios.defaults.headers.common["userName"] = userName;
-  }
-}, []);
-
+    if (token && userId && role && userName) {
+      axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+      axios.defaults.headers.common["userId"] = userId;
+      axios.defaults.headers.common["Role"] = role;
+      axios.defaults.headers.common["userName"] = userName;
+    }
+  }, []);
 
   useEffect(() => {
     dispatch(updateModal(false));
@@ -74,18 +73,21 @@ useEffect(() => {
         <Route path="/register" element={<Register />} />
         <Route path="/reset-password/:token" element={<ResetPassword />} />
 
-
-        {/* Protected Routes */}
-        <Route element={<ProtectedRoute />}>
+        <Route element={<ProtectedRoute allowedRoles={["admin", "seller", "customer"]} />}>
           <Route path="/wishlist" element={<Wishlist />} />
           <Route path="/account" element={<Profile />} />
-          <Route path="/addCategory" element={<AddCategory />} />
-          <Route path="/checkout" element={<CheckoutPage />} />
-          <Route path="/checkoutDirect" element={<CheckoutDirectPage />} />
           <Route path="/orders" element={<OrdersPage />} />
-
-          <Route path="/Addproduct" element={<AddProduct />} />
+          <Route path="/checkoutDirect" element={<CheckoutDirectPage />} />
+          <Route path="/checkout" element={<CheckoutPage />} />
           <Route path="/cart/:_userId" element={<Cart />} />
+        </Route>
+
+        <Route element={<ProtectedRoute allowedRoles={["admin", "seller"]} />}>
+          <Route path="/Addproduct" element={<AddProduct />} />
+        </Route>
+
+        <Route element={<ProtectedRoute allowedRoles={["admin"]} />}>
+          <Route path="/addCategory" element={<AddCategory />} />
         </Route>
       </Routes>
       <Toaster position="bottom-center" reverseOrder={false} />
@@ -100,19 +102,17 @@ function App() {
     <Provider store={store}>
       <AppContent />
       <ToastContainer
-  position="top-right"
-  autoClose={2000}
-  hideProgressBar={false}
-  newestOnTop={false}
-  closeOnClick
-  rtl={false}
-  pauseOnFocusLoss
-  draggable
-  pauseOnHover
-  theme="light" 
-/>
-
-
+        position="top-right"
+        autoClose={2000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+      />
     </Provider>
   );
 }
