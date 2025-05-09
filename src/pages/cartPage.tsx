@@ -12,7 +12,7 @@ interface Product {
   _id: string;
   title: string;
   description: string;
-  image: string;
+  images: string[];
   price: number;
   salePrice: number;
   discountPercentage: number;
@@ -191,7 +191,7 @@ const Cart = () => {
           .map((item) => (
             <div key={item._id} className="flex items-center space-x-5 border p-4 rounded-lg shadow">
               <img
-                src={`${BASE_URL}${item.productId?.image}`}
+                src={`${BASE_URL}${item.productId?.images}`}
                 alt={item.productId?.title}
                 className="w-24 h-24 object-cover rounded-lg cursor-pointer"
                 onClick={() => navigate(`/products/${item.productId?._id}`)}
@@ -243,7 +243,7 @@ const Cart = () => {
       <h2 className="text-right text-xl font-bold mt-6">
         Total: ₹
         {cartItems
-          .filter((item) => item.productId) // Ensure we only calculate for valid products
+          .filter((item) => item.productId) 
           .reduce((acc, item) => acc + item.quantity * (item.productId?.salePrice || item.productId?.price), 0)
           .toFixed(2)}
       </h2>

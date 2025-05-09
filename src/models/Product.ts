@@ -1,18 +1,18 @@
 export interface Product {
   _id: string; // Optional, since MongoDB provides it
-   title: string;
-   image?: File | string; 
-     price: number;
+  title: string;
+  images: string[];
+  price: number;
   rating: number;
   description?: string;
   salePrice?: number;
   category: string | { name: string };
-    brand?: string;
+  brand?: string;
   stock?: number;
-  discountPercentage?: number ;
-  seller?: string | { _id: string };}
+  discountPercentage?: number;
+  seller?: string | { _id: string };
+}
 
-export  interface SingleProductProps {
-    product: Product;
-  }
-  
+export interface SingleProductProps {
+  product: Product;
+}

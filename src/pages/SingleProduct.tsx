@@ -62,7 +62,7 @@ const SingleProduct: FC = () => {
           return;
         }
 
-        const { image, category } = data.product;
+        const { images, category } = data.product;
 
         const categoryName =
           typeof category === "object" && category?.name
@@ -70,17 +70,14 @@ const SingleProduct: FC = () => {
             : typeof category === "string"
             ? category
             : "Unknown";
-
-        const fullImageUrls = Array.isArray(image)
-          ? image.map((img) => (img.startsWith("/") ? `${BASE_URL}${img}` : img))
-          : image
-          ? [image.startsWith("/") ? `${BASE_URL}${image}` : image]
+        const fullImageUrls = Array.isArray(images)
+          ? images.map((img) => (img.startsWith("/") ? `${BASE_URL}${img}` : img))
           : [];
 
         setProduct(data.product);
         setImgs(fullImageUrls);
         setSelectedImg(fullImageUrls.length > 0 ? fullImageUrls[0] : "");
-        setCategory(categoryName); // ✅ Add this
+        setCategory(categoryName);
       } catch (error) {
         toast.error("Error fetching product details!");
         console.error(error);
@@ -196,7 +193,6 @@ const SingleProduct: FC = () => {
       if (formData.stock !== undefined) formDataToSend.append("stock", String(formData.stock));
       if (formData.brand) formDataToSend.append("brand", formData.brand);
 
-      // 👇 Safely append image
       if (selectedImg instanceof File) {
         formDataToSend.append("image", selectedImg);
       }
@@ -223,74 +219,22 @@ const SingleProduct: FC = () => {
     }
   };
 
-  // const handleDeleteProduct = async () => {
-  //   if (!_id || !token) return;
-
-  //   setIsDeleteModalOpen(false);
-
-  //   try {
-  //     const res = await fetch(`${BASE_URL}/products/delete/${_id}`, {
-  //       method: "DELETE",
-  //       headers: {
-  //         Authorization: `Bearer ${token}`,
-  //       },
-  //     });
-
-  //     const data = await res.json();
-  //     if (!res.ok) throw new Error(data.message || "Delete failed");
-
-  //     const userId = localStorage.getItem("userId");
-  //     if (userId) {
-  //       const response = await fetch(`${BASE_URL}/cart/${userId}`, {
-  //         method: "DELETE",
-  //         headers: {
-  //           Authorization: `Bearer ${token}`,
-  //         },
-  //         body: JSON.stringify({ productId: _id }),
-  //       });
-
-  //       await response.json();
-  //       if (response.ok) {
-  //         toast.success("Product deleted and removed from cart.");
-  //       } else {
-  //         toast.error("Failed to remove product from cart.");
-  //       }
-  //     }
-
-  //     await dispatch(removeWishlistItem({ productId: _id }))
-  //       .unwrap()
-  //       .then(() => {
-  //         toast.success("Product removed from wishlist.");
-  //       })
-  //       .catch((error) => {
-  //         console.error(`Failed to remove product from wishlist: ${error.message}`);
-  //       });
-
-  //     toast.success("Product deleted successfully.");
-  //     navigate("/");
-  //   } catch (error) {
-  //     // console.error("Error deleting product:", error);
-  //     toast.error("Failed to delete product.");
-  //   }
-  // };
   const handleDeleteProduct = async () => {
     if (!_id || !token) return;
-  
+
     setIsDeleteModalOpen(false);
-  
+
     try {
-      // 1. Delete the product
       const res = await fetch(`${BASE_URL}/products/delete/${_id}`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
-  
+
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "Delete failed");
-  
-      // 2. Optional: Remove from admin's cart (or skip this if backend handles globally)
+
       const userId = localStorage.getItem("userId");
       if (userId) {
         const response = await fetch(`${BASE_URL}/cart/${userId}`, {
@@ -301,7 +245,7 @@ const SingleProduct: FC = () => {
           },
           body: JSON.stringify({ productId: _id }),
         });
-  
+
         await response.json();
         if (response.ok) {
           toast.success("Product removed from your cart.");
@@ -309,8 +253,7 @@ const SingleProduct: FC = () => {
           toast.error("Failed to remove product from your cart.");
         }
       }
-  
-      // 3. Remove from wishlist in Redux (assumes local session)
+
       await dispatch(removeWishlistItem({ productId: _id }))
         .unwrap()
         .then(() => {
@@ -319,14 +262,14 @@ const SingleProduct: FC = () => {
         .catch((error) => {
           console.error(`Failed to remove product from wishlist: ${error.message}`);
         });
-  
+
       toast.success("Product deleted successfully.");
       navigate("/");
     } catch (error) {
       toast.error("Failed to delete product.");
     }
   };
-  
+
   const cartItems = useSelector((state: RootState) => state.cartReducer.cartItems);
 
   const addCart = async () => {
@@ -373,7 +316,7 @@ const SingleProduct: FC = () => {
               category: product.category,
               productId: product,
               quantity: newQuantity,
-              image: product.image,
+              images: product.images,
               discountPercentage: product.discountPercentage,
             })
           );
@@ -401,7 +344,7 @@ const SingleProduct: FC = () => {
         salePrice: product.salePrice,
         rating: product.rating,
         category: product.category,
-        image: product.image,
+        image: product.images,
       };
 
       sessionStorage.setItem("checkoutItem", JSON.stringify(checkoutData));
@@ -442,7 +385,7 @@ const SingleProduct: FC = () => {
             productId: product._id,
             name: product.title,
             price: product.price,
-            image: product.image || "",
+            image: product.images || [],
           }),
         });
 
@@ -477,14 +420,31 @@ const SingleProduct: FC = () => {
     <div className="container mx-auto pt-8 dark:text-white">
       {loading && <div>Loading...</div>}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 px-4 font-karla">
-        <div className="space-y-2">
+        <div className="space-y-4">
           {selectedImg && (
             <img
               src={typeof selectedImg === "string" ? selectedImg : URL.createObjectURL(selectedImg)}
-              alt="Product"
-              className="h-80 object-cover"
+              alt="Selected Product"
+              className="h-80 w-full object-cover rounded border"
             />
           )}
+
+          <div className="flex space-x-2 overflow-x-auto">
+            {product?.images?.map((img, index) => {
+              const imgUrl = img.startsWith("/") ? `${BASE_URL}${img}` : img;
+              return (
+                <img
+                  key={index}
+                  src={imgUrl}
+                  alt={`Thumbnail ${index + 1}`}
+                  onClick={() => setSelectedImg(imgUrl)}
+                  className={`w-20 h-20 object-cover cursor-pointer border ${
+                    selectedImg === imgUrl ? "border-blue-500" : "border-gray-300"
+                  }`}
+                />
+              );
+            })}
+          </div>
         </div>
 
         <div className="px-2 max-h-[80vh] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-400">
@@ -556,7 +516,7 @@ const SingleProduct: FC = () => {
                     brand: product?.brand,
                     rating: product?.rating,
                     category: typeof product?.category === "object" ? product.category.name : product?.category,
-                    image: product?.image || "",
+                    images: product?.images || [],
                   });
                   setIsModalOpen(true);
                 }}
