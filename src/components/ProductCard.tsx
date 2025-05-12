@@ -262,13 +262,13 @@ const ProductCard: FC<Product> = ({ _id, price, images, title, category, rating,
   };
 
   const imageUrl =
-    Array.isArray(images) && images[0]
-      ? images[0].startsWith("http")
-        ? images[0]
-        : `${BASE_URL}${images[0]}`
-      : null;
+  Array.isArray(images) && images[0]
+    ? images[0].startsWith("http")
+      ? images[0]
+      : `${BASE_URL}${images[0]}`
+    : null;
 
-  // console.log("imageUrl", imageUrl);
+
 
   return (
     <div className="border border-gray-200 font-lato" data-test="product-card">

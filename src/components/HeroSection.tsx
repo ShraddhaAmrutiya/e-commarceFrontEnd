@@ -18,7 +18,7 @@ const HeroSection: FC = () => {
               this week
             </h3>
             <Link
-              to="/products/6819a9f7b4e776a35a8a09f2"
+              to="/products/6821c2f2d05f336429b1538d"
               data-test="hero-btn"
               className="inline-block bg-white rounded-md px-6 py-3 hover:bg-blue-500 hover:text-white"
             >
@@ -27,7 +27,7 @@ const HeroSection: FC = () => {
           </div>
         </div>
         <div>
-          <img src="http://localhost:5000/uploads/1746522947240-download.jpg" alt="Shoes" className="ml-auto" />
+          <img src="http://localhost:5000/uploads/1747043058586-download.jpg" alt="Shoes" className="ml-auto" />
         </div>
       </div>
     </div>

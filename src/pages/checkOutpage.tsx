@@ -2,14 +2,13 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
-import BASE_URL from '../config/apiconfig';
-
+import BASE_URL from "../config/apiconfig";
 
 interface Product {
   _id: string;
   title: string;
   description: string;
-  image: string;
+  images: string[];
   price: number;
   salePrice: number;
   discountPercentage: number;
@@ -47,11 +46,11 @@ const CheckoutPage = () => {
         position: "top-right",
         autoClose: 2000,
       });
-      return; 
+      return;
     }
     setLoading(true);
     try {
-       await axios.post(
+      await axios.post(
         `${BASE_URL}/order/cart/${userId}`,
         {},
         {
@@ -85,8 +84,22 @@ const CheckoutPage = () => {
     0
   );
 
+  const handleBackToCart = () => {
+    if (userId) {
+      navigate(`/cart/${userId}`);
+    }
+  };
+
   return (
     <div className="max-w-4xl mx-auto p-6">
+      {/* Back to Cart Button */}
+      <button
+        onClick={handleBackToCart}
+        className="mb-4 px-6 py-3 bg-gray-300 text-gray-800 text-lg rounded-xl hover:bg-gray-400 transition"
+      >
+        Back to Cart
+      </button>
+
       <h2 className="text-3xl font-bold mb-6 text-center">Checkout</h2>
 
       {message && (
@@ -99,10 +112,17 @@ const CheckoutPage = () => {
         {cartItems.map((item: CartItem) => (
           <div key={item._id} className="flex items-center gap-4 bg-white shadow-md rounded-2xl p-4">
             <img
-              src={`${BASE_URL}${item.productId.image}`}
+              src={
+                item.productId.images?.[0]
+                  ? item.productId.images[0].startsWith("/")
+                    ? `${BASE_URL}${item.productId.images[0]}`
+                    : item.productId.images[0]
+                  : "/placeholder.jpg"
+              }
               alt={item.productId.title}
               className="w-24 h-24 object-cover rounded-lg"
             />
+
             <div className="flex-1">
               <h3 className="text-xl font-semibold">{item.productId.title}</h3>
               <p className="text-gray-600">Quantity: {item.quantity}</p>

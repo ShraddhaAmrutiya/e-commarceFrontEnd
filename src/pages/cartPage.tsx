@@ -1,10 +1,9 @@
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
-import { useAppSelector } from "../redux/hooks";
+import { useAppSelector, useAppDispatch } from "../redux/hooks";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import "react-toastify/dist/ReactToastify.css";
-import { useAppDispatch } from "../redux/hooks";
 import { removeFromCart } from "../redux/features/cartSlice";
 import BASE_URL from "../config/apiconfig";
 
@@ -12,7 +11,7 @@ interface Product {
   _id: string;
   title: string;
   description: string;
-  images: string[];
+  images: string[] | string;
   price: number;
   salePrice: number;
   discountPercentage: number;
@@ -35,9 +34,9 @@ const Cart = () => {
   const dispatch = useAppDispatch();
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [quantityMap, setQuantityMap] = useState<{ [key: string]: number }>({});
-  const [showModal, setShowModal] = useState<boolean>(false);
-  const [loading, setLoading] = useState<boolean>(false);
-  const [removeLoading, setRemoveLoading] = useState<boolean>(false);
+  const [showModal, setShowModal] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [removeLoading, setRemoveLoading] = useState(false);
   const [itemToRemove, setItemToRemove] = useState<string | null>(null);
 
   const navigate = useNavigate();
@@ -57,7 +56,7 @@ const Cart = () => {
 
   useEffect(() => {
     fetchCartItems();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId, token]);
 
   useEffect(() => {
@@ -106,13 +105,12 @@ const Cart = () => {
       const response = await axios.delete<CartResponse>(`${BASE_URL}/cart`, config);
 
       if (response.status === 200) {
-        const backendMessage = response.data?.message || "Item removed from cart";
         setCartItems(response.data.cartItems);
-        toast.success(`${backendMessage}`);
+        toast.success(response.data.message || "Item removed from cart.");
       } else {
         toast.error("Failed to remove item from cart.");
       }
-    } catch (error) {
+    } catch {
       toast.error("Failed to remove item from cart.");
     } finally {
       setRemoveLoading(false);
@@ -130,17 +128,15 @@ const Cart = () => {
 
       try {
         const config = {
-          headers: { Authorization: `Bearer ${token}` },
+          headers,
           data: { userId, productId },
         };
         await axios.delete(`${BASE_URL}/cart`, config);
 
         dispatch(removeFromCart(productId));
-
-        setCartItems((prevItems) => prevItems.filter((item) => item.productId?._id !== productId));
-
+        setCartItems((prev) => prev.filter((item) => item.productId?._id !== productId));
         toast.success("Item removed from cart.");
-      } catch (error) {
+      } catch {
         toast.error("Failed to remove item.");
       } finally {
         setRemoveLoading(false);
@@ -188,62 +184,84 @@ const Cart = () => {
       <div className="space-y-8">
         {cartItems
           .filter((item) => item.productId)
-          .map((item) => (
-            <div key={item._id} className="flex items-center space-x-5 border p-4 rounded-lg shadow">
-              <img
-                src={`${BASE_URL}${item.productId?.images}`}
-                alt={item.productId?.title}
-                className="w-24 h-24 object-cover rounded-lg cursor-pointer"
-                onClick={() => navigate(`/products/${item.productId?._id}`)}
-              />
-              <div className="flex-grow">
-                <h2 className="text-xl font-semibold">{item.productId?.title}</h2>
-                <p className="text-gray-600">{item.productId?.description}</p>
-                <p className="text-green-600 font-bold">Price: ₹{item.productId?.salePrice || item.productId?.price}</p>
-                {(item.productId?.stock === 0 || item.productId?.stock === undefined) && (
-                  <p className="text-red-500 font-semibold">This product is out of stock.</p>
-                )}
-                <div className="flex items-center space-x-2 mt-1">
-                  <button
-                    className="bg-gray-200 px-2 rounded"
-                    disabled={quantityMap[item.productId?._id] === 1}
-                    onClick={() => handleQuantityChange(item.productId?._id, quantityMap[item.productId?._id] - 1)}
-                  >
-                    -
-                  </button>
+          .map((item) => {
+            const imageList = Array.isArray(item.productId?.images)
+              ? item.productId.images
+              : typeof item.productId?.images === "string"
+              ? [item.productId.images]
+              : [];
 
-                  <input
-                    type="number"
-                    min="1"
-                    max={item.productId?.stock}
-                    value={quantityMap[item.productId?._id] || 1}
-                    onChange={(e) => handleQuantityChange(item.productId?._id, parseInt(e.target.value))}
-                    className="w-16 text-center border rounded px-2 py-1"
-                  />
+            const imageUrl = imageList.length > 0
+              ? imageList[0].startsWith("/")
+                ? `${BASE_URL}${imageList[0]}`
+                : imageList[0]
+              : "/placeholder.jpg"; // fallback image
 
-                  <button
-                    className="bg-gray-200 px-2 rounded"
-                    onClick={() => handleQuantityChange(item.productId?._id, quantityMap[item.productId?._id] + 1)}
-                  >
-                    +
-                  </button>
+            return (
+              <div key={item._id} className="flex items-center space-x-5 border p-4 rounded-lg shadow">
+                <img
+                  src={imageUrl}
+                  alt={item.productId?.title || "Product"}
+                  className="w-24 h-24 object-cover rounded-lg cursor-pointer"
+                  onClick={() => navigate(`/products/${item.productId?._id}`)}
+                />
+                <div className="flex-grow">
+                  <h2 className="text-xl font-semibold">{item.productId?.title}</h2>
+                  <p className="text-gray-600">{item.productId?.description}</p>
+                  <p className="text-green-600 font-bold">
+                    Price: ₹{item.productId?.salePrice || item.productId?.price}
+                  </p>
+                  {(item.productId?.stock === 0 || item.productId?.stock === undefined) && (
+                    <p className="text-red-500 font-semibold">This product is out of stock.</p>
+                  )}
+                  <div className="flex items-center space-x-2 mt-1">
+                    <button
+                      className="bg-gray-200 px-2 rounded"
+                      disabled={quantityMap[item.productId?._id] === 1}
+                      onClick={() =>
+                        handleQuantityChange(item.productId?._id, quantityMap[item.productId?._id] - 1)
+                      }
+                    >
+                      -
+                    </button>
+
+                    <input
+                      type="number"
+                      min="1"
+                      max={item.productId?.stock}
+                      value={quantityMap[item.productId?._id] || 1}
+                      onChange={(e) =>
+                        handleQuantityChange(item.productId?._id, parseInt(e.target.value))
+                      }
+                      className="w-16 text-center border rounded px-2 py-1"
+                    />
+
+                    <button
+                      className="bg-gray-200 px-2 rounded"
+                      onClick={() =>
+                        handleQuantityChange(item.productId?._id, quantityMap[item.productId?._id] + 1)
+                      }
+                    >
+                      +
+                    </button>
+                  </div>
                 </div>
+                <button
+                  className="bg-red-500 text-white px-4 py-2 rounded"
+                  onClick={() => handleRemoveFromCart(item.productId?._id)}
+                  disabled={removeLoading}
+                >
+                  {removeLoading ? "Removing..." : "Remove"}
+                </button>
               </div>
-              <button
-                className="bg-red-500 text-white px-4 py-2 rounded"
-                onClick={() => handleRemoveFromCart(item.productId?._id)}
-                disabled={removeLoading}
-              >
-                {removeLoading ? "Removing..." : "Remove"}
-              </button>
-            </div>
-          ))}
+            );
+          })}
       </div>
 
       <h2 className="text-right text-xl font-bold mt-6">
         Total: ₹
         {cartItems
-          .filter((item) => item.productId) 
+          .filter((item) => item.productId)
           .reduce((acc, item) => acc + item.quantity * (item.productId?.salePrice || item.productId?.price), 0)
           .toFixed(2)}
       </h2>

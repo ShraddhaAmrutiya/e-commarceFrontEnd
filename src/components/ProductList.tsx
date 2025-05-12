@@ -5,7 +5,8 @@ import ProductCard from "./ProductCard";
 const ProductList: FC<{ title: string; products: Product[] }> = ({
   title,
   products,
-}) => (
+}
+) => (
   <div className="container mt-8 mx-auto px-4 dark:bg-slate-800">
     <div className="sm:flex items-center justify-between">
       <h2 className="text-4xl font-medium font-lora dark:text-white">
@@ -23,8 +24,8 @@ const ProductList: FC<{ title: string; products: Product[] }> = ({
           category={product.category}
           title={product.title}
           price={product.price}
-          images={product.images}
-          rating={product.rating}
+ images={product.images}    
+       rating={product.rating}
           discountPercentage={product.discountPercentage}
         />
       ))}

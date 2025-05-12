@@ -81,14 +81,10 @@ const AllProducts: FC = () => {
       return;
     }
 
-    // Log all product prices before sorting
-    console.log("All product prices before sorting:");
     currentProducts.forEach((product) => {
       const finalPrice =
         product.discountPercentage === 0 ? product.price : product.salePrice ?? product.price;
-      console.log(
-        `Title: ${product.title}, Price: ${product.price}, SalePrice: ${product.salePrice}, FinalUsed: ${finalPrice}`
-      );
+    return finalPrice
     });
 
     const sortedProducts = [...currentProducts].sort((a, b) => {

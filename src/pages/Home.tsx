@@ -28,11 +28,9 @@ const Home: FC = () => {
               productList.push({
                 _id: product._id,
                 title: product.title,
-                image:
-                typeof product.image === "string" && product.image.startsWith("/")
-                ? `${BASE_URL}${product.image}`
-                    : product.image || "default_image_url", 
-
+                images: Array.isArray(product.images)
+                  ? product.images.map((img) => (img.startsWith("/") ? `${BASE_URL}${img}` : img))
+                  : ["default_image_url"],
                 price: product.price,
                 rating: product.rating || 0,
                 description: product.description,

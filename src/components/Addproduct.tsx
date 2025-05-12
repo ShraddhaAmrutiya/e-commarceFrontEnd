@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { Product } from "../models/Product";
@@ -30,12 +29,13 @@ const AddProduct = () => {
     brand: "",
     rating: "",
   });
+
   const [formErrors, setFormErrors] = useState<Partial<Record<keyof ProductFormData, string>>>({});
-  const [image, setImage] = useState<File | null>(null);
-  const [imageError, setImageError] = useState<string>(""); 
+  const [images, setImages] = useState<(File | null)[]>([null]);
+  const [imageError, setImageError] = useState<string>("");
   const [loading, setLoading] = useState(false);
 
-  const MAX_IMAGE_SIZE = 700 * 1024 ; // 700kb
+  const MAX_IMAGE_SIZE = 700 * 1024; // 700KB
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -59,39 +59,53 @@ const AddProduct = () => {
       const salePrice = discount === 0 ? price : price - (price * discount) / 100;
       setFormData((prev) => ({
         ...prev,
-        salePrice: salePrice.toFixed(2), 
+        salePrice: salePrice.toFixed(2),
       }));
     }
   }, [formData.price, formData.discountPercentage]);
 
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
-  ) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    
     setFormData((prev) => ({
       ...prev,
       [name]: value,
     }));
   };
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
+  const handleAddImageInput = () => {
+    setImages((prev) => [...prev, null]);
+  };
 
-      const validTypes = ["image/jpeg", "image/png", "image/jpg"];
-      if (!validTypes.includes(file.type)) {
-        setImageError("Invalid image type. Only JPG, JPEG, or PNG are allowed.");
-        setImage(null); 
+  const handleRemoveImageInput = (index: number) => {
+    if (images.length === 1) return;
+
+    setImages((prev) => {
+      const updated = prev.filter((_, i) => i !== index);
+
+      // Clear image error if we drop below the limit
+      if (updated.length < 5) {
+        setImageError("");
       }
-      else if (file.size > MAX_IMAGE_SIZE) {
-        setImageError(`Image size exceeds the ${MAX_IMAGE_SIZE / 1024 }MB limit.`);
-        setImage(null); 
-      } else {
-        setImageError(""); 
-        setImage(file);
-      }
+
+      return updated;
+    });
+  };
+
+  const handleImageChange = (index: number, file: File | null) => {
+    const validTypes = ["image/jpeg", "image/png", "image/jpg"];
+
+    if (file && !validTypes.includes(file.type)) {
+      setImageError("Invalid image type. Only JPG, JPEG, or PNG are allowed.");
+      return;
+    } else if (file && file.size > MAX_IMAGE_SIZE) {
+      setImageError(`Image size exceeds the ${(MAX_IMAGE_SIZE / 1024).toFixed(0)}KB limit.`);
+      return;
     }
+
+    setImageError("");
+    const updatedImages = [...images];
+    updatedImages[index] = file;
+    setImages(updatedImages);
   };
 
   const validateForm = () => {
@@ -110,11 +124,9 @@ const AddProduct = () => {
     if (!formData.price || price <= 0) errors.price = "Valid price is required";
     if (!formData.stock || stock < 0) errors.stock = "Stock is required";
     if (!formData.brand.trim()) errors.brand = "Brand is required";
-
     if (formData.salePrice && salePrice > price) {
       errors.salePrice = "Sale price cannot be greater than original price";
     }
-
     if (formData.rating && (rating < 0 || rating > 5)) {
       errors.rating = "Rating must be between 0 and 5";
     }
@@ -125,8 +137,7 @@ const AddProduct = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!validateForm() || imageError) return; 
+    if (!validateForm() || imageError) return;
 
     setLoading(true);
     const data = new FormData();
@@ -134,19 +145,15 @@ const AddProduct = () => {
     Object.entries(formData).forEach(([key, value]) => {
       if (["price", "salePrice", "discountPercentage", "stock", "rating"].includes(key)) {
         const parsedValue = parseFloat(value);
-        if (!isNaN(parsedValue)) {
-          data.append(key, String(parsedValue));
-        } else {
-          data.append(key, "0");
-        }
+        data.append(key, isNaN(parsedValue) ? "0" : String(parsedValue));
       } else {
         data.append(key, value);
       }
     });
 
-    if (image) {
-      data.append("image", image);
-    }
+    images.forEach((img) => {
+      if (img) data.append("images", img);
+    });
 
     try {
       const res = await axios.post<{ message: string; product: Product }>("/products/create", data, {
@@ -165,8 +172,8 @@ const AddProduct = () => {
         brand: "",
         rating: "",
       });
-      setImage(null);
-      setImageError(""); 
+      setImages([null]);
+      setImageError("");
       setFormErrors({});
     } catch (error: unknown) {
       toast.error("Error in adding product");
@@ -182,9 +189,7 @@ const AddProduct = () => {
         <h2>Add Product</h2>
 
         <div className="form-group">
-          <label>
-            Category <span style={{ color: "red" }}>*</span>
-          </label>
+          <label>Category *</label>
           <select name="category" value={formData.category} onChange={handleChange} required>
             <option value="">Select Category</option>
             {categories.map((cat) => (
@@ -197,9 +202,7 @@ const AddProduct = () => {
         </div>
 
         <div className="form-group">
-          <label>
-            Title <span style={{ color: "red" }}>*</span>
-          </label>
+          <label>Title *</label>
           <input type="text" name="title" value={formData.title} onChange={handleChange} required />
           {formErrors.title && <p className="error">{formErrors.title}</p>}
         </div>
@@ -210,9 +213,7 @@ const AddProduct = () => {
         </div>
 
         <div className="form-group">
-          <label>
-            Price (₹) <span style={{ color: "red" }}>*</span>
-          </label>
+          <label>Price (₹) *</label>
           <input type="number" name="price" value={formData.price} onChange={handleChange} required />
           {formErrors.price && <p className="error">{formErrors.price}</p>}
         </div>
@@ -223,25 +224,25 @@ const AddProduct = () => {
         </div>
 
         <div className="form-group">
-          <label>
-            Discount % <span style={{ color: "gray" }}>(optional)</span>
-          </label>
-          <input type="number" name="discountPercentage" value={formData.discountPercentage} onChange={handleChange} min="0" max="100" />
-          {formErrors.discountPercentage && <p className="error">{formErrors.discountPercentage}</p>}
+          <label>Discount % (optional)</label>
+          <input
+            type="number"
+            name="discountPercentage"
+            value={formData.discountPercentage}
+            onChange={handleChange}
+            min="0"
+            max="100"
+          />
         </div>
 
         <div className="form-group">
-          <label>
-            Stock <span style={{ color: "red" }}>*</span>
-          </label>
+          <label>Stock *</label>
           <input type="number" name="stock" value={formData.stock} onChange={handleChange} required />
           {formErrors.stock && <p className="error">{formErrors.stock}</p>}
         </div>
 
         <div className="form-group">
-          <label>
-            Brand <span style={{ color: "red" }}>*</span>
-          </label>
+          <label>Brand *</label>
           <input type="text" name="brand" value={formData.brand} onChange={handleChange} required />
           {formErrors.brand && <p className="error">{formErrors.brand}</p>}
         </div>
@@ -253,9 +254,42 @@ const AddProduct = () => {
         </div>
 
         <div className="form-group">
-          <label>Image</label>
-          <input type="file" name="image" accept="image/*" onChange={handleImageChange} />
+          <label>Images</label>
+          {images.map((_img, index) => (
+            <div key={index} style={{ display: "flex", alignItems: "center", marginBottom: "8px" }}>
+              <input
+                type="file"
+                accept="image/jpeg,image/png,image/jpg"
+                onChange={(e) => handleImageChange(index, e.target.files?.[0] || null)}
+              />
+              {images.length > 1 && (
+                <button
+                  type="button"
+                  onClick={() => handleRemoveImageInput(index)}
+                  style={{ marginLeft: "10px" }}
+                >
+                  Remove
+                </button>
+              )}
+            </div>
+          ))}
           {imageError && <p className="error">{imageError}</p>}
+
+          <button
+            type="button"
+            onClick={() => {
+              if (images.length >= 5) {
+                setImageError("You can add only 5 images.");
+                return;
+              }
+              // Clear error when adding a new image below limit
+              setImageError(""); 
+              handleAddImageInput();
+            }}
+            disabled={false}
+          >
+            Add More Images
+          </button>
         </div>
 
         <button type="submit" disabled={loading}>

@@ -2,7 +2,6 @@ import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 import { RootState } from "../store";
 import BASE_URL from "../../config/apiconfig";
-// Wishlist item structure
 interface WishlistItem {
   _id: string;
   userId: string;
@@ -10,8 +9,8 @@ interface WishlistItem {
     productId: {
       _id: string;
       title: string;
-      description: string;
-      image: string;
+      description: string[];
+      images: string[];
       price: number;
       salePrice: number;
       discountPercentage: number;
@@ -44,8 +43,8 @@ export const fetchWishlistItems = createAsyncThunk<WishlistItem[], void, { state
       const response = await axios.get(`${BASE_URL}/wishlist/${userId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
+      
 
-      console.log( "response data",response.data); // Log the API response to confirm `salePrice`
       return response.data as WishlistItem[];
     } catch (error: unknown) {
       const err = error as { response?: { data?: { message?: string } } };

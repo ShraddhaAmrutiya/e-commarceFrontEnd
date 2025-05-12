@@ -1,13 +1,13 @@
-import { useNavigate } from 'react-router-dom';
-import { useState, useEffect } from 'react';
-import axios from 'axios';
-import { toast } from 'react-toastify';
-import BASE_URL from '../config/apiconfig';
+import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import axios from "axios";
+import { toast } from "react-toastify";
+import BASE_URL from "../config/apiconfig";
 
 interface Product {
   productId: string;
   title: string;
-  image: string;
+  images: string[]; 
   price: number;
   salePrice: number;
   stock?: number;
@@ -24,18 +24,27 @@ const CheckoutDirectPage = () => {
     const storedItem = sessionStorage.getItem("checkoutItem");
     if (!storedItem) {
       toast.error("No product selected for direct checkout.");
-      navigate('/');
+      navigate("/");
       return;
     }
 
-    const parsed = JSON.parse(storedItem);
-    setProduct(parsed);
+    try {
+      const parsed = JSON.parse(storedItem);
+
+      if (parsed.image && !parsed.images) {
+        parsed.images = parsed.image;
+      }
+
+      setProduct(parsed);
+    } catch (err) {
+      toast.error("Invalid product data.");
+      navigate("/");
+    }
   }, [navigate]);
 
   const handleDirectOrder = async () => {
     if (!product || !userId || !token) return;
 
-    // Optional: Skip if stock info exists and is zero
     if (product.stock !== undefined && product.stock < 1) {
       toast.error(`${product.title} is out of stock`);
       return;
@@ -59,14 +68,19 @@ const CheckoutDirectPage = () => {
 
       toast.success("Order placed successfully!");
       sessionStorage.removeItem("checkoutItem");
-      setTimeout(() => navigate('/orders', { replace: true }), 300);
+      setTimeout(() => navigate("/orders", { replace: true }), 300);
     } catch (error: unknown) {
       toast.error(
-        (error as { response?: { data?: { message?: string } } })?.response?.data?.message ||
-        "Order failed."
+        (error as { response?: { data?: { message?: string } } })?.response?.data?.message || "Order failed."
       );
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleBackClick = () => {
+    if (product) {
+      navigate(`/products/${product.productId}`);
     }
   };
 
@@ -75,15 +89,29 @@ const CheckoutDirectPage = () => {
   const price = product.salePrice ?? product.price;
 
   return (
-    <div className="max-w-2xl mx-auto p-6">
+    <div className="max-w-2xl mx-auto p-6 relative">
+      <button
+        onClick={handleBackClick}
+        className="absolute top-4 right-4 px-4 py-2 bg-gray-300 text-gray-800 rounded-full hover:bg-gray-400 transition"
+      >
+        Back to product
+      </button>
+
       <h2 className="text-2xl font-bold mb-4 text-center">Confirm Your Order</h2>
 
       <div className="bg-white rounded-xl shadow-md p-4 flex gap-4 items-center">
         <img
-          src={`${BASE_URL}${product.image}`}
+          src={
+            product.images?.[0]
+              ? product.images[0].startsWith("/")
+                ? `${BASE_URL}${product.images[0]}`
+                : product.images[0]
+              : "/placeholder.jpg"
+          }
           alt={product.title}
           className="w-24 h-24 object-cover rounded"
         />
+
         <div>
           <h3 className="text-lg font-semibold">{product.title}</h3>
           <p className="text-gray-600">Price: ₹{price}</p>
