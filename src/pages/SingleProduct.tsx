@@ -38,6 +38,8 @@ const SingleProduct: FC = () => {
   const [formData, setFormData] = useState<Partial<Product>>({});
   const [loading, setLoading] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [imageToDelete, setImageToDelete] = useState<number | null>(null);
 
   const userId = useAppSelector((state) => state.authReducer.userId) || localStorage.getItem("userId");
 
@@ -46,47 +48,94 @@ const SingleProduct: FC = () => {
   useEffect(() => {
     dispatch(fetchWishlistItems());
   }, [dispatch]);
+
+  // useEffect(() => {
+  //   if (!_id) {
+  //     toast.error("Invalid product ID!");
+  //     return;
+  //   }
+
+  //   const fetchProduct = async () => {
+  //     setLoading(true);
+  //     try {
+  //       const res = await fetch(`${BASE_URL}/products/${_id}`);
+  //       const data = await res.json();
+  //       if (!data || !data.product || !data.product._id) {
+  //         toast.error("Product not found!");
+  //         return;
+  //       }
+
+  //       const { images, category } = data.product;
+
+  //       const categoryName =
+  //         typeof category === "object" && category?.name
+  //           ? category.name
+  //           : typeof category === "string"
+  //           ? category
+  //           : "Unknown";
+  //       const fullImageUrls = Array.isArray(images)
+  //         ? images.map((img) => (img.startsWith("/") ? `${BASE_URL}${img}` : img))
+  //         : [];
+
+  //       setProduct(data.product);
+  //       setImgs(fullImageUrls);
+  //       setSelectedImg(fullImageUrls.length > 0 ? fullImageUrls[0] : "");
+  //       setCategory(categoryName);
+  //     } catch (error) {
+  //       toast.error("Error fetching product details!");
+  //       console.error(error);
+  //     } finally {
+  //       setLoading(false);
+  //     }
+  //   };
+
+  //   fetchProduct();
+  // }, [_id]);
+
+  const fetchProductDetails = async () => {
+    if (!_id) return;
+    setLoading(true);
+    try {
+      const res = await fetch(`${BASE_URL}/products/${_id}`);
+      const data = await res.json();
+      if (!data || !data.product || !data.product._id) {
+        toast.error("Product not found!");
+        return;
+      }
+
+      const { images, category } = data.product;
+
+      const categoryName =
+        typeof category === "object" && category?.name
+          ? category.name
+          : typeof category === "string"
+          ? category
+          : "Unknown";
+
+      const fullImageUrls = Array.isArray(images)
+        ? images.map((img) => (img.startsWith("/") ? `${BASE_URL}${img}` : img))
+        : [];
+
+      setProduct(data.product);
+      setImgs(fullImageUrls);
+      setSelectedImg(fullImageUrls.length > 0 ? fullImageUrls[0] : "");
+      setCategory(categoryName);
+    } catch (error) {
+      toast.error("Error fetching product details!");
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     if (!_id) {
       toast.error("Invalid product ID!");
       return;
     }
 
-    const fetchProduct = async () => {
-      setLoading(true);
-      try {
-        const res = await fetch(`${BASE_URL}/products/${_id}`);
-        const data = await res.json();
-        if (!data || !data.product || !data.product._id) {
-          toast.error("Product not found!");
-          return;
-        }
-
-        const { images, category } = data.product;
-
-        const categoryName =
-          typeof category === "object" && category?.name
-            ? category.name
-            : typeof category === "string"
-            ? category
-            : "Unknown";
-        const fullImageUrls = Array.isArray(images)
-          ? images.map((img) => (img.startsWith("/") ? `${BASE_URL}${img}` : img))
-          : [];
-
-        setProduct(data.product);
-        setImgs(fullImageUrls);
-        setSelectedImg(fullImageUrls.length > 0 ? fullImageUrls[0] : "");
-        setCategory(categoryName);
-      } catch (error) {
-        toast.error("Error fetching product details!");
-        console.error(error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchProduct();
+    fetchProductDetails();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [_id]);
 
   useEffect(() => {
@@ -193,9 +242,9 @@ const SingleProduct: FC = () => {
       if (formData.stock !== undefined) formDataToSend.append("stock", String(formData.stock));
       if (formData.brand) formDataToSend.append("brand", formData.brand);
 
-      if (selectedImg instanceof File) {
-        formDataToSend.append("image", selectedImg);
-      }
+      // if (selectedImg instanceof File) {
+      //   formDataToSend.append("image", selectedImg);
+      // }
 
       const res = await fetch(`${BASE_URL}/products/update/${_id}`, {
         method: "PUT",
@@ -331,6 +380,80 @@ const SingleProduct: FC = () => {
       }
     });
   };
+  const handleReplaceImage = async (file: File, index: number) => {
+    if (!_id || !token) return;
+
+    const formData = new FormData();
+    formData.append("image", file);
+
+    try {
+      const res = await fetch(`${BASE_URL}/products/${_id}/images/${index}`, {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: formData,
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Image update failed");
+
+      toast.success("Image replaced successfully!");
+      await fetchProductDetails();
+    } catch (error) {
+      toast.error("Failed to replace image");
+      console.error(error);
+    }
+  };
+  const handleDeleteImage = async (index: number) => {
+    if (!_id || !token) return;
+
+    try {
+      const res = await fetch(`${BASE_URL}/products/${_id}/images/${index}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Image deletion failed");
+
+      toast.success("Image deleted");
+      await fetchProductDetails();
+      // setProduct(data.product);
+    } catch (error) {
+      toast.error("Failed to delete image");
+      console.error(error);
+    }
+  };
+  const handleAddImages = async (files: File[]) => {
+    if (!_id || !token || files.length === 0) return;
+
+    const formData = new FormData();
+    files.forEach((file) => {
+      formData.append("images", file);
+    });
+
+    try {
+      const res = await fetch(`${BASE_URL}/products/${_id}/images`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: formData,
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Add images failed");
+
+      toast.success("Images added");
+      await fetchProductDetails();
+    } catch (error) {
+      toast.error("Failed to add images");
+      console.error(error);
+    }
+  };
 
   const buyNow = () => {
     requireAuth(() => {
@@ -412,39 +535,146 @@ const SingleProduct: FC = () => {
     }
   };
 
-  if (!product) {
-    return <div>Loading...</div>;
-  }
+  // if (!product) {
+  //   return <div>Loading...</div>;
+  // }
 
   return (
     <div className="container mx-auto pt-8 dark:text-white">
       {loading && <div>Loading...</div>}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 px-4 font-karla">
-        <div className="space-y-4">
+        <div className="space-y-4 mt-6">
           {selectedImg && (
             <img
               src={typeof selectedImg === "string" ? selectedImg : URL.createObjectURL(selectedImg)}
-              alt="Selected Product"
+              alt="Selected"
               className="h-80 w-full object-cover rounded border"
             />
           )}
 
-          <div className="flex space-x-2 overflow-x-auto">
+          <div className="flex flex-wrap gap-4">
+            {/* Image Thumbnails visible to all */}
             {product?.images?.map((img, index) => {
               const imgUrl = img.startsWith("/") ? `${BASE_URL}${img}` : img;
+
               return (
-                <img
-                  key={index}
-                  src={imgUrl}
-                  alt={`Thumbnail ${index + 1}`}
-                  onClick={() => setSelectedImg(imgUrl)}
-                  className={`w-20 h-20 object-cover cursor-pointer border ${
-                    selectedImg === imgUrl ? "border-blue-500" : "border-gray-300"
-                  }`}
-                />
+                <div key={index} className="relative w-12 h-12 border rounded overflow-hidden group">
+                  <img
+                    src={imgUrl}
+                    alt={`Image ${index}`}
+                    onClick={() => setSelectedImg(imgUrl)}
+                    className={`w-full h-full object-cover cursor-pointer transition ${
+                      selectedImg === imgUrl ? "ring-2 ring-blue-500" : ""
+                    }`}
+                  />
+
+                  {/* Show Delete and Replace only to Admin or Product Owner Seller */}
+                  {(Role === "admin" || (Role === "seller" && product?.seller === userId)) && (
+                    <>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (window.confirm("Are you sure you want to delete this image?")) {
+                            handleDeleteImage(index);
+                          }
+                        }}
+                        className="absolute top-1 right-1 bg-red-600 text-white text-xs px-1 rounded"
+                      >
+                        ✕
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => document.getElementById(`replace-input-${index}`)?.click()}
+                        className="absolute bottom-1 left-1 bg-yellow-500 text-white text-xs px-1 rounded"
+                      >
+                        Replace
+                      </button>
+
+                      <input
+                        type="file"
+                        id={`replace-input-${index}`}
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) handleReplaceImage(file, index);
+                        }}
+                      />
+                    </>
+                  )}
+                </div>
               );
             })}
+
+            {/* Show Add Image Option only to Admin or Product Owner Seller */}
+            {(Role === "admin" || (Role === "seller" && product?.seller === userId)) && (
+              <div
+                className={`flex flex-col items-center justify-center w-24 h-24 border border-dashed rounded cursor-pointer hover:bg-gray-100 ${
+                  (product?.images?.length ?? 0) >= 5 ? "opacity-50 cursor-not-allowed" : ""
+                }`}
+                onClick={() => {
+                  if ((product?.images?.length ?? 0) >= 5) {
+                    toast.error("You can only add up to 5 images.");
+                  }
+                }}
+              >
+                <label
+                  htmlFor="add-images"
+                  className={`text-center text-sm ${
+                    (product?.images?.length ?? 0) >= 5 ? "text-gray-300" : "text-gray-700"
+                  }`}
+                >
+                  + Add
+                </label>
+                <input
+                  type="file"
+                  id="add-images"
+                  accept="image/*"
+                  multiple
+                  className="hidden"
+                  disabled={(product?.images?.length ?? 0) >= 5}
+                  onChange={(e) => {
+                    const files = e.target.files;
+                    if (files && files.length > 0) {
+                      handleAddImages(Array.from(files));
+                    }
+                  }}
+                />
+              </div>
+            )}
           </div>
+          {showDeleteConfirm && (
+            <div className="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center">
+              <div className="bg-white p-5 rounded-lg shadow-lg max-w-sm w-full">
+                <h2 className="text-lg font-semibold mb-2">Delete Image</h2>
+                <p className="text-sm text-gray-600 mb-4">Are you sure you want to delete this image?</p>
+                <div className="flex justify-end gap-3">
+                  <button
+                    onClick={() => {
+                      setShowDeleteConfirm(false);
+                      setImageToDelete(null);
+                    }}
+                    className="px-4 py-1 text-sm bg-gray-200 rounded hover:bg-gray-300"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={() => {
+                      if (imageToDelete !== null) {
+                        handleDeleteImage(imageToDelete); // Proceed to delete
+                        setShowDeleteConfirm(false);
+                        setImageToDelete(null); // Reset imageToDelete after deletion
+                      }
+                    }}
+                    className="px-4 py-1 text-sm bg-red-600 text-white rounded hover:bg-red-700"
+                  >
+                    Delete
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="px-2 max-h-[80vh] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-400">
@@ -476,11 +706,9 @@ const SingleProduct: FC = () => {
                   </tr>
                 )}
               </tbody>
-              {product && product.stock === 0 && (
-                <p className="text-red-600 mt-4 font-semibold">This product is out of stock.</p>
-              )}
             </table>
           )}
+          {product?.stock === 0 && <p className="text-red-600 mt-4 font-semibold">This product is out of stock.</p>}
 
           <div className="flex justify-between mt-4">
             <button className="flex items-center bg-black text-white p-2 rounded w-24" onClick={addCart}>
@@ -684,21 +912,7 @@ const SingleProduct: FC = () => {
               {formErrors.brand && <p className="text-red-500 text-sm">{formErrors.brand}</p>}
             </div>
 
-            {/* Image Upload Field */}
-            <div className="form-group">
-              <label>Image</label>
-              <input
-                type="file"
-                name="image"
-                accept="image/*"
-                onChange={(e) => {
-                  if (e.target.files && e.target.files.length > 0) {
-                    setSelectedImg(e.target.files[0]);
-                  }
-                }}
-              />
-              {formErrors.image && <p className="text-red-500 text-sm">{formErrors.image}</p>}
-            </div>
+        
 
             {/* Buttons */}
             <div className="flex justify-between space-x-2">
