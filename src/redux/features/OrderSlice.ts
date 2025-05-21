@@ -9,7 +9,7 @@
     description: string;
     price: number;
     salePrice: number;
-    image: string;
+    images:string[];
     totalPrice: number;
     orderTotal: number;
   }

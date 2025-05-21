@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from 'react';
-import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
+import React, { useEffect, useState } from "react";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 
 interface OrderSuccessPageProps {
   userId: string;
@@ -8,14 +9,13 @@ interface OrderSuccessPageProps {
 
 const OrderSuccessPage: React.FC<OrderSuccessPageProps> = ({ userId }) => {
   const [redirectUrl, setRedirectUrl] = useState<string | null>(null);
-  const navigate = useNavigate(); 
+  const navigate = useNavigate();
+  const { t } = useTranslation();
 
   useEffect(() => {
     const getPastOrdersUrl = async () => {
       try {
         const response = await axios.get<{ redirectUrl: string }>(`/orders/redirect/${userId}`);
-        console.log('Order data:', response.data);
-
         if (response.data.redirectUrl) {
           setRedirectUrl(response.data.redirectUrl);
         }
@@ -29,18 +29,23 @@ const OrderSuccessPage: React.FC<OrderSuccessPageProps> = ({ userId }) => {
 
   const handleRedirect = () => {
     if (redirectUrl) {
-      navigate(redirectUrl); 
+      navigate(redirectUrl);
     }
   };
 
   return (
-    <div>
-      <h1>Your Order Was Successfully Placed!</h1>
-      <p>Thank you for your purchase. You can view your past orders below.</p>
+    <div className="max-w-xl mx-auto mt-10 text-center p-6 bg-white shadow rounded">
+      <h1 className="text-2xl font-bold text-green-600 mb-4">
+        {t("orderSuccess.title")}
+      </h1>
+      <p className="mb-6">{t("orderSuccess.message")}</p>
 
       {redirectUrl && (
-        <button onClick={handleRedirect}>
-          View Past Orders
+        <button
+          onClick={handleRedirect}
+          className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 transition"
+        >
+          {t("orderSuccess.viewOrders")}
         </button>
       )}
     </div>

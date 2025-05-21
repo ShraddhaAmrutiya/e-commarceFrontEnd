@@ -3,11 +3,12 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
 import BASE_URL from "../config/apiconfig";
+import { useTranslation } from "react-i18next";
 
 interface Product {
   productId: string;
   title: string;
-  images: string[]; 
+  images: string[];
   price: number;
   salePrice: number;
   stock?: number;
@@ -15,15 +16,17 @@ interface Product {
 
 const CheckoutDirectPage = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(false);
   const userId = localStorage.getItem("userId");
   const token = localStorage.getItem("accessToken");
+  const language = localStorage.getItem("language") || "en";
 
   useEffect(() => {
     const storedItem = sessionStorage.getItem("checkoutItem");
     if (!storedItem) {
-      toast.error("No product selected for direct checkout.");
+      toast.error(t("cart.emptyCartMessage") || "No product selected for direct checkout.");
       navigate("/");
       return;
     }
@@ -37,16 +40,16 @@ const CheckoutDirectPage = () => {
 
       setProduct(parsed);
     } catch (err) {
-      toast.error("Invalid product data.");
+      toast.error(t("cart.invalidProductData") || "Invalid product data.");
       navigate("/");
     }
-  }, [navigate]);
+  }, [navigate, t]);
 
   const handleDirectOrder = async () => {
     if (!product || !userId || !token) return;
 
     if (product.stock !== undefined && product.stock < 1) {
-      toast.error(`${product.title} is out of stock`);
+      toast.error(t("cart.outOfStockError", { product: product.title }) || `${product.title} is out of stock`);
       return;
     }
 
@@ -62,16 +65,17 @@ const CheckoutDirectPage = () => {
         {
           headers: {
             Authorization: `Bearer ${token}`,
+            "Accept-Language": language,
           },
         }
       );
 
-      toast.success("Order placed successfully!");
+      toast.success(t("order.successMessage") || "Order placed successfully!");
       sessionStorage.removeItem("checkoutItem");
       setTimeout(() => navigate("/orders", { replace: true }), 300);
     } catch (error: unknown) {
       toast.error(
-        (error as { response?: { data?: { message?: string } } })?.response?.data?.message || "Order failed."
+        (error as { response?: { data?: { message?: string } } })?.response?.data?.message || t("order.failureMessage") || "Order failed."
       );
     } finally {
       setLoading(false);
@@ -94,10 +98,10 @@ const CheckoutDirectPage = () => {
         onClick={handleBackClick}
         className="absolute top-4 right-4 px-4 py-2 bg-gray-300 text-gray-800 rounded-full hover:bg-gray-400 transition"
       >
-        Back to product
+        {t("cart.backToCart") || "Back to product"}
       </button>
 
-      <h2 className="text-2xl font-bold mb-4 text-center">Confirm Your Order</h2>
+      <h2 className="text-2xl font-bold mb-4 text-center">{t("checkout.title") || "Confirm Your Order"}</h2>
 
       <div className="bg-white rounded-xl shadow-md p-4 flex gap-4 items-center">
         <img
@@ -114,9 +118,9 @@ const CheckoutDirectPage = () => {
 
         <div>
           <h3 className="text-lg font-semibold">{product.title}</h3>
-          <p className="text-gray-600">Price: ₹{price}</p>
-          <p className="text-gray-700 font-medium">Quantity: 1</p>
-          <p className="text-gray-800 font-bold mt-2">Total: ₹{price}</p>
+          <p className="text-gray-600">{t("cart.price")}: ₹{price}</p>
+          <p className="text-gray-700 font-medium">{t("cart.quantity")}: 1</p>
+          <p className="text-gray-800 font-bold mt-2">{t("cart.total")}: ₹{price}</p>
         </div>
       </div>
 
@@ -126,7 +130,7 @@ const CheckoutDirectPage = () => {
           disabled={loading}
           className="px-6 py-3 bg-blue-600 text-white text-lg rounded-xl hover:bg-blue-700 transition"
         >
-          {loading ? "Placing Order..." : "Place Order"}
+          {loading ? t("order.placingOrder") || "Placing Order..." : t("order.placeOrder") || "Place Order"}
         </button>
       </div>
     </div>

@@ -6,7 +6,11 @@ import { RiLockPasswordFill, RiUser3Fill } from "react-icons/ri";
 import { RxCross1 } from "react-icons/rx";
 import { toast } from "react-toastify";
 import BASE_URL from "../config/apiconfig";
+import { useTranslation } from "react-i18next";
+
 const LoginModal: FC = () => {
+  const { t } = useTranslation();
+
   const [userName, setUserName] = useState("");
   const [password, setPassword] = useState("");
   const [email, setEmail] = useState(""); // Forgot Password email
@@ -38,23 +42,23 @@ const LoginModal: FC = () => {
       const data = await response.json();
 
       if (!response.ok) {
-        toast.error(data.message || "Something went wrong.");
+        toast.error(data.message || t("somethingWentWrong"));
         return;
       }
 
       if (data.message === "Reset token sent to email.") {
-        toast.success("Password reset email sent!");
+        toast.success(t("passwordResetEmailSent"));
         setEmail("");
         setIsForgotPassword(false);
         setTimeout(() => {
           dispatch(updateModal(false));
-        }, 3000); // Optional: Auto-close modal after success
+        }, 3000);
       } else {
-        toast.warning(data.message || "Unexpected response.");
+        toast.warning(data.message || t("unexpectedResponse"));
       }
     } catch (error) {
       console.error("Error:", error);
-      toast.error("Something went wrong. Please try again later.");
+      toast.error(t("somethingWentWrongTryAgain"));
     } finally {
       setIsSending(false);
     }
@@ -76,11 +80,12 @@ const LoginModal: FC = () => {
         <RxCross1
           className="absolute cursor-pointer right-5 top-5 hover:opacity-85"
           onClick={() => dispatch(updateModal(false))}
+          title={t("close")}
         />
         <h3 className="font-bold text-center text-2xl flex justify-center items-center gap-2 mb-4">
           <FaUnlock />
-          Login
-          <FaUnlock />
+          {t("login.title")}
+          <FaUnlock /> 
         </h3>
 
         {/* Login Form */}
@@ -89,7 +94,7 @@ const LoginModal: FC = () => {
             <div className="relative">
               <input
                 type="text"
-                placeholder="Add your userName here..."
+                placeholder={t("enterUserName")}
                 className="border w-full py-2 px-8 rounded"
                 value={userName}
                 onChange={(e) => setUserName(e.target.value)}
@@ -100,7 +105,7 @@ const LoginModal: FC = () => {
             <div className="relative">
               <input
                 type="password"
-                placeholder="Add your password here..."
+                placeholder={t("enterPassword")}
                 className="border w-full py-2 px-8 rounded"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -110,7 +115,7 @@ const LoginModal: FC = () => {
             </div>
             <input
               type="submit"
-              value="Submit"
+              value={t("submit")}
               className="bg-blue-500 text-white rounded p-2 hover:bg-blue-700 cursor-pointer"
             />
             <button
@@ -118,19 +123,19 @@ const LoginModal: FC = () => {
               onClick={() => setIsForgotPassword(true)}
               className="text-blue-500 text-sm text-center mt-2"
             >
-              Forgot Password?
+              {t("forgotPassword")}
             </button>
           </form>
         ) : (
           // Forgot Password Form
           <form onSubmit={submitForgotPassword} className="flex flex-col space-y-3">
             <h4 className="font-semibold text-center text-lg mb-4">
-              Reset Password
+              {t("resetPassword")}
             </h4>
             <div className="relative">
               <input
                 type="email"
-                placeholder="Enter your email address"
+                placeholder={t("enterEmailAddress")}
                 className="border w-full py-2 px-8 rounded"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -138,7 +143,7 @@ const LoginModal: FC = () => {
             </div>
             <input
               type="submit"
-              value={isSending ? "Sending..." : "Send Reset Email"}
+              value={isSending ? t("sending") : t("sendResetEmail")}
               disabled={isSending}
               className="bg-blue-500 text-white rounded p-2 hover:bg-blue-700 cursor-pointer disabled:opacity-50"
             />
@@ -147,7 +152,7 @@ const LoginModal: FC = () => {
               onClick={() => setIsForgotPassword(false)}
               className="text-red-500 text-sm text-center mt-2"
             >
-              Back to Login
+              {t("backToLogin")}
             </button>
           </form>
         )}

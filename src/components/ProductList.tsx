@@ -27,6 +27,7 @@ const ProductList: FC<{ title: string; products: Product[] }> = ({
  images={product.images}    
        rating={product.rating}
           discountPercentage={product.discountPercentage}
+          stock={product.stock}
         />
       ))}
     </div>

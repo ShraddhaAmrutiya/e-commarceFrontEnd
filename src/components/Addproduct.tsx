@@ -3,6 +3,7 @@ import axios from "axios";
 import { Product } from "../models/Product";
 import toast from "react-hot-toast";
 import "../AllProduct.css";
+import { useTranslation } from "react-i18next";
 
 interface ProductFormData {
   category: string;
@@ -17,6 +18,8 @@ interface ProductFormData {
 }
 
 const AddProduct = () => {
+  const { t } = useTranslation();
+
   const [categories, setCategories] = useState<string[]>([]);
   const [formData, setFormData] = useState<ProductFormData>({
     category: "",
@@ -36,6 +39,7 @@ const AddProduct = () => {
   const [loading, setLoading] = useState(false);
 
   const MAX_IMAGE_SIZE = 700 * 1024; // 700KB
+  const language = localStorage.getItem("language") || "en";
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -44,12 +48,12 @@ const AddProduct = () => {
         const categoryNames = res.data.map((cat) => cat.name);
         setCategories(categoryNames);
       } catch (error) {
-        toast.error("Failed to load categories");
+        toast.error(t("addProductError"));
         console.error(error);
       }
     };
     fetchCategories();
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     const price = parseFloat(formData.price || "0");
@@ -64,7 +68,9 @@ const AddProduct = () => {
     }
   }, [formData.price, formData.discountPercentage]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+  ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
@@ -81,12 +87,9 @@ const AddProduct = () => {
 
     setImages((prev) => {
       const updated = prev.filter((_, i) => i !== index);
-
-      // Clear image error if we drop below the limit
       if (updated.length < 5) {
         setImageError("");
       }
-
       return updated;
     });
   };
@@ -95,10 +98,10 @@ const AddProduct = () => {
     const validTypes = ["image/jpeg", "image/png", "image/jpg"];
 
     if (file && !validTypes.includes(file.type)) {
-      setImageError("Invalid image type. Only JPG, JPEG, or PNG are allowed.");
+      setImageError(t("invalidImageType"));
       return;
     } else if (file && file.size > MAX_IMAGE_SIZE) {
-      setImageError(`Image size exceeds the ${(MAX_IMAGE_SIZE / 1024).toFixed(0)}KB limit.`);
+      setImageError(t("maxImageLimit"));
       return;
     }
 
@@ -115,20 +118,20 @@ const AddProduct = () => {
     const stock = parseInt(formData.stock);
     const rating = parseFloat(formData.rating);
 
-    if (!formData.category) errors.category = "Category is required";
+    if (!formData.category) errors.category = "categoryRequired";
     if (!formData.title || formData.title.trim() === "") {
-      errors.title = "Title is required.";
+      errors.title = "titleRequired";
     } else if (formData.title.trim().length < 3) {
-      errors.title = "Title should be at least 3 characters long.";
+      errors.title = "titleMinLength";
     }
-    if (!formData.price || price <= 0) errors.price = "Valid price is required";
-    if (!formData.stock || stock < 0) errors.stock = "Stock is required";
-    if (!formData.brand.trim()) errors.brand = "Brand is required";
+    if (!formData.price || price <= 0) errors.price = "priceRequired";
+    if (!formData.stock || stock < 0) errors.stock = "stockRequired";
+    if (!formData.brand.trim()) errors.brand = "brandRequired";
     if (formData.salePrice && salePrice > price) {
-      errors.salePrice = "Sale price cannot be greater than original price";
+      errors.salePrice = "salePriceInvalid";
     }
     if (formData.rating && (rating < 0 || rating > 5)) {
-      errors.rating = "Rating must be between 0 and 5";
+      errors.rating = "ratingInvalid";
     }
 
     setFormErrors(errors);
@@ -157,7 +160,10 @@ const AddProduct = () => {
 
     try {
       const res = await axios.post<{ message: string; product: Product }>("/products/create", data, {
-        headers: { "Content-Type": "multipart/form-data" },
+        headers: {
+          "Content-Type": "multipart/form-data",
+          "Accept-Language": language,
+        },
       });
 
       toast.success(res.data.message);
@@ -176,7 +182,7 @@ const AddProduct = () => {
       setImageError("");
       setFormErrors({});
     } catch (error: unknown) {
-      toast.error("Error in adding product");
+      toast.error(t("addProductError"));
       console.error((error as Error).message);
     } finally {
       setLoading(false);
@@ -186,45 +192,45 @@ const AddProduct = () => {
   return (
     <div className="add-product-container">
       <form onSubmit={handleSubmit} className="add-product-form" encType="multipart/form-data">
-        <h2>Add Product</h2>
+        <h2>{t("addProductTitle")}</h2>
 
         <div className="form-group">
-          <label>Category *</label>
+          <label>{t("categoryLabel")} *</label>
           <select name="category" value={formData.category} onChange={handleChange} required>
-            <option value="">Select Category</option>
+            <option value="">{t("selectCategory")}</option>
             {categories.map((cat) => (
               <option key={cat} value={cat}>
                 {cat}
               </option>
             ))}
           </select>
-          {formErrors.category && <p className="error">{formErrors.category}</p>}
+          {formErrors.category && <p className="error">{t(formErrors.category)}</p>}
         </div>
 
         <div className="form-group">
-          <label>Title *</label>
+          <label>{t("titleLabel")} *</label>
           <input type="text" name="title" value={formData.title} onChange={handleChange} required />
-          {formErrors.title && <p className="error">{formErrors.title}</p>}
+          {formErrors.title && <p className="error">{t(formErrors.title)}</p>}
         </div>
 
         <div className="form-group">
-          <label>Description</label>
+          <label>{t("descriptionLabel")}</label>
           <textarea name="description" rows={3} value={formData.description} onChange={handleChange} />
         </div>
 
         <div className="form-group">
-          <label>Price (₹) *</label>
+          <label>{t("priceLabel")} (₹) *</label>
           <input type="number" name="price" value={formData.price} onChange={handleChange} required />
-          {formErrors.price && <p className="error">{formErrors.price}</p>}
+          {formErrors.price && <p className="error">{t(formErrors.price)}</p>}
         </div>
 
         <div className="form-group">
-          <label>Sale Price (auto-calculated)</label>
+          <label>{t("salePriceLabel")}</label>
           <input type="number" name="salePrice" value={formData.salePrice} disabled />
         </div>
 
         <div className="form-group">
-          <label>Discount % (optional)</label>
+          <label>{t("discountLabel")}</label>
           <input
             type="number"
             name="discountPercentage"
@@ -236,25 +242,25 @@ const AddProduct = () => {
         </div>
 
         <div className="form-group">
-          <label>Stock *</label>
+          <label>{t("stockLabel")} *</label>
           <input type="number" name="stock" value={formData.stock} onChange={handleChange} required />
-          {formErrors.stock && <p className="error">{formErrors.stock}</p>}
+          {formErrors.stock && <p className="error">{t(formErrors.stock)}</p>}
         </div>
 
         <div className="form-group">
-          <label>Brand *</label>
+          <label>{t("brandLabel")} *</label>
           <input type="text" name="brand" value={formData.brand} onChange={handleChange} required />
-          {formErrors.brand && <p className="error">{formErrors.brand}</p>}
+          {formErrors.brand && <p className="error">{t(formErrors.brand)}</p>}
         </div>
 
-        <div className="form-group">
-          <label>Rating (0 to 5)</label>
+        {/* <div className="form-group">
+          <label>{t("ratingLabel")}</label>
           <input type="number" name="rating" value={formData.rating} onChange={handleChange} />
-          {formErrors.rating && <p className="error">{formErrors.rating}</p>}
-        </div>
+          {formErrors.rating && <p className="error">{t(formErrors.rating)}</p>}
+        </div> */}
 
         <div className="form-group">
-          <label>Images</label>
+          <label>{t("imagesLabel")}</label>
           {images.map((_img, index) => (
             <div key={index} style={{ display: "flex", alignItems: "center", marginBottom: "8px" }}>
               <input
@@ -263,12 +269,8 @@ const AddProduct = () => {
                 onChange={(e) => handleImageChange(index, e.target.files?.[0] || null)}
               />
               {images.length > 1 && (
-                <button
-                  type="button"
-                  onClick={() => handleRemoveImageInput(index)}
-                  style={{ marginLeft: "10px" }}
-                >
-                  Remove
+                <button type="button" onClick={() => handleRemoveImageInput(index)} style={{ marginLeft: "10px" }}>
+                  {t("removeImageButton")}
                 </button>
               )}
             </div>
@@ -279,21 +281,19 @@ const AddProduct = () => {
             type="button"
             onClick={() => {
               if (images.length >= 5) {
-                setImageError("You can add only 5 images.");
+                setImageError(t("maxImagesAllowed"));
                 return;
               }
-              // Clear error when adding a new image below limit
-              setImageError(""); 
+              setImageError("");
               handleAddImageInput();
             }}
-            disabled={false}
           >
-            Add More Images
+            {t("addImageButton")}
           </button>
         </div>
 
         <button type="submit" disabled={loading}>
-          {loading ? "Creating..." : "Create Product"}
+          {loading ? t("creating") : t("createProduct")}
         </button>
       </form>
     </div>

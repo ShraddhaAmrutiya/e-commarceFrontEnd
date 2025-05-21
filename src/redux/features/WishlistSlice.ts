@@ -31,19 +31,19 @@ interface WishlistState {
 
 // Fetch Wishlist Items
 export const fetchWishlistItems = createAsyncThunk<WishlistItem[], void, { state: RootState }>(
-  "wishlist/fetchWishlistItems", 
+  "wishlist/fetchWishlistItems",
   async (_, { rejectWithValue, getState }) => {
     try {
       const state = getState();
       const userId = state.authReducer.userId;
       const token = localStorage.getItem("accessToken");
+      const language = localStorage.getItem("language") || "en";
 
       if (!userId || !token) return rejectWithValue("User ID or access token is missing");
 
       const response = await axios.get(`${BASE_URL}/wishlist/${userId}`, {
-        headers: { Authorization: `Bearer ${token}` },
+        headers: { Authorization: `Bearer ${token}`, "Accept-Language": language },
       });
-      
 
       return response.data as WishlistItem[];
     } catch (error: unknown) {
@@ -68,6 +68,7 @@ export const addWishlistItem = createAsyncThunk<WishlistItem, { productId: strin
       const state = getState();
       const userId = state.authReducer.userId;
       const token = localStorage.getItem("accessToken");
+      const language = localStorage.getItem("language") || "en";
 
       if (!userId || !token) return rejectWithValue("User ID or access token is missing");
 
@@ -77,6 +78,7 @@ export const addWishlistItem = createAsyncThunk<WishlistItem, { productId: strin
         {
           headers: {
             Authorization: `Bearer ${token}`,
+            "Accept-Language": language,
             userId,
           },
         }
@@ -98,18 +100,19 @@ export const addWishlistItem = createAsyncThunk<WishlistItem, { productId: strin
 
 // Remove Item from Wishlist
 export const removeWishlistItem = createAsyncThunk<string, { productId: string }, { state: RootState }>(
-  "wishlist/removeWishlistItem", 
+  "wishlist/removeWishlistItem",
   async ({ productId }, { rejectWithValue, getState }) => {
     try {
       const state = getState();
       const userId = state.authReducer.userId;
       const token = localStorage.getItem("accessToken");
-
+      const language = localStorage.getItem("language") || "en";
       if (!userId || !token) return rejectWithValue("User ID or access token is missing");
 
       await axios.delete(`${BASE_URL}/wishlist/remove/${productId}`, {
         headers: {
           Authorization: `Bearer ${token}`,
+          "Accept-Language": language,
           userId,
         },
       });
@@ -128,21 +131,18 @@ export const removeWishlistItem = createAsyncThunk<string, { productId: string }
   }
 );
 
-// Initial State
 const initialState: WishlistState = {
   wishlistItems: [],
   loading: false,
   error: null,
 };
 
-// Wishlist Slice
 const wishlistSlice = createSlice({
   name: "wishlist",
   initialState,
   reducers: {
-    // Reset the wishlist items
     resetWishlistItems(state) {
-      state.wishlistItems = []; // Clear the wishlist
+      state.wishlistItems = []; 
     },
   },
   extraReducers: (builder) => {
@@ -166,7 +166,7 @@ const wishlistSlice = createSlice({
         if (!state.wishlistItems.some((item) => item._id === action.payload._id)) {
           state.wishlistItems.push(action.payload);
         }
-      })      
+      })
       .addCase(addWishlistItem.rejected, (state, action) => {
         state.error = typeof action.payload === "string" ? action.payload : "Failed to add item to wishlist";
       })
@@ -178,7 +178,7 @@ const wishlistSlice = createSlice({
             const filteredProducts = wishlist.products.filter(
               (item) => item.productId && item.productId._id !== action.payload
             );
-      
+
             if (filteredProducts.length > 0) {
               return { ...wishlist, products: filteredProducts };
             }
@@ -186,14 +186,13 @@ const wishlistSlice = createSlice({
           })
           .filter((wishlist): wishlist is WishlistItem => wishlist !== null);
       })
-      
+
       .addCase(removeWishlistItem.rejected, (state, action) => {
         state.error = typeof action.payload === "string" ? action.payload : "Failed to remove item from wishlist";
       });
   },
 });
 
-// Export the resetWishlistItems action
 export const { resetWishlistItems } = wishlistSlice.actions;
 
 export default wishlistSlice.reducer;

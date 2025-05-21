@@ -1,6 +1,7 @@
-import  { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import axios from "axios";
 import toast from "react-hot-toast";
+import { useTranslation } from "react-i18next";
 
 interface Category {
   _id: string;
@@ -9,6 +10,8 @@ interface Category {
 }
 
 const ManageCategories = () => {
+  const { t } = useTranslation();
+
   const [categories, setCategories] = useState<Category[]>([]);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [updatedName, setUpdatedName] = useState("");
@@ -19,12 +22,13 @@ const ManageCategories = () => {
       const res = await axios.get<Category[]>("/category/list");
       setCategories(res.data);
     } catch (error) {
-      toast.error("Failed to load categories");
+      toast.error(t("failedToLoadCategories"));
     }
   };
 
   useEffect(() => {
     fetchCategories();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleEditClick = (category: Category) => {
@@ -35,7 +39,7 @@ const ManageCategories = () => {
 
   const handleUpdate = async () => {
     if (!editingCategory) return;
-  
+
     try {
       const res = await axios.put<{
         message: string;
@@ -44,43 +48,42 @@ const ManageCategories = () => {
         name: updatedName,
         description: updatedDescription,
       });
-  
+
       toast.success(res.data.message);
       setEditingCategory(null);
       fetchCategories();
     } catch (error) {
-      toast.error("Failed to update category");
+      toast.error(t("failedToUpdateCategory"));
     }
   };
-  
 
   const handleDelete = async (id: string) => {
-    const confirm = window.confirm("Are you sure you want to delete this category?");
-    if (!confirm) return;
-  
+    const confirmDelete = window.confirm(t("confirmDeleteCategory"));
+    if (!confirmDelete) return;
+
     try {
       const res = await axios.delete<{ message: string }>(`/category/delete/${id}`);
       toast.success(res.data.message);
       fetchCategories();
     } catch (error) {
-      toast.error("Failed to delete category");
+      toast.error(t("failedToDeleteCategory"));
     }
   };
-  
+
   return (
     <div className="manage-categories-container">
-      <h2>Manage Categories</h2>
+      <h2>{t("manageCategoriesTitle")}</h2>
 
       <ul className="category-list">
         {categories.map((cat) => (
           <li key={cat._id} className="category-item">
             <div>
-              <strong>{cat.name}</strong> — {cat.description || "No description"}
+              <strong>{cat.name}</strong> — {cat.description || t("noDescription")}
             </div>
             <div className="actions">
-              <button onClick={() => handleEditClick(cat)}>Edit</button>
+              <button onClick={() => handleEditClick(cat)}>{t("edit")}</button>
               <button onClick={() => handleDelete(cat._id)} style={{ color: "red" }}>
-                Delete
+                {t("delete")}
               </button>
             </div>
           </li>
@@ -90,9 +93,9 @@ const ManageCategories = () => {
       {editingCategory && (
         <div className="modal">
           <div className="modal-content">
-            <h3>Edit Category</h3>
+            <h3>{t("editCategoryTitle")}</h3>
             <label>
-              Name:
+              {t("nameLabel")}:
               <input
                 type="text"
                 value={updatedName}
@@ -100,7 +103,7 @@ const ManageCategories = () => {
               />
             </label>
             <label>
-              Description:
+              {t("descriptionLabel")}:
               <textarea
                 rows={3}
                 value={updatedDescription}
@@ -108,8 +111,8 @@ const ManageCategories = () => {
               />
             </label>
             <div className="modal-actions">
-              <button onClick={handleUpdate}>Update</button>
-              <button onClick={() => setEditingCategory(null)}>Cancel</button>
+              <button onClick={handleUpdate}>{t("update")}</button>
+              <button onClick={() => setEditingCategory(null)}>{t("cancel")}</button>
             </div>
           </div>
         </div>

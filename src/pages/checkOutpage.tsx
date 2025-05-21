@@ -3,6 +3,7 @@ import { useState } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
 import BASE_URL from "../config/apiconfig";
+import { useTranslation } from "react-i18next";
 
 interface Product {
   _id: string;
@@ -22,6 +23,7 @@ interface CartItem {
 }
 
 const CheckoutPage = () => {
+  const { t } = useTranslation();
   const location = useLocation();
   const navigate = useNavigate();
   const cartItems = location.state?.cartItems;
@@ -34,7 +36,7 @@ const CheckoutPage = () => {
   if (!Array.isArray(cartItems) || cartItems.length === 0) {
     return (
       <div className="flex justify-center items-center h-screen">
-        <p className="text-xl text-gray-600">Your cart is empty. Please add items to the cart before proceeding.</p>
+        <p className="text-xl text-gray-600">{t("checkout.emptyCartMessage")}</p>
       </div>
     );
   }
@@ -42,7 +44,7 @@ const CheckoutPage = () => {
   const handlePlaceOrder = async () => {
     const outOfStockItem = cartItems.find((item) => item.productId.stock < item.quantity);
     if (outOfStockItem) {
-      toast.error(` ${outOfStockItem.productId.title} is out of stock`, {
+      toast.error(t("checkout.outOfStockError", { product: outOfStockItem.productId.title }), {
         position: "top-right",
         autoClose: 2000,
       });
@@ -61,7 +63,7 @@ const CheckoutPage = () => {
         }
       );
 
-      setMessage("Order placed successfully!");
+      setMessage(t("checkout.orderSuccess"));
 
       setTimeout(() => {
         navigate("/orders", { replace: true });
@@ -69,10 +71,10 @@ const CheckoutPage = () => {
     } catch (error: unknown) {
       if (error instanceof Error) {
         console.error("Error placing order:", error.message);
-        setMessage("Failed to place order. Please try again.");
+        setMessage(t("checkout.orderFailure"));
       } else {
         console.error("Unexpected error:", error);
-        setMessage("Something went wrong.");
+        setMessage(t("checkout.somethingWentWrong"));
       }
     } finally {
       setLoading(false);
@@ -97,13 +99,13 @@ const CheckoutPage = () => {
         onClick={handleBackToCart}
         className="mb-4 px-6 py-3 bg-gray-300 text-gray-800 text-lg rounded-xl hover:bg-gray-400 transition"
       >
-        Back to Cart
+        {t("checkout.backToCart")}
       </button>
 
-      <h2 className="text-3xl font-bold mb-6 text-center">Checkout</h2>
+      <h2 className="text-3xl font-bold mb-6 text-center">{t("checkout.titlecheckout")}</h2>
 
       {message && (
-        <div className={`text-center mb-4 ${message.includes("success") ? "text-green-600" : "text-red-500"}`}>
+        <div className={`text-center mb-4 ${message.includes(t("checkout.orderSuccess")) ? "text-green-600" : "text-red-500"}`}>
           {message}
         </div>
       )}
@@ -125,10 +127,10 @@ const CheckoutPage = () => {
 
             <div className="flex-1">
               <h3 className="text-xl font-semibold">{item.productId.title}</h3>
-              <p className="text-gray-600">Quantity: {item.quantity}</p>
-              <p className="text-gray-600">Price: ₹{item.productId.salePrice ?? item.productId.price}</p>
+              <p className="text-gray-600">{t("checkout.quantity")}: {item.quantity}</p>
+              <p className="text-gray-600">{t("checkout.price")}: ₹{item.productId.salePrice ?? item.productId.price}</p>
               <p className="text-gray-800 font-medium">
-                Total: ₹{(item.productId.salePrice ?? item.productId.price) * item.quantity}
+                {t("checkout.total")}: ₹{(item.productId.salePrice ?? item.productId.price) * item.quantity}
               </p>
             </div>
           </div>
@@ -136,13 +138,13 @@ const CheckoutPage = () => {
       </div>
 
       <div className="mt-8 flex flex-col items-end">
-        <div className="text-xl font-bold mb-4">Total Amount: ₹{totalAmount.toFixed(2)}</div>
+        <div className="text-xl font-bold mb-4">{t("checkout.totalAmount")}: ₹{totalAmount.toFixed(2)}</div>
         <button
           onClick={handlePlaceOrder}
           className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white text-lg rounded-xl shadow-md transition duration-200"
           disabled={loading}
         >
-          {loading ? "Placing Order..." : "Place Order"}
+          {loading ? t("checkout.placingOrder") : t("checkout.placeOrder")}
         </button>
       </div>
     </div>

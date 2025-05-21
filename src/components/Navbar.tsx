@@ -10,42 +10,42 @@ import { updateModal } from "../redux/features/authSlice";
 import { fetchWishlistItems } from "../redux/features/WishlistSlice";
 import CustomPopup from "./CustomPopup";
 import { CartItem } from "../models/CartItem";
-
+import axios from "axios";
+import { useTranslation } from "react-i18next";
+import i18n from "../i18n";
 type CartApiResponse = {
   cartItems: CartItem[];
   cartCount: number;
 };
 
 const Navbar: FC = () => {
+const { t } = useTranslation();
   const [searchTerm, setSearchTerm] = useState("");
   const [authMenuOpen, setAuthMenuOpen] = useState(false);
+  const [language, setLanguage] = useState(localStorage.getItem("language") || "en");
   const authMenuRef = useRef<HTMLDivElement>(null);
   const dispatch = useAppDispatch();
+
   const userId: string = useAppSelector((state) => state.authReducer.userId) || localStorage.getItem("userId") || "";
   const userName = useAppSelector((state) => state.authReducer.userName);
   const Role = useAppSelector((state) => state.authReducer.Role) || localStorage.getItem("role");
+
   const cartCount = useAppSelector((state) => {
     const cartItems = state.cartReducer?.cartItems;
     return Array.isArray(cartItems) && cartItems.length > 0 ? cartItems.length : 0;
   });
-  
-  // const wishlistCount = useAppSelector((state) => {
-  //   const wishlistItems = state.wishlistReducer?.wishlistItems;
-  //   return Array.isArray(wishlistItems) ? wishlistItems.reduce((total, item) => total + item. products.length, 0) : 0;
-  // });
+
   const wishlistCount = useAppSelector((state) => {
     const wishlistItems = state.wishlistReducer?.wishlistItems;
     return Array.isArray(wishlistItems)
       ? wishlistItems.reduce((total, item) => total + (item.products?.length || 0), 0)
       : 0;
   });
-  
+
   const location = useLocation();
   const navigate = useNavigate();
-
   const [showNotification, setShowNotification] = useState(false);
 
-  // Fetch Cart Items on mount
   useEffect(() => {
     const storedUserId = localStorage.getItem("userId");
     const finalUserId = userId || storedUserId;
@@ -59,16 +59,38 @@ const Navbar: FC = () => {
     }
   }, [dispatch, location.pathname, userId]);
 
-  // Fetch Wishlist Items on mount
   useEffect(() => {
     if (userId) {
-      dispatch(fetchWishlistItems()).then((response) => {
-        if (response.meta.requestStatus === "fulfilled") {
-          return response.payload
-        }
-      });
+      dispatch(fetchWishlistItems());
     }
-  }, [dispatch, userId]); 
+  }, [dispatch, userId]);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (authMenuRef.current && !authMenuRef.current.contains(e.target as Node)) {
+        setAuthMenuOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const handleSearch = () => {
+    if (searchTerm.trim()) {
+      navigate(`/search?q=${encodeURIComponent(searchTerm.trim())}`);
+      setSearchTerm("");
+    }
+  };
+
+  const handleLanguageChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const selectedLang = e.target.value;
+    setLanguage(selectedLang);
+    localStorage.setItem("language", selectedLang);
+    axios.defaults.headers.common["Accept-Language"] = selectedLang;
+    i18n.changeLanguage(selectedLang);
+      window.location.reload();
+
+  };
 
   const showCart = () => {
     const storedUserId = localStorage.getItem("userId");
@@ -89,35 +111,18 @@ const Navbar: FC = () => {
     });
   };
 
-  const handleSearch = () => {
-    if (searchTerm.trim()) {
-      navigate(`/search?q=${encodeURIComponent(searchTerm.trim())}`);
-      setSearchTerm("");
-    }
-  };
-
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (authMenuRef.current && !authMenuRef.current.contains(e.target as Node)) {
-        setAuthMenuOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
   return (
     <div className="py-4 bg-white dark:bg-slate-600 top-0 sticky z-10 shadow-lg font-karla">
       <div className="container mx-auto px-4">
         <div className="flex justify-between items-center">
           <Link to="/" className="text-2xl font-bold dark:text-white">
-            My E-commerce website
+            {t("websiteName")}
           </Link>
 
           <div className="lg:flex hidden w-full max-w-[400px]">
             <input
               type="text"
-              placeholder="Search for a product..."
+              placeholder={t("searchPlaceholder")}
               className="border-2 border-blue-500 px-6 py-2 w-full dark:text-white dark:bg-slate-800"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -133,10 +138,10 @@ const Navbar: FC = () => {
 
           <div className="flex gap-4 md:gap-8 items-center dark:text-white">
             <Link to="/products" className="text-xl font-bold text-blue-600">
-              Products
+              {t("products")}
             </Link>
             <Link to="/categories" className="text-xl font-bold text-blue-600">
-              Categories
+              {t("categories")}
             </Link>
 
             {Role === "admin" && (
@@ -144,7 +149,7 @@ const Navbar: FC = () => {
                 to="/addcategory"
                 className="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 text-sm md:text-base"
               >
-                Add Category
+                {t("addCategory")}
               </Link>
             )}
 
@@ -153,7 +158,7 @@ const Navbar: FC = () => {
                 to="/Addproduct"
                 className="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 text-sm md:text-base"
               >
-                Add Product
+                {t("addProduct")}
               </Link>
             )}
 
@@ -170,7 +175,7 @@ const Navbar: FC = () => {
                   className="flex items-center gap-1 cursor-pointer hover:opacity-85"
                 >
                   <FaUser className="text-gray-500 text-2xl dark:text-white" />
-                  <span className="dark:text-white">Login</span>
+                  <span className="dark:text-white">{t("loginCommon")}</span>
                 </div>
               )}
               {!userName && authMenuOpen && (
@@ -182,14 +187,14 @@ const Navbar: FC = () => {
                     }}
                     className="px-4 py-2 hover:bg-gray-100 dark:hover:bg-slate-600 cursor-pointer"
                   >
-                    Login
+                    {t("loginCommon")}
                   </div>
                   <Link
                     to="/register"
                     onClick={() => setAuthMenuOpen(false)}
                     className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-slate-600"
                   >
-                    New Customer? Register
+                    {t("register")}
                   </Link>
                 </div>
               )}
@@ -216,31 +221,37 @@ const Navbar: FC = () => {
             </div>
 
             {/* Cart */}
-            {/* {!location.pathname.includes("/cart") && ( */}
-              <div
-                className="text-gray-500 text-[32px] relative hover:cursor-pointer hover:opacity-80"
-                onClick={showCart}
-              >
-                <AiOutlineShoppingCart className="dark:text-white" />
-                <div className="absolute top-[-15px] right-[-10px] bg-red-600 w-[25px] h-[25px] rounded-full text-white text-[14px] grid place-items-center">
-                  {cartCount}
-                </div>
+            <div
+              className="text-gray-500 text-[32px] relative hover:cursor-pointer hover:opacity-80"
+              onClick={showCart}
+            >
+              <AiOutlineShoppingCart className="dark:text-white" />
+              <div className="absolute top-[-15px] right-[-10px] bg-red-600 w-[25px] h-[25px] rounded-full text-white text-[14px] grid place-items-center">
+                {cartCount}
               </div>
-            {/* )} */}
+            </div>
+
+            {/* Language Selector */}
+            <select
+              value={language}
+              onChange={handleLanguageChange}
+              className="border border-gray-300 dark:border-gray-500 px-2 py-1 rounded bg-white dark:bg-slate-800 dark:text-white text-sm"
+            >
+              <option value="en">English</option>
+              <option value="hi">Hindi</option>
+              <option value="he">Hebrew</option>
+            </select>
           </div>
         </div>
       </div>
 
       {showNotification && (
         <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-blue-400 text-black py-12 px-16 rounded-lg shadow-lg">
-          <span>Please Login to see the items</span>
+          <span>{t("pleaseLogin") || "Please Login to see the items"}</span>
         </div>
       )}
     </div>
   );
 };
-
-
-
 
 export default Navbar;

@@ -1,12 +1,9 @@
-
-
 import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
 import axios from "axios";
-import { CartItem } from "../models/CartItem";  // Assuming CartItem is defined in your models
+import { CartItem } from "../models/CartItem";
 import { RootState } from "../redux/store";
-import BASE_URL from '../config/apiconfig';
+import BASE_URL from "../config/apiconfig";
 
-// Define the shape of the cart state
 export interface CartState {
   cartOpen: boolean;
   cartItems: CartItem[];
@@ -17,7 +14,6 @@ export interface CartState {
   error: string | null;
 }
 
-// Initial state
 const initialState: CartState = {
   cartOpen: false,
   cartItems: [],
@@ -25,10 +21,9 @@ const initialState: CartState = {
   totalQuantity: 0,
   totalPrice: 0,
   loading: false,
-  error:  null
+  error: null,
 };
 
-// Helper to recalculate totals
 const recalculateQuantityAndPrice = (state: CartState) => {
   let totalQty = 0;
   let totalPrice = 0;
@@ -42,13 +37,9 @@ const recalculateQuantityAndPrice = (state: CartState) => {
 
   state.totalQuantity = totalQty;
   state.totalPrice = totalPrice;
-  state.cartCount = totalQty;  // This will now be consistent with quantity
-
+  state.cartCount = totalQty;
 };
 
-
-
-// Backend response type
 type FetchCartResponse = {
   cartItems: {
     productId: CartItem;
@@ -58,37 +49,32 @@ type FetchCartResponse = {
   cartCount: number;
 };
 
-// Async thunk to fetch cart items
-export const fetchCartItems = createAsyncThunk(
-  "cart/fetchCartItems",
-  async (userId: string, thunkAPI) => {
-    try {
-      const token = localStorage.getItem("accessToken");
-      if (!token) return thunkAPI.rejectWithValue("User not logged in");
+export const fetchCartItems = createAsyncThunk("cart/fetchCartItems", async (userId: string, thunkAPI) => {
+  try {
+    const token = localStorage.getItem("accessToken");
+    if (!token) return thunkAPI.rejectWithValue("User not logged in");
+    const language = localStorage.getItem("language") || "en";
+    const response = await axios.get<FetchCartResponse>(`${BASE_URL}/cart/${userId}`, {
+      headers: { Authorization: `Bearer ${token}`, "Accept-Language": language },
+    });
 
-      const response = await axios.get<FetchCartResponse>(`${BASE_URL}/cart/${userId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      // Ensure the response has cartItems and cartCount
-      if (!response.data.cartItems || !Array.isArray(response.data.cartItems)) {
-        return thunkAPI.rejectWithValue("Invalid cart items format");
-      }
-
-      return {
-        cartItems: response.data.cartItems,
-        cartCount: response.data.cartCount,
-      };
-    } catch (err) {
-      return thunkAPI.rejectWithValue("Failed to fetch cart items");
+    if (!response.data.cartItems || !Array.isArray(response.data.cartItems)) {
+      return thunkAPI.rejectWithValue("Invalid cart items format");
     }
+
+    return {
+      cartItems: response.data.cartItems,
+      cartCount: response.data.cartCount,
+    };
+  } catch (err) {
+    return thunkAPI.rejectWithValue("Failed to fetch cart items");
   }
-);
-export const removeCartItem = createAsyncThunk<string, { productId: string, userId: string }, { rejectValue: string }>(
+});
+export const removeCartItem = createAsyncThunk<string, { productId: string; userId: string }, { rejectValue: string }>(
   "cart/removeCartItem",
   async ({ productId, userId }, { rejectWithValue }) => {
     const token = localStorage.getItem("accessToken");
-
+const language = localStorage.getItem("language") || "en"
     if (!token) return rejectWithValue("Access token is missing");
 
     try {
@@ -96,9 +82,10 @@ export const removeCartItem = createAsyncThunk<string, { productId: string, user
         headers: {
           Authorization: `Bearer ${token}`,
           userId,
+           "Accept-Language": language,
         },
       });
-      
+
       return productId;
     } catch (error: unknown) {
       const err = error as { response?: { data?: { message?: string } } };
@@ -123,33 +110,20 @@ export const cartSlice = createSlice({
     },
 
     addToCart: (state, action: PayloadAction<CartItem>) => {
-      const existingIndex = state.cartItems.findIndex(item => item._id === action.payload._id);
+      const existingIndex = state.cartItems.findIndex((item) => item._id === action.payload._id);
 
       if (existingIndex === -1) {
         state.cartItems.push({ ...action.payload, quantity: 1 });
       } else {
-        state.cartItems[existingIndex].quantity =
-          (state.cartItems[existingIndex].quantity ?? 0) + 1;
+        state.cartItems[existingIndex].quantity = (state.cartItems[existingIndex].quantity ?? 0) + 1;
       }
 
       state.cartCount += 1;
       recalculateQuantityAndPrice(state);
     },
 
-    // removeFromCart: (state, action: PayloadAction<string>) => {
-    //   console.log('Entering removeFromCart reducer'); // Add this to check if the reducer is being triggered
-    //   state.cartItems = state.cartItems.filter(item => item._id !== action.payload);
-    
-    //   // Recalculate totals and count
-    //   recalculateQuantityAndPrice(state);
-    //   console.log('Updated cart items:', state.cartItems); // Check updated cart items
-
-    // },
-    
-
-
     reduceFromCart: (state, action: PayloadAction<string>) => {
-      const index = state.cartItems.findIndex(item => item._id === action.payload);
+      const index = state.cartItems.findIndex((item) => item._id === action.payload);
 
       if (index !== -1) {
         const item = state.cartItems[index];
@@ -187,51 +161,45 @@ export const cartSlice = createSlice({
         rating: item.productId.rating,
         category: item.productId.category,
         quantity: item.quantity,
+        images: item.productId.images,
+          stock: item.productId.stock, 
       }));
 
       state.cartCount = state.cartItems.reduce((total, item) => total + item.quantity, 0);
       recalculateQuantityAndPrice(state);
     });
 
-    builder.addCase(fetchCartItems.rejected, (state, action) => {
-      console.error("Failed to fetch cart:", action.payload);
-      state.cartItems = [];
-      state.cartCount = 0;
-      state.totalQuantity = 0;
-      state.totalPrice = 0;
-    })
-    .addCase(removeCartItem.pending, (state) => {
-      state.loading = true;
-    })
-    .addCase(removeCartItem.fulfilled, (state, action) => {
-      console.log('Successfully removed item from cart:', action.payload);
+    builder
+      .addCase(fetchCartItems.rejected, (state, action) => {
+        console.error("Failed to fetch cart:", action.payload);
+        state.cartItems = [];
+        state.cartCount = 0;
+        state.totalQuantity = 0;
+        state.totalPrice = 0;
+      })
+      .addCase(removeCartItem.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(removeCartItem.fulfilled, (state, action) => {
+        console.log("Successfully removed item from cart:", action.payload);
 
-      state.loading = false;
-      state.cartItems = state.cartItems.filter((item) => item.productId._id !== action.payload);
-      state.cartCount -= 1; // Adjust cart count
-    })
-    .addCase(removeCartItem.rejected, (state, action) => {
-      state.loading = false;
-      state.error = action.payload || "Failed to remove item from cart.";
-    });
+        state.loading = false;
+        state.cartItems = state.cartItems.filter((item) => item.productId._id !== action.payload);
+        state.cartCount -= 1;
+      })
+      .addCase(removeCartItem.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload || "Failed to remove item from cart.";
+      });
   },
 });
 
-// Selectors
 export const selectCartItems = (state: RootState) => state.cartReducer.cartItems;
 export const selectCartOpen = (state: RootState) => state.cartReducer.cartOpen;
 export const selectCartCount = (state: RootState) => state.cartReducer.cartCount;
 export const selectTotalQuantity = (state: RootState) => state.cartReducer.totalQuantity;
 export const selectTotalPrice = (state: RootState) => state.cartReducer.totalPrice;
 
-// Export actions
-export const {
-  toggleCart1,
-  addToCart,
-  // removeFromCart,
-  reduceFromCart,
-  emptyCart,
-  setCartState,
-} = cartSlice.actions;
+export const { toggleCart1, addToCart, reduceFromCart, emptyCart, setCartState } = cartSlice.actions;
 
 export default cartSlice.reducer;

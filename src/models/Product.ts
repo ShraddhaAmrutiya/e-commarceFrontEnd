@@ -1,5 +1,5 @@
 export interface Product {
-  _id: string; // Optional, since MongoDB provides it
+  _id: string; 
   title: string;
   images: string[];
   price: number;
@@ -8,7 +8,7 @@ export interface Product {
   salePrice?: number;
   category: string | { name: string };
   brand?: string;
-  stock?: number;
+  stock: number;
   discountPercentage?: number;
   seller?: string | { _id: string };
 }

@@ -4,44 +4,41 @@ import { AppDispatch, RootState } from "../redux/store";
 import { fetchWishlistItems, removeWishlistItem } from "../redux/features/WishlistSlice";
 import { useNavigate } from "react-router-dom";
 import BASE_URL from "../config/apiconfig";
+import { useTranslation } from "react-i18next";
 
 const Wishlist: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
   const { wishlistItems, loading, error } = useSelector((state: RootState) => state.wishlistReducer);
+  const { t } = useTranslation();
 
-  // Fetch wishlist items on component mount
   useEffect(() => {
     dispatch(fetchWishlistItems());
   }, [dispatch]);
 
-  // Handle removing an item from the wishlist
   const handleRemove = (productId: string) => {
     dispatch(removeWishlistItem({ productId }));
   };
 
-  // Handle redirect to single product page
   const handleCardClick = (productId: string) => {
     navigate(`/products/${productId}`);
   };
 
   return (
     <div className="p-6">
-      <h2 className="text-2xl font-semibold mb-4">Your Wishlist</h2>
+      <h2 className="text-2xl font-semibold mb-4">{t("wishlist.title")}</h2>
 
-      {loading && <p className="text-gray-500">Loading wishlist items...</p>}
+      {loading && <p className="text-gray-500">{t("wishlist.loading")}</p>}
       {error && <p className="text-red-500">{error}</p>}
-      {!loading && wishlistItems.length === 0 && <p className="text-gray-600">Your wishlist is empty.</p>}
+      {!loading && wishlistItems.length === 0 && <p className="text-gray-600">{t("wishlist.empty")}</p>}
 
       {/* Wishlist Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {wishlistItems && wishlistItems.length > 0 ? (
           wishlistItems.map((wishlist) => {
-            // Iterate through the products array in each wishlist item
             return wishlist.products && wishlist.products.length > 0
               ? wishlist.products.map((item) => {
                   const product = item.productId;
-
                   if (!product) return null;
 
                   const images = Array.isArray(product.images) ? product.images : [];
@@ -63,13 +60,13 @@ const Wishlist: React.FC = () => {
                       <div className="relative">
                         <img
                           src={imageUrl}
-                          alt={product.title || "Product Image"}
+                          alt={product.title || t("wishlist.productImageAlt")}
                           className="w-full h-52 object-cover rounded-md"
                         />
                       </div>
 
                       {/* Product Details */}
-                      <h3 className="text-lg font-semibold mt-2">{product.title || "No Title"}</h3>
+                      <h3 className="text-lg font-semibold mt-2">{product.title || t("wishlist.noTitle")}</h3>
                       <p className="text-gray-600">
                         ₹
                         {product.salePrice && product.salePrice > 0
@@ -86,7 +83,7 @@ const Wishlist: React.FC = () => {
                           }}
                           className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
                         >
-                          Remove
+                          {t("wishlist.remove")}
                         </button>
                       </div>
                     </div>
@@ -95,7 +92,7 @@ const Wishlist: React.FC = () => {
               : null;
           })
         ) : (
-          <p className="text-gray-600">No items in wishlist</p>
+          <p className="text-gray-600">{t("wishlist.noItems")}</p>
         )}
       </div>
     </div>

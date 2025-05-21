@@ -6,6 +6,7 @@ import axios from "axios";
 import "react-toastify/dist/ReactToastify.css";
 import { removeFromCart } from "../redux/features/cartSlice";
 import BASE_URL from "../config/apiconfig";
+import { useTranslation } from "react-i18next";
 
 interface Product {
   _id: string;
@@ -31,6 +32,7 @@ interface CartResponse {
 }
 
 const Cart = () => {
+  const { t } = useTranslation();
   const dispatch = useAppDispatch();
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [quantityMap, setQuantityMap] = useState<{ [key: string]: number }>({});
@@ -50,13 +52,13 @@ const Cart = () => {
       const { data } = await axios.get<CartResponse>(`${BASE_URL}/cart/${userId}`, { headers });
       setCartItems(data.cartItems);
     } catch {
-      toast.error("Failed to fetch cart.");
+      toast.error(t("failedFetchCart"));
     }
   };
 
   useEffect(() => {
     fetchCartItems();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId, token]);
 
   useEffect(() => {
@@ -75,7 +77,7 @@ const Cart = () => {
 
     const item = cartItems.find((item) => item.productId?._id === productId);
     if (item && quantity > item.productId?.stock) {
-      toast.error(`Only ${item.productId.stock} items in stock.`);
+      toast.error(t("onlyXItemsInStock", { count: item.productId.stock }));
       return;
     }
 
@@ -88,7 +90,7 @@ const Cart = () => {
       const { data } = await axios.put<CartResponse>(`${BASE_URL}/cart`, { userId, productId, quantity }, { headers });
       setCartItems(data.cartItems);
     } catch {
-      toast.error("Failed to update quantity.");
+      toast.error(t("failedUpdateQuantity"));
     }
   };
 
@@ -106,12 +108,12 @@ const Cart = () => {
 
       if (response.status === 200) {
         setCartItems(response.data.cartItems);
-        toast.success(response.data.message || "Item removed from cart.");
+        toast.success(response.data.message || t("itemRemovedFromCart"));
       } else {
-        toast.error("Failed to remove item from cart.");
+        toast.error(t("failedRemoveItem"));
       }
     } catch {
-      toast.error("Failed to remove item from cart.");
+      toast.error(t("failedRemoveItem"));
     } finally {
       setRemoveLoading(false);
     }
@@ -135,9 +137,9 @@ const Cart = () => {
 
         dispatch(removeFromCart(productId));
         setCartItems((prev) => prev.filter((item) => item.productId?._id !== productId));
-        toast.success("Item removed from cart.");
+        toast.success(t("itemRemovedFromCart"));
       } catch {
-        toast.error("Failed to remove item.");
+        toast.error(t("failedRemoveItem"));
       } finally {
         setRemoveLoading(false);
       }
@@ -162,7 +164,7 @@ const Cart = () => {
       setShowModal(false);
       window.location.reload();
     } catch {
-      toast.error("Failed to clear cart.");
+      toast.error(t("failedClearCart"));
     }
   };
 
@@ -174,12 +176,12 @@ const Cart = () => {
   };
 
   if (!Array.isArray(cartItems) || cartItems.length === 0) {
-    return <h2 className="text-center text-xl mt-6">🛒 Your cart is empty</h2>;
+    return <h2 className="text-center text-xl mt-6">🛒 {t("cartEmpty")}</h2>;
   }
 
   return (
     <div className="container relative">
-      <h1 className="text-center text-2xl font-bold mb-6 mt-6">🛒 Shopping Cart</h1>
+      <h1 className="text-center text-2xl font-bold mb-6 mt-6">🛒 {t("shoppingCart")}</h1>
 
       <div className="space-y-8">
         {cartItems
@@ -191,17 +193,18 @@ const Cart = () => {
               ? [item.productId.images]
               : [];
 
-            const imageUrl = imageList.length > 0
-              ? imageList[0].startsWith("/")
-                ? `${BASE_URL}${imageList[0]}`
-                : imageList[0]
-              : "/placeholder.jpg"; // fallback image
+            const imageUrl =
+              imageList.length > 0
+                ? imageList[0].startsWith("/")
+                  ? `${BASE_URL}${imageList[0]}`
+                  : imageList[0]
+                : "/placeholder.jpg";
 
             return (
               <div key={item._id} className="flex items-center space-x-5 border p-4 rounded-lg shadow">
                 <img
                   src={imageUrl}
-                  alt={item.productId?.title || "Product"}
+                  alt={item.productId?.title || t("product")}
                   className="w-24 h-24 object-cover rounded-lg cursor-pointer"
                   onClick={() => navigate(`/products/${item.productId?._id}`)}
                 />
@@ -209,18 +212,16 @@ const Cart = () => {
                   <h2 className="text-xl font-semibold">{item.productId?.title}</h2>
                   <p className="text-gray-600">{item.productId?.description}</p>
                   <p className="text-green-600 font-bold">
-                    Price: ₹{item.productId?.salePrice || item.productId?.price}
+                    {t("price")}: ₹{item.productId?.salePrice || item.productId?.price}
                   </p>
                   {(item.productId?.stock === 0 || item.productId?.stock === undefined) && (
-                    <p className="text-red-500 font-semibold">This product is out of stock.</p>
+                    <p className="text-red-500 font-semibold">{t("outOfStock")}</p>
                   )}
                   <div className="flex items-center space-x-2 mt-1">
                     <button
                       className="bg-gray-200 px-2 rounded"
                       disabled={quantityMap[item.productId?._id] === 1}
-                      onClick={() =>
-                        handleQuantityChange(item.productId?._id, quantityMap[item.productId?._id] - 1)
-                      }
+                      onClick={() => handleQuantityChange(item.productId?._id, quantityMap[item.productId?._id] - 1)}
                     >
                       -
                     </button>
@@ -230,17 +231,13 @@ const Cart = () => {
                       min="1"
                       max={item.productId?.stock}
                       value={quantityMap[item.productId?._id] || 1}
-                      onChange={(e) =>
-                        handleQuantityChange(item.productId?._id, parseInt(e.target.value))
-                      }
+                      onChange={(e) => handleQuantityChange(item.productId?._id, parseInt(e.target.value))}
                       className="w-16 text-center border rounded px-2 py-1"
                     />
 
                     <button
                       className="bg-gray-200 px-2 rounded"
-                      onClick={() =>
-                        handleQuantityChange(item.productId?._id, quantityMap[item.productId?._id] + 1)
-                      }
+                      onClick={() => handleQuantityChange(item.productId?._id, quantityMap[item.productId?._id] + 1)}
                     >
                       +
                     </button>
@@ -251,7 +248,7 @@ const Cart = () => {
                   onClick={() => handleRemoveFromCart(item.productId?._id)}
                   disabled={removeLoading}
                 >
-                  {removeLoading ? "Removing..." : "Remove"}
+                  {removeLoading ?  t("removing") : t("remove")}
                 </button>
               </div>
             );
@@ -259,7 +256,7 @@ const Cart = () => {
       </div>
 
       <h2 className="text-right text-xl font-bold mt-6">
-        Total: ₹
+        {t("total")}: ₹
         {cartItems
           .filter((item) => item.productId)
           .reduce((acc, item) => acc + item.quantity * (item.productId?.salePrice || item.productId?.price), 0)
@@ -267,31 +264,30 @@ const Cart = () => {
       </h2>
 
       <button className="checkout-btn" onClick={handleCheckout} disabled={loading}>
-        {loading ? "Processing..." : "Proceed to Checkout"}
+        {loading ?  t("processing") : t("proceedToCheckout")}
       </button>
 
       <button
         className="empty-cart-btn bg-gray-500 text-white px-4 py-2 rounded mt-4 w-full"
         onClick={() => setShowModal(true)}
       >
-        Empty Cart
-      </button>
+ {t("emptyCart")}      </button>
 
       {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
           <div className="bg-white p-6 rounded-lg shadow-lg text-center w-96">
-            <h2 className="text-xl font-bold mb-4">{itemToRemove ? "Remove Item" : "Clear Cart"}</h2>
+            <h2 className="text-xl font-bold mb-4">{itemToRemove ? t("removeItem") : t("clearCart")}</h2>
             <p className="mb-6">
               {itemToRemove
-                ? "You are about to remove the last item in your cart."
-                : "Are you sure you want to clear your cart?"}
+                ? t("removeLastItemWarning")
+                : t("clearCartWarning")}
             </p>
             <div className="flex justify-center space-x-4">
               <button
                 className="bg-red-500 text-white px-4 py-2 rounded"
                 onClick={itemToRemove ? confirmRemoveLastItem : confirmClearCart}
               >
-                Yes
+                {t("yes")}
               </button>
               <button
                 className="bg-gray-300 text-black px-4 py-2 rounded"
@@ -300,7 +296,7 @@ const Cart = () => {
                   setItemToRemove(null);
                 }}
               >
-                Cancel
+                {t("cancel")}
               </button>
             </div>
           </div>

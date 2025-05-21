@@ -10,7 +10,6 @@ interface Category {
 }
 import { updateNewList, updateFeaturedList } from "../redux/features/productSlice";
 import { Product } from "../models/Product";
-// import LatestProducts from "../components/LatestProducts";
 
 const Home: FC = () => {
   const dispatch = useAppDispatch();
@@ -19,7 +18,6 @@ const Home: FC = () => {
       fetch(`${BASE_URL}/products/all?limit=24`)
         .then((res) => res.json())
         .then(({ categories }) => {
-          // console.log("API Response:", categories);
 
           const productList: Product[] = [];
 
@@ -36,11 +34,11 @@ const Home: FC = () => {
                 description: product.description,
                 category,
                 discountPercentage: product.discountPercentage,
+                stock:product.stock
               });
             });
           });
 
-          // console.log("Processed Product List:", productList);
 
           dispatch(updateFeaturedList(productList.slice(0, 8)));
           dispatch(updateNewList(productList.slice(8, 16)));

@@ -1,4 +1,4 @@
-import { FC, useEffect, useState } from "react";
+import { FC, useEffect, useState, useMemo } from "react";
 import { useSelector } from "react-redux";
 import { useParams, useNavigate } from "react-router-dom";
 import { addToCart } from "../redux/features/cartSlice";
@@ -16,13 +16,24 @@ import { fetchWishlistItems, removeWishlistItem } from "../redux/features/Wishli
 import { RootState } from "../redux/store";
 import Modal from "react-modal";
 import BASE_URL from "../config/apiconfig";
+import { useTranslation } from "react-i18next";
 
 export interface CartItem {
   productId: Product;
   quantity: number;
 }
+interface ReviewUser {
+  name?: string;
+}
+
+interface Review {
+  rating: number;
+  comment: string;
+  user?: ReviewUser;
+}
 
 const SingleProduct: FC = () => {
+  const { t } = useTranslation();
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const { _id } = useParams<{ _id?: string }>();
@@ -40,57 +51,18 @@ const SingleProduct: FC = () => {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [imageToDelete, setImageToDelete] = useState<number | null>(null);
-
+  const language = localStorage.getItem("language") || "en";
   const userId = useAppSelector((state) => state.authReducer.userId) || localStorage.getItem("userId");
-
+  const [reviews, setReviews] = useState<Review[]>([
+    { rating: 4, comment: "Good product!" },
+    { rating: 5, comment: "Excellent!" },
+  ]);
+  const [newReview, setNewReview] = useState<Review>({ rating: 0, comment: "" });
   const token = localStorage.getItem("accessToken");
   const Role = useAppSelector((state) => state.authReducer.Role);
   useEffect(() => {
     dispatch(fetchWishlistItems());
   }, [dispatch]);
-
-  // useEffect(() => {
-  //   if (!_id) {
-  //     toast.error("Invalid product ID!");
-  //     return;
-  //   }
-
-  //   const fetchProduct = async () => {
-  //     setLoading(true);
-  //     try {
-  //       const res = await fetch(`${BASE_URL}/products/${_id}`);
-  //       const data = await res.json();
-  //       if (!data || !data.product || !data.product._id) {
-  //         toast.error("Product not found!");
-  //         return;
-  //       }
-
-  //       const { images, category } = data.product;
-
-  //       const categoryName =
-  //         typeof category === "object" && category?.name
-  //           ? category.name
-  //           : typeof category === "string"
-  //           ? category
-  //           : "Unknown";
-  //       const fullImageUrls = Array.isArray(images)
-  //         ? images.map((img) => (img.startsWith("/") ? `${BASE_URL}${img}` : img))
-  //         : [];
-
-  //       setProduct(data.product);
-  //       setImgs(fullImageUrls);
-  //       setSelectedImg(fullImageUrls.length > 0 ? fullImageUrls[0] : "");
-  //       setCategory(categoryName);
-  //     } catch (error) {
-  //       toast.error("Error fetching product details!");
-  //       console.error(error);
-  //     } finally {
-  //       setLoading(false);
-  //     }
-  //   };
-
-  //   fetchProduct();
-  // }, [_id]);
 
   const fetchProductDetails = async () => {
     if (!_id) return;
@@ -99,7 +71,8 @@ const SingleProduct: FC = () => {
       const res = await fetch(`${BASE_URL}/products/${_id}`);
       const data = await res.json();
       if (!data || !data.product || !data.product._id) {
-        toast.error("Product not found!");
+        toast.error(t("sp.productNotFound"));
+
         return;
       }
 
@@ -121,7 +94,8 @@ const SingleProduct: FC = () => {
       setSelectedImg(fullImageUrls.length > 0 ? fullImageUrls[0] : "");
       setCategory(categoryName);
     } catch (error) {
-      toast.error("Error fetching product details!");
+      toast.error(t("sp.errorFatchingProduct"));
+
       console.error(error);
     } finally {
       setLoading(false);
@@ -130,7 +104,8 @@ const SingleProduct: FC = () => {
 
   useEffect(() => {
     if (!_id) {
-      toast.error("Invalid product ID!");
+      toast.error(t("sp.invalidpId"));
+
       return;
     }
 
@@ -198,21 +173,18 @@ const SingleProduct: FC = () => {
   const validateForm = () => {
     const errors: { [key: string]: string } = {};
 
-    if (!formData.title || formData.title.trim() === "") errors.title = "Title is required.";
-    if (formData.price === undefined || formData.price <= 0) errors.price = "Price must be greater than 0.";
+    if (!formData.title || formData.title.trim() === "") errors.title = t("sp.validation.titleRequired");
+    if (formData.price === undefined || formData.price <= 0) errors.price = t("sp.validation.pricePositive");
     if (
       formData.discountPercentage !== undefined &&
       (formData.discountPercentage < 0 || formData.discountPercentage > 100)
-    )
-      if (
-        formData.discountPercentage !== undefined &&
-        (formData.discountPercentage < 0 || formData.discountPercentage > 100)
-      )
-        errors.discountPercentage = "Discount must be between 0 and 100.";
-    if (formData.stock === undefined || formData.stock < 0) errors.stock = "Stock must be a positive number.";
+    ) {
+      errors.discountPercentage = t("sp.validation.discountRange");
+    }
+    if (formData.stock === undefined || formData.stock < 0) errors.stock = t("sp.validation.stockPositive");
     if (formData.rating !== undefined && (formData.rating < 0 || formData.rating > 5))
-      errors.rating = "Rating must be between 0 and 5.";
-    if (!formData.brand || formData.brand.trim() === "") errors.brand = "Brand is required.";
+      errors.rating = t("sp.validation.ratingRange");
+    if (!formData.brand || formData.brand.trim() === "") errors.brand = t("sp.validation.brandRequired");
 
     return errors;
   };
@@ -230,7 +202,7 @@ const SingleProduct: FC = () => {
 
       if (formData.title) formDataToSend.append("title", formData.title);
       if (formData.price !== undefined) formDataToSend.append("price", String(formData.price));
-      if (formData.rating !== undefined) formDataToSend.append("rating", String(formData.rating));
+      // if (formData.rating !== undefined) formDataToSend.append("rating", String(formData.rating));
       if (formData.category) {
         const categoryValue = typeof formData.category === "string" ? formData.category : formData.category.name;
 
@@ -242,32 +214,28 @@ const SingleProduct: FC = () => {
       if (formData.stock !== undefined) formDataToSend.append("stock", String(formData.stock));
       if (formData.brand) formDataToSend.append("brand", formData.brand);
 
-      // if (selectedImg instanceof File) {
-      //   formDataToSend.append("image", selectedImg);
-      // }
-
       const res = await fetch(`${BASE_URL}/products/update/${_id}`, {
         method: "PUT",
         headers: {
           Authorization: `Bearer ${token}`,
+          "Accept-Language": language,
         },
         body: formDataToSend,
       });
 
       const data = await res.json();
       if (!res.ok) {
-        throw new Error(data.message || "Update failed");
+        throw new Error(data.message || t("sp.updateFailed"));
       }
 
-      toast.success("Product updated!");
+      toast.success(t("sp.updated"));
       setProduct(data.product);
       setIsModalOpen(false);
     } catch (error) {
       console.error("Error during update product:", error);
-      toast.error(`Failed to update product: ${(error as Error).message}`);
+      toast.error(t("sp.updateFailed", { message: (error as Error).message }));
     }
   };
-
   const handleDeleteProduct = async () => {
     if (!_id || !token) return;
 
@@ -278,6 +246,7 @@ const SingleProduct: FC = () => {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${token}`,
+          "Accept-Language": language,
         },
       });
 
@@ -291,6 +260,7 @@ const SingleProduct: FC = () => {
           headers: {
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
+            "Accept-Language": language,
           },
           body: JSON.stringify({ productId: _id }),
         });
@@ -324,18 +294,19 @@ const SingleProduct: FC = () => {
   const addCart = async () => {
     requireAuth(async () => {
       if (!product || !product._id) {
-        toast.error("Product not found!");
+        toast.error(t("sp.productNotFound"));
         return;
       }
 
       const existingProductIndex = cartItems.findIndex((item) => item.productId._id === product._id);
 
       const existingCartItem = cartItems[existingProductIndex];
-      const maxQuantity = product.stock || 10; // fallback default max quantity
+      const maxQuantity = product.stock || 10; //
       const newQuantity = existingCartItem ? Math.min(existingCartItem.quantity + 1, maxQuantity) : 1;
 
       if (existingCartItem && existingCartItem.quantity >= maxQuantity) {
-        toast("You've reached the maximum quantity for this product.");
+        toast(t("sp.maxQuantityReached"));
+
         return;
       }
 
@@ -345,6 +316,7 @@ const SingleProduct: FC = () => {
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
+            "Accept-Language": language,
           },
           body: JSON.stringify({
             userId,
@@ -367,16 +339,16 @@ const SingleProduct: FC = () => {
               quantity: newQuantity,
               images: product.images,
               discountPercentage: product.discountPercentage,
+              stock: product.stock,
             })
           );
-
-          toast.success(existingCartItem ? "Quantity increased!" : "Added to cart!");
+          toast.success(existingCartItem ? t("sp.quantityIncreased") : t("sp.added"));
         } else {
-          throw new Error(data.message || "Failed to add to cart.");
+          throw new Error(data.message || t("sp.addToCartFailed"));
         }
       } catch (error) {
         console.error("Error adding product to cart:", error);
-        toast.error("Failed to add product to cart!");
+        toast.error(t("sp.addToCartFailed"));
       }
     });
   };
@@ -391,6 +363,7 @@ const SingleProduct: FC = () => {
         method: "PUT",
         headers: {
           Authorization: `Bearer ${token}`,
+          "Accept-Language": language,
         },
         body: formData,
       });
@@ -405,6 +378,7 @@ const SingleProduct: FC = () => {
       console.error(error);
     }
   };
+
   const handleDeleteImage = async (index: number) => {
     if (!_id || !token) return;
 
@@ -413,20 +387,21 @@ const SingleProduct: FC = () => {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${token}`,
+          "Accept-Language": language,
         },
       });
 
       const data = await res.json();
-      if (!res.ok) throw new Error(data.message || "Image deletion failed");
+      if (!res.ok) throw new Error(data.message || t("sp.imageDeletationFail"));
 
-      toast.success("Image deleted");
+      toast.success(t("sp.imageDelete"));
       await fetchProductDetails();
-      // setProduct(data.product);
     } catch (error) {
-      toast.error("Failed to delete image");
+      toast.error(t("sp.imageDeletationFail"));
       console.error(error);
     }
   };
+
   const handleAddImages = async (files: File[]) => {
     if (!_id || !token || files.length === 0) return;
 
@@ -440,17 +415,18 @@ const SingleProduct: FC = () => {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
+          "Accept-Language": language,
         },
         body: formData,
       });
 
       const data = await res.json();
-      if (!res.ok) throw new Error(data.message || "Add images failed");
+      if (!res.ok) throw new Error(data.message || t("sp.addImagefail"));
 
-      toast.success("Images added");
+      toast.success(t("sp.imagesAdded"));
       await fetchProductDetails();
     } catch (error) {
-      toast.error("Failed to add images");
+      toast.error(t("sp.addImagefail"));
       console.error(error);
     }
   };
@@ -475,6 +451,13 @@ const SingleProduct: FC = () => {
       navigate("/checkoutDirect");
     });
   };
+  const averageRating = useMemo(() => {
+    if (reviews.length === 0) return 0;
+    const sum = reviews.reduce((acc, r) => acc + r.rating, 0);
+    return Number((sum / reviews.length).toFixed(1));
+  }, [reviews]);
+
+  console.log(averageRating, "avragerating");
 
   const wishlistItems = useAppSelector((state) => state.wishlistReducer.wishlistItems);
 
@@ -489,19 +472,20 @@ const SingleProduct: FC = () => {
 
   const handleWishlistToggle = async () => {
     if (!product) return;
-    if (!token) return toast.error("Authentication failed! Please log in.");
-    if (!userId) return toast.error("User ID missing");
+    if (!token) return toast.error(t("sp.NOtoken"));
+    if (!userId) return toast.error(t("sp.NoUserId"));
 
     try {
       if (isInWishlist) {
         dispatch(removeWishlistItem({ productId: product._id }));
-        toast.success("Item removed from wishlist");
+        toast.success(t("sp.removedWwishlist"));
       } else {
         const response = await fetch(`${BASE_URL}/wishlist/add`, {
           method: "POST",
           headers: {
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
+            "Accept-Language": language,
             userId,
           },
           body: JSON.stringify({
@@ -517,37 +501,86 @@ const SingleProduct: FC = () => {
           const errorObj = JSON.parse(errorDetails);
 
           if (errorObj.message === "Product already in wishlist") {
-            toast.error("This product is already in your wishlist");
+            toast.error(t("sp.alreadyInWishlist"));
             setIsInWishlist(true);
             return;
           }
 
-          throw new Error(`Failed to add item to wishlist: ${errorDetails}`);
+          throw new Error(t("sp.failedTOaddinWishlist"));
         }
-
-        toast.success("Item added to wishlist");
+        toast.success(t("sp.addedToWishlist"));
         setIsInWishlist(true);
         dispatch(fetchWishlistItems());
       }
     } catch (error) {
       console.error("Wishlist toggle error:", error);
-      toast.error((error as Error).message || "Failed to update wishlist");
+      toast.error((error as Error).message || t("sp.failTOUpdateWishlist"));
+    }
+  };
+  const fetchReviews = async () => {
+    if (!_id) return;
+    try {
+      const res = await fetch(`${BASE_URL}/reviews/products/${_id}`);
+      const data = await res.json();
+      if (res.ok) setReviews(data.reviews || []);
+    } catch (err) {
+      console.error("Error fetching reviews", err);
     }
   };
 
-  // if (!product) {
-  //   return <div>Loading...</div>;
-  // }
+  const handleReviewSubmit = async () => {
+    if (newReview.rating < 1 || newReview.rating > 5) {
+      alert("Rating must be between 1 and 5");
+      return;
+    }
 
+    if (!token || !userId || !_id) {
+      return toast.error("Login required to post reviews.");
+    }
+
+    try {
+      const res = await fetch(`${BASE_URL}/reviews/products/${_id}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+          "Accept-Language": language,
+        },
+        body: JSON.stringify({
+          userId,
+          rating: newReview.rating,
+          comment: newReview.comment,
+        }),
+      });
+
+      if (!res.ok) throw new Error("Failed to submit review");
+
+      toast.success("Review submitted");
+
+      setNewReview({ rating: 0, comment: "" });
+
+      await fetchReviews();
+
+    } catch (err) {
+      toast.error("Error submitting review");
+      console.error(err);
+    }
+  };
+
+  useEffect(() => {
+    fetchProductDetails();
+    fetchReviews();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [_id]);
   return (
     <div className="container mx-auto pt-8 dark:text-white">
-      {loading && <div>Loading...</div>}
+      {loading && <div>{t("loading")}</div>}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 px-4 font-karla">
         <div className="space-y-4 mt-6">
           {selectedImg && (
             <img
               src={typeof selectedImg === "string" ? selectedImg : URL.createObjectURL(selectedImg)}
-              alt="Selected"
+              alt={t("selected")}
               className="h-80 w-full object-cover rounded border"
             />
           )}
@@ -574,7 +607,7 @@ const SingleProduct: FC = () => {
                       <button
                         type="button"
                         onClick={() => {
-                          if (window.confirm("Are you sure you want to delete this image?")) {
+                          if (window.confirm(t("confirm_delete_image"))) {
                             handleDeleteImage(index);
                           }
                         }}
@@ -588,7 +621,7 @@ const SingleProduct: FC = () => {
                         onClick={() => document.getElementById(`replace-input-${index}`)?.click()}
                         className="absolute bottom-1 left-1 bg-yellow-500 text-white text-xs px-1 rounded"
                       >
-                        Replace
+                        {t("replace")}
                       </button>
 
                       <input
@@ -607,7 +640,6 @@ const SingleProduct: FC = () => {
               );
             })}
 
-            {/* Show Add Image Option only to Admin or Product Owner Seller */}
             {(Role === "admin" || (Role === "seller" && product?.seller === userId)) && (
               <div
                 className={`flex flex-col items-center justify-center w-24 h-24 border border-dashed rounded cursor-pointer hover:bg-gray-100 ${
@@ -647,8 +679,8 @@ const SingleProduct: FC = () => {
           {showDeleteConfirm && (
             <div className="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center">
               <div className="bg-white p-5 rounded-lg shadow-lg max-w-sm w-full">
-                <h2 className="text-lg font-semibold mb-2">Delete Image</h2>
-                <p className="text-sm text-gray-600 mb-4">Are you sure you want to delete this image?</p>
+                <h2 className="text-lg font-semibold mb-2">{t("delete_image")}</h2>
+                <p className="text-sm text-gray-600 mb-4">{t("delete_image_confirmation")}</p>
                 <div className="flex justify-end gap-3">
                   <button
                     onClick={() => {
@@ -657,19 +689,19 @@ const SingleProduct: FC = () => {
                     }}
                     className="px-4 py-1 text-sm bg-gray-200 rounded hover:bg-gray-300"
                   >
-                    Cancel
+                    {t("cancel")}
                   </button>
                   <button
                     onClick={() => {
                       if (imageToDelete !== null) {
-                        handleDeleteImage(imageToDelete); // Proceed to delete
+                        handleDeleteImage(imageToDelete); 
                         setShowDeleteConfirm(false);
-                        setImageToDelete(null); // Reset imageToDelete after deletion
+                        setImageToDelete(null); 
                       }
                     }}
                     className="px-4 py-1 text-sm bg-red-600 text-white rounded hover:bg-red-700"
                   >
-                    Delete
+                    {t("delete")}
                   </button>
                 </div>
               </div>
@@ -679,7 +711,7 @@ const SingleProduct: FC = () => {
 
         <div className="px-2 max-h-[80vh] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-400">
           <h2 className="text-2xl">{product?.title}</h2>
-          {product?.rating && <RatingStar rating={product.rating} />}
+          {product?.rating && <RatingStar rating={averageRating} />}
           {product?.price !== undefined && (
             <PriceSection discountPercentage={product.discountPercentage ?? 0} price={product.price} />
           )}
@@ -689,33 +721,33 @@ const SingleProduct: FC = () => {
               <tbody>
                 {product.brand && (
                   <tr>
-                    <td className="pr-2 font-bold">Brand</td>
+                    <td className="pr-2 font-bold">{t("brand")}</td>
                     <td>{product.brand}</td>
                   </tr>
                 )}
                 {typeof product.category === "object" && product.category?.name && (
                   <tr>
-                    <td className="pr-2 font-bold">Category</td>
+                    <td className="pr-2 font-bold">{t("category")}</td>
                     <td>{product.category.name}</td>
                   </tr>
                 )}
                 {product.description && (
                   <tr>
-                    <td className="pr-2 font-bold">Description</td>
+                    <td className="pr-2 font-bold">{t("description")}</td>
                     <td>{product.description}</td>
                   </tr>
                 )}
               </tbody>
             </table>
           )}
-          {product?.stock === 0 && <p className="text-red-600 mt-4 font-semibold">This product is out of stock.</p>}
+          {product?.stock === 0 && <p className="text-red-600 mt-4 font-semibold">{t("out_of_stock")}</p>}
 
           <div className="flex justify-between mt-4">
             <button className="flex items-center bg-black text-white p-2 rounded w-24" onClick={addCart}>
-              <AiOutlineShoppingCart /> Add to Cart
+              <AiOutlineShoppingCart /> {t("add_to_cart")}
             </button>
             <button className="flex items-center bg-black text-white p-2 rounded w-24" onClick={buyNow}>
-              <FaHandHoldingDollar /> Buy Now
+              <FaHandHoldingDollar /> {t("buy_now")}
             </button>
           </div>
 
@@ -727,7 +759,7 @@ const SingleProduct: FC = () => {
             >
               {isInWishlist ? <MdFavorite /> : <MdFavoriteBorder />}
             </button>
-            <span>{isInWishlist ? "Remove from Wishlist" : "Add to Wishlist"}</span>
+            <span>{isInWishlist ? t("remove_from_wishlist") : t("add_to_wishlist")}</span>
           </div>
 
           {(Role === "admin" || (Role === "seller" && product?.seller === userId)) && (
@@ -750,17 +782,17 @@ const SingleProduct: FC = () => {
                 }}
                 className="bg-blue-600 text-white px-4 py-2 rounded"
               >
-                Edit Product
+                {t("edit_product")}
               </button>
 
               <button onClick={() => setIsDeleteModalOpen(true)} className="bg-red-600 text-white px-4 py-2 rounded">
-                Delete Product
+                {t("delete_product")}
               </button>
             </div>
           )}
         </div>
       </div>
-      {similar.length > 0 && <ProductList title="Similar Products" products={similar} />}
+      {similar.length > 0 && <ProductList title={t("similar_products")} products={similar} />}
       <Modal
         isOpen={isModalOpen}
         onRequestClose={() => {
@@ -769,13 +801,13 @@ const SingleProduct: FC = () => {
         }}
         className="bg-white p-5 rounded-md shadow-md max-w-md h-[80vh] mx-auto mt-20 overflow-hidden"
       >
-        <h2 className="text-xl font-bold mb-4">Edit Product</h2>
+        <h2 className="text-xl font-bold mb-4">{t("edit_product")}</h2>
 
         <div className="overflow-y-auto h-[calc(100%-2rem)] pr-2 space-y-3">
           <form className="space-y-3">
             <div className="space-y-1">
               <label htmlFor="title" className="text-sm font-medium text-gray-700">
-                Title
+                {t("titleLabel")}
               </label>
               <input
                 type="text"
@@ -792,7 +824,7 @@ const SingleProduct: FC = () => {
             {/* Description Field */}
             <div className="space-y-1">
               <label htmlFor="description" className="text-sm font-medium text-gray-700">
-                Description
+                {t("descriptionLabel")}
               </label>
               <input
                 type="text"
@@ -809,7 +841,7 @@ const SingleProduct: FC = () => {
             {/* Price Field */}
             <div className="space-y-1">
               <label htmlFor="price" className="text-sm font-medium text-gray-700">
-                Price
+                {t("priceLabel")}
               </label>
               <input
                 type="number"
@@ -826,7 +858,7 @@ const SingleProduct: FC = () => {
             {/* Sale Price Field */}
             <div className="space-y-1">
               <label htmlFor="salePrice" className="text-sm font-medium text-gray-700">
-                Sale Price (sale price is disabled , it update on the basis of discount %)
+                {t("salePriceLabel")}
               </label>
               <input
                 type="number"
@@ -842,7 +874,7 @@ const SingleProduct: FC = () => {
             {/* Discount Percentage Field */}
             <div className="space-y-1">
               <label htmlFor="discountPercentage" className="text-sm font-medium text-gray-700">
-                Discount %
+                {t("discountLabel")}
               </label>
               <input
                 type="number"
@@ -861,7 +893,7 @@ const SingleProduct: FC = () => {
             {/* Stock Quantity Field */}
             <div className="space-y-1">
               <label htmlFor="stock" className="text-sm font-medium text-gray-700">
-                Stock Quantity
+                {t("stockLabel")}
               </label>
               <input
                 type="number"
@@ -875,30 +907,26 @@ const SingleProduct: FC = () => {
               {formErrors.stock && <p className="text-red-500 text-sm">{formErrors.stock}</p>}
             </div>
 
-            {/* Rating Field */}
-            <div className="space-y-1">
+            <div className="space-y-1 mb-4">
               <label htmlFor="rating" className="text-sm font-medium text-gray-700">
-                Rating
+                Average Rating
               </label>
               <input
                 type="number"
-                name="rating"
                 id="rating"
-                min="0"
-                max="5"
-                step="0.1"
-                value={formData.rating || ""}
-                onChange={handleInputChange}
-                className="w-full p-2 border"
-                placeholder="Rating (0 to 5)"
+                value={averageRating}
+                readOnly
+                className="w-full p-2 border bg-gray-100 cursor-not-allowed"
+                min={0}
+                max={5}
+                step={0.1}
               />
-              {formErrors.rating && <p className="text-red-500 text-sm">{formErrors.rating}</p>}
             </div>
 
             {/* Brand Field */}
             <div className="space-y-1">
               <label htmlFor="brand" className="text-sm font-medium text-gray-700">
-                Brand
+                {t("brandLabel")}
               </label>
               <input
                 type="text"
@@ -912,19 +940,17 @@ const SingleProduct: FC = () => {
               {formErrors.brand && <p className="text-red-500 text-sm">{formErrors.brand}</p>}
             </div>
 
-        
-
             {/* Buttons */}
             <div className="flex justify-between space-x-2">
               <button type="button" onClick={handleUpdateProduct} className="w-full bg-blue-600 text-white p-2 rounded">
-                Update
+                {t("updateLable")}
               </button>
               <button
                 type="button"
                 onClick={() => setIsModalOpen(false)}
                 className="w-full bg-gray-600 text-white p-2 rounded"
               >
-                Cancel
+                {t("cancel")}
               </button>
             </div>
           </form>
@@ -937,16 +963,60 @@ const SingleProduct: FC = () => {
         onRequestClose={() => setIsDeleteModalOpen(false)}
         className="bg-white p-6 rounded-md shadow-md max-w-md mx-auto mt-20"
       >
-        <h2 className="text-xl font-bold mb-4">Are you sure you want to delete this product?</h2>
+        <h2 className="text-xl font-bold mb-4">{t("confirm_delete_product")}</h2>
         <div className="flex justify-between space-x-2">
           <button onClick={handleDeleteProduct} className="w-full bg-red-600 text-white p-2 rounded">
-            Yes, Delete
+            {t("yes_delete")}
           </button>
           <button onClick={() => setIsDeleteModalOpen(false)} className="w-full bg-gray-600 text-white p-2 rounded">
-            Cancel
+            {t("cancel")}
           </button>
         </div>
       </Modal>
+      <div className="border p-6 rounded shadow bg-white h-fit">
+        <h3 className="text-lg font-semibold mb-2">Customer Reviews</h3>
+        {reviews.length === 0 ? (
+          <p className="text-sm text-gray-600">No reviews yet.</p>
+        ) : (
+          <ul className="space-y-2 max-h-64 overflow-y-auto">
+            {reviews.map((review: Review, index: number) => (
+              <li key={index} className="border p-2 rounded">
+                <div className="flex items-center">
+                  <RatingStar rating={review.rating} />
+                  <span className="ml-2 font-medium">{review.user?.name || "Anonymous"}</span>
+                </div>
+                <p>{review.comment}</p>
+              </li>
+            ))}
+          </ul>
+        )}
+
+        {/* Add Review Form */}
+        <div className="mt-4">
+          <h4 className="font-semibold">Add Your Review</h4>
+          <div className="flex items-center space-x-2">
+            <label>Rating:</label>
+            <input
+              type="number"
+              min={1}
+              max={5}
+              value={newReview.rating}
+              onChange={(e) => setNewReview({ ...newReview, rating: +e.target.value })}
+              className="border px-2 py-1 w-16"
+            />
+          </div>
+          <textarea
+            rows={3}
+            className="w-full border p-2 mt-2"
+            placeholder="Write your comment"
+            value={newReview.comment}
+            onChange={(e) => setNewReview({ ...newReview, comment: e.target.value })}
+          />
+          <button onClick={handleReviewSubmit} className="bg-blue-600 text-white px-4 py-2 mt-2 rounded w-full">
+            Submit Review
+          </button>
+        </div>
+      </div>
     </div>
   );
 };

@@ -1,10 +1,10 @@
-
-
 import { useState } from "react";
 import axios from "axios";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import BASE_URL from "../config/apiconfig";
+import { useTranslation } from "react-i18next";
+
 type AxiosErrorLike = {
   response: {
     data: {
@@ -22,6 +22,7 @@ const InputField = ({
   onChange,
   description,
   error,
+  required = true,
 }: {
   label: string;
   name: string;
@@ -30,29 +31,26 @@ const InputField = ({
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   description?: string;
   error?: string;
+  required?: boolean;
 }) => {
-  const isRequired = name !== "phone" && name !== "gender";
-
   return (
     <div className="mb-4">
       <label className="block text-sm font-medium text-gray-700 dark:text-white">
         {label}
-        {isRequired && <span className="text-red-500"> *</span>}
+        {required && <span className="text-red-500"> *</span>}
       </label>
       <input
         type={type}
         name={name}
         value={value}
         onChange={onChange}
-        required={isRequired}
+        required={required}
         className={`w-full mt-1 px-3 py-2 border rounded-lg dark:bg-slate-700 dark:text-white ${
           error ? "border-red-500" : ""
         }`}
       />
       {description && (
-        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-          {description}
-        </p>
+        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{description}</p>
       )}
       {error && <p className="text-sm text-red-500 mt-1">{error}</p>}
     </div>
@@ -60,6 +58,8 @@ const InputField = ({
 };
 
 const Register = () => {
+  const { t, i18n } = useTranslation();
+
   const [formData, setFormData] = useState({
     userName: "",
     firstName: "",
@@ -84,19 +84,24 @@ const Register = () => {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-  
+
     if (isNaN(Number(formData.age)) || Number(formData.age) <= 0) {
-      toast.error("Please enter a valid age.");
+      toast.error(t("invalidAge"));
       return;
     }
-  
+
     try {
       const payload = {
         ...formData,
         age: Number(formData.age),
       };
-  
-      const res = await axios.post(`${BASE_URL}/users/register`, payload);
+
+      const res = await axios.post(`${BASE_URL}/users/register`, payload, {
+        headers: {
+          "Accept-Language": i18n.language,
+        },
+      });
+
       const data = res.data as {
         success: boolean;
         message?: string;
@@ -105,53 +110,50 @@ const Register = () => {
         Role?: string;
         userName?: string;
       };
-  
+
       if (data.success && data.token && data.userId && data.Role && data.userName) {
-        // Save to localStorage
         localStorage.setItem("authToken", data.token);
         localStorage.setItem("accessToken", data.token);
         localStorage.setItem("userId", data.userId);
         localStorage.setItem("Role", data.Role);
         localStorage.setItem("userName", data.userName);
-  
-        // Set default headers globally
+
         axios.defaults.headers.common["Authorization"] = `Bearer ${data.token}`;
         axios.defaults.headers.common["userId"] = data.userId;
         axios.defaults.headers.common["Role"] = data.Role;
         axios.defaults.headers.common["userName"] = data.userName;
-  
-        toast.success("Registration & login successful!");
-  
-        // Force refresh to update all components
+
+        toast.success(t("regSuccess"));
+
         setTimeout(() => {
           window.location.href = "/";
         }, 1500);
       } else {
-        toast.error(data.message || "Something went wrong.");
+        toast.error(data.message || t("regFailed"));
       }
     } catch (err: unknown) {
       if (typeof err === "object" && err !== null && "response" in err) {
         const errorObj = err as AxiosErrorLike;
-  
+
         if (errorObj.response.data.errors) {
           setFieldErrors(errorObj.response.data.errors);
         }
-  
-        // Check for duplicate username error (MongoDB duplicate key error)
+
         if (
           errorObj.response.data.message &&
-          errorObj.response.data.message.includes("E11000 duplicate key error collection")
+          errorObj.response.data.message.includes(
+            "E11000 duplicate key error collection"
+          )
         ) {
-          toast.error(" please try another username.");
+          toast.error(t("usernameDuplicate"));
         } else {
-          toast.error( "This name is taken, please try another username");
+          toast.error(t("usernameTaken"));
         }
       } else {
-        toast.error("Registration failed.");
+        toast.error(t("regFailed"));
       }
     }
   };
-  
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100 dark:bg-gray-900">
@@ -160,25 +162,25 @@ const Register = () => {
         className="bg-white dark:bg-slate-800 p-8 rounded-lg shadow-md w-full max-w-md"
       >
         <h2 className="text-2xl font-bold mb-6 text-center dark:text-white">
-          Create Account
+          {t("createAccount")}
         </h2>
 
         <InputField
-          label="Username"
+          label={t("username")}
           name="userName"
           value={formData.userName}
           onChange={handleChange}
           error={fieldErrors.userName}
         />
         <InputField
-          label="First Name"
+          label={t("firstName")}
           name="firstName"
           value={formData.firstName}
           onChange={handleChange}
           error={fieldErrors.firstName}
         />
         <InputField
-          label="Last Name"
+          label={t("lastName")}
           name="lastName"
           value={formData.lastName}
           onChange={handleChange}
@@ -186,7 +188,7 @@ const Register = () => {
         />
         <InputField
           type="email"
-          label="Email"
+          label={t("email")}
           name="email"
           value={formData.email}
           onChange={handleChange}
@@ -194,25 +196,25 @@ const Register = () => {
         />
         <InputField
           type="tel"
-          label="Phone"
+          label={t("phone")}
           name="phone"
           value={formData.phone}
           onChange={handleChange}
           error={fieldErrors.phone}
+          required={false}
         />
         <InputField
           type="number"
-          label="Age"
+          label={t("age")}
           name="age"
           value={formData.age}
           onChange={handleChange}
           error={fieldErrors.age}
         />
 
-        {/* Gender */}
         <div className="mb-4">
           <label className="block text-sm font-medium text-gray-700 dark:text-white">
-            Gender
+            {t("gender")}
           </label>
           <select
             name="gender"
@@ -220,10 +222,10 @@ const Register = () => {
             onChange={handleChange}
             className="w-full mt-1 px-3 py-2 border rounded-lg dark:bg-slate-700 dark:text-white"
           >
-            <option value="">Select Gender</option>
-            <option value="Female">Female</option>
-            <option value="Male">Male</option>
-            <option value="Other">Other</option>
+            <option value="">{t("selectGender")}</option>
+            <option value="Female">{t("female")}</option>
+            <option value="Male">{t("male")}</option>
+            <option value="Other">{t("other")}</option>
           </select>
           {fieldErrors.gender && (
             <p className="text-sm text-red-500 mt-1">{fieldErrors.gender}</p>
@@ -232,7 +234,7 @@ const Register = () => {
 
         <InputField
           type="password"
-          label="Password"
+          label={t("password")}
           name="password"
           value={formData.password}
           onChange={handleChange}
@@ -241,7 +243,7 @@ const Register = () => {
 
         <div className="mb-6">
           <label className="block text-sm font-medium text-gray-700 dark:text-white">
-            Role <span className="text-red-500">*</span>
+            {t("role")} <span className="text-red-500">*</span>
           </label>
           <select
             name="Role"
@@ -249,9 +251,9 @@ const Register = () => {
             onChange={handleChange}
             className="w-full mt-1 px-3 py-2 border rounded-lg dark:bg-slate-700 dark:text-white"
           >
-            <option value="customer">customer</option>
-            <option value="seller">seller</option>
-            <option value="admin">admin</option>
+            <option value="customer">{t("customer")}</option>
+            <option value="seller">{t("seller")}</option>
+            <option value="admin">{t("admin")}</option>
           </select>
           {fieldErrors.Role && (
             <p className="text-sm text-red-500 mt-1">{fieldErrors.Role}</p>
@@ -262,7 +264,7 @@ const Register = () => {
           type="submit"
           className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded-lg"
         >
-          Register
+          {t("register")}
         </button>
 
         <ToastContainer />

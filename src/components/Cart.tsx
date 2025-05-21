@@ -1,7 +1,8 @@
-
 import { useAppSelector } from "../redux/hooks";
+import { useTranslation } from "react-i18next";
 
 const CartPage = () => {
+  const { t } = useTranslation();
   const cartItems = useAppSelector((state) => state.cartReducer.cartItems);
 
   const validCartItems = (cartItems ?? []).filter(
@@ -15,23 +16,26 @@ const CartPage = () => {
 
   return (
     <div className="cart-page">
-      <h1>Your Cart</h1>
+      <h1>{t("yourCart")}</h1>
       {validCartItems.length === 0 ? (
-        <p>Your cart is empty or contains invalid items.</p>
+        <p>{t("emptyCartMessage")}</p>
       ) : (
         <>
           <ul>
             {validCartItems.map((item) => {
-              console.log("Cart item productId:", item.productId); // 🔍 Logging here
+              console.log("Cart item productId:", item.productId);
 
               return (
                 <li key={item._id ?? item.productId}>
-                  <span>{item.title ?? "Unknown Product"}</span> - Quantity: {item.quantity ?? 0} - ${item.price ?? 0}
+                  <span>{item.title ?? t("unknownProduct")}</span> -{" "}
+                  {t("quantity")}: {item.quantity ?? 0} - ${item.price ?? 0}
                 </li>
               );
             })}
           </ul>
-          <div className="total-price">Total: ${totalPrice.toFixed(2)}</div>
+          <div className="total-price">
+            {t("total")}: ${totalPrice.toFixed(2)}
+          </div>
         </>
       )}
     </div>

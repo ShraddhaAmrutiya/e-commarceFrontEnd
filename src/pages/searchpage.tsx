@@ -2,18 +2,21 @@ import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import BASE_URL from "../config/apiconfig";
 import axios from "axios";
+import { useTranslation } from "react-i18next";
+
 type Product = {
-    _id: string;
-    title: string;
-    description: string;
-    image: string;
-    price: number;
-    salePrice: number;
-    rating: number;
-    brand: string;
-  };
-  
+  _id: string;
+  title: string;
+  description: string;
+  images: string[];
+  price: number;
+  salePrice: number;
+  rating: number;
+  brand: string;
+};
+
 const SearchPage = () => {
+  const { t } = useTranslation();
   const [products, setProducts] = useState<Product[]>([]);
   const location = useLocation();
   const navigate = useNavigate();
@@ -27,11 +30,16 @@ const SearchPage = () => {
           setProducts(res.data);
         }
       } catch (err) {
-        console.error("Search failed", err);
+        console.error(t("search.error"), err);
       }
     };
     fetchData();
-  }, [query]);
+  }, [query, t]);
+
+  const getImageSrc = (imagePath?: string): string => {
+    if (!imagePath) return "/placeholder.jpg";
+    return imagePath.startsWith("http") ? imagePath : `${BASE_URL}${imagePath}`;
+  };
 
   const handleClick = (id: string) => {
     navigate(`/products/${id}`);
@@ -39,7 +47,9 @@ const SearchPage = () => {
 
   return (
     <div className="container mx-auto mt-8 px-4">
-      <h2 className="text-2xl font-bold mb-4">Search Results for: {query}</h2>
+      <h2 className="text-2xl font-bold mb-4">
+        {t("search.resultsFor")} {query}
+      </h2>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
         {products.length > 0 ? (
           products.map((product) => (
@@ -49,11 +59,14 @@ const SearchPage = () => {
               className="border p-4 rounded shadow cursor-pointer hover:shadow-lg transition-all dark:bg-slate-700"
             >
               <img
-                src={`${BASE_URL}${product.image}`}
+                src={getImageSrc(product.images?.[0])}
                 alt={product.title}
                 className="w-full h-40 object-cover mb-2 rounded"
                 onError={(e) => {
-                  (e.target as HTMLImageElement).src = "/placeholder.jpg";
+                  const img = e.target as HTMLImageElement;
+                  if (!img.src.includes("/placeholder.jpg")) {
+                    img.src = "/placeholder.jpg";
+                  }
                 }}
               />
               <h3 className="text-lg font-semibold">{product.title}</h3>
@@ -67,7 +80,7 @@ const SearchPage = () => {
             </div>
           ))
         ) : (
-          <p className="col-span-full">No products found.</p>
+          <p className="col-span-full">{t("search.noProducts")}</p>
         )}
       </div>
     </div>

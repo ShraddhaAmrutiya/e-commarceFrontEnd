@@ -4,8 +4,10 @@ import { doLogin } from "../redux/features/authSlice";
 import { useNavigate } from "react-router-dom";
 import { RiLockPasswordFill, RiUser3Fill } from "react-icons/ri";
 import { FaUnlock } from "react-icons/fa";
+import { useTranslation } from "react-i18next";
 
 const Login: FC = () => {
+  const { t } = useTranslation();
   const [userName, setUserName] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -19,7 +21,7 @@ const Login: FC = () => {
 
     const result = await dispatch(doLogin({ userName, password }));
     if (doLogin.rejected.match(result)) {
-      setError(result.payload as string || "Login failed");
+      setError(result.payload as string || t("login.loginFailed"));
     }
   };
 
@@ -34,7 +36,7 @@ const Login: FC = () => {
       <div className="bg-white shadow-md rounded px-8 pt-6 pb-8 w-full max-w-md">
         <h2 className="text-2xl font-bold text-center mb-6 flex items-center justify-center gap-2">
           <FaUnlock />
-          Login
+          {t("login.title")}
           <FaUnlock />
         </h2>
         {error && (
@@ -46,7 +48,7 @@ const Login: FC = () => {
           <div className="relative">
             <input
               type="text"
-              placeholder="Username"
+              placeholder={t("login.username")}
               value={userName}
               onChange={(e) => setUserName(e.target.value)}
               className="border w-full py-2 px-10 rounded"
@@ -57,7 +59,7 @@ const Login: FC = () => {
           <div className="relative">
             <input
               type="password"
-              placeholder="Password"
+              placeholder={t("login.password")}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="border w-full py-2 px-10 rounded"
@@ -69,7 +71,7 @@ const Login: FC = () => {
             type="submit"
             className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded w-full"
           >
-            Login
+            {t("login.button")}
           </button>
         </form>
       </div>

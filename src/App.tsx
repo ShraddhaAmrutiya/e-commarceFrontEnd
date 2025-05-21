@@ -33,24 +33,30 @@ import CheckoutPage from "./pages/checkOutpage";
 import OrdersPage from "./pages/orderPge";
 import ResetPassword from "./pages/Resetpassword";
 import CheckoutDirectPage from "./pages/checkoutDirect";
-
 import axios from "axios";
+Modal.setAppElement("#root");
+
 function AppContent() {
   const dispatch = useAppDispatch();
+const language = localStorage.getItem("language") || "en";
+axios.defaults.headers.common["Accept-Language"] = language;
 
-  useEffect(() => {
-    const token = localStorage.getItem("accessToken");
-    const userId = localStorage.getItem("userId");
-    const role = localStorage.getItem("Role");
-    const userName = localStorage.getItem("userName");
+ useEffect(() => {
+  const token = localStorage.getItem("accessToken");
+  const userId = localStorage.getItem("userId");
+  const role = localStorage.getItem("Role");
+  const userName = localStorage.getItem("userName");
+  const language = localStorage.getItem("language") || "en"; 
 
-    if (token && userId && role && userName) {
-      axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-      axios.defaults.headers.common["userId"] = userId;
-      axios.defaults.headers.common["Role"] = role;
-      axios.defaults.headers.common["userName"] = userName;
-    }
-  }, []);
+  if (token && userId && role && userName) {
+    axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+    axios.defaults.headers.common["userId"] = userId;
+    axios.defaults.headers.common["Role"] = role;
+    axios.defaults.headers.common["userName"] = userName;
+  }
+
+  axios.defaults.headers.common["Accept-Language"] = language; 
+}, []);
 
   useEffect(() => {
     dispatch(updateModal(false));

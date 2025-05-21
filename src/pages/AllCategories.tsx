@@ -5,7 +5,11 @@ import { Link } from "react-router-dom";
 import toast from "react-hot-toast";
 import { Category } from "../models/Category";
 import BASE_URL from "../config/apiconfig";
+import { useTranslation } from "react-i18next";
+
 const AllCategories: FC = () => {
+  const { t } = useTranslation();
+
   const dispatch = useAppDispatch();
   const allCategories = useAppSelector((state) => state.productReducer.categories);
   const token: string = localStorage.getItem("accessToken") ?? "";
@@ -19,7 +23,7 @@ const AllCategories: FC = () => {
   const [showModal, setShowModal] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
- 
+  const language = localStorage.getItem("language") || "en";
 
   const fetchCategories = useCallback(async () => {
     try {
@@ -27,6 +31,7 @@ const AllCategories: FC = () => {
         method: "GET",
         headers: {
           Authorization: `Bearer ${token}`,
+          "Accept-Language": language,
         },
       });
 
@@ -41,15 +46,15 @@ const AllCategories: FC = () => {
       }
 
       const data = await res.json();
-      dispatch(addCategories(data)); // Dispatch fetched categories to Redux store
+      dispatch(addCategories(data));
     } catch (error) {
       console.error("Error fetching categories:", error);
-      toast.error("Failed to load categories");
+      toast.error(t("failedToLoadCategories"));
     }
-  }, [token, dispatch]);
+  }, [token, dispatch, language, t]);
 
   useEffect(() => {
-    fetchCategories(); // Fetch categories on component mount
+    fetchCategories();
   }, [fetchCategories]);
 
   useEffect(() => {
@@ -71,19 +76,20 @@ const AllCategories: FC = () => {
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
+          "Accept-Language": language,
         },
         body: JSON.stringify({ name, description }),
       });
 
       const data = await res.json();
-      if (!res.ok) throw new Error(data.message || "Failed to update");
+      if (!res.ok) throw new Error(data.message || t("failedToUpdate"));
 
-      toast.success("Category updated");
+      toast.success(t("categoryUpdated"));
       setEditingId(null);
       fetchCategories();
     } catch (error) {
       console.error(error);
-      toast.error("Error updating category");
+      toast.error(t("errorUpdatingCategory"));
     }
   };
 
@@ -100,25 +106,26 @@ const AllCategories: FC = () => {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${token}`,
+          "Accept-Language": language,
         },
       });
 
       const data = await res.json();
-      if (!res.ok) throw new Error(data.message || "Failed to delete");
+      if (!res.ok) throw new Error(data.message || t("failedToDelete"));
 
-      toast.success("Category deleted");
+      toast.success(t("categoryDeleted"));
       setShowModal(false);
       fetchCategories();
     } catch (error) {
       console.error(error);
-      toast.error("Error deleting category");
+      toast.error(t("errorDeletingCategory"));
       setShowModal(false);
     }
   };
 
   return (
     <div className="container mx-auto min-h-[83vh] p-4 font-karla">
-      <span className="text-lg dark:text-white">Categories</span>
+      <span className="text-lg dark:text-white">{t("categories")}</span>
       <div className="grid xl:grid-cols-6 lg:grid-cols-4 md:grid-cols-3 sm:grid-cols-2 gap-2 my-2">
         {allCategories &&
           allCategories.map((category) => (
@@ -153,19 +160,28 @@ const AllCategories: FC = () => {
                     }}
                   />
 
-                  <button className="bg-blue-500 text-white px-2 py-1 mr-2" onClick={handleUpdate}>
-                    Save
+                  <button
+                    className="bg-blue-500 text-white px-2 py-1 mr-2"
+                    onClick={handleUpdate}
+                  >
+                    {t("save")}
                   </button>
-                  <button className="bg-gray-500 text-white px-2 py-1" onClick={() => setEditingId(null)}>
-                    Cancel
+                  <button
+                    className="bg-gray-500 text-white px-2 py-1"
+                    onClick={() => setEditingId(null)}
+                  >
+                    {t("cancel")}
                   </button>
                 </>
               ) : (
                 <>
                   <div className="text-lg font-bold">{category.name}</div>
                   <p className="text-sm mb-2">{category.description}</p>
-                  <Link to={`/category/${category._id}`} className="hover:underline text-blue-500">
-                    View products
+                  <Link
+                    to={`/category/${category._id}`}
+                    className="hover:underline text-blue-500"
+                  >
+                    {t("viewProducts")}
                   </Link>
 
                   {Role === "admin" && (
@@ -174,13 +190,13 @@ const AllCategories: FC = () => {
                         className="text-sm bg-yellow-400 text-black px-2 py-1"
                         onClick={() => handleEdit(category)}
                       >
-                        Edit
+                        {t("edit")}
                       </button>
                       <button
                         className="text-sm bg-red-500 text-white px-2 py-1"
                         onClick={() => handleDelete(category._id!)}
                       >
-                        Delete
+                        {t("delete")}
                       </button>
                     </div>
                   )}
@@ -190,27 +206,39 @@ const AllCategories: FC = () => {
           ))}
       </div>
 
-      {showModal && <DeleteConfirmModal onConfirm={confirmDelete} onCancel={() => setShowModal(false)} />}
+      {showModal && (
+        <DeleteConfirmModal
+          onConfirm={confirmDelete}
+          onCancel={() => setShowModal(false)}
+        />
+      )}
     </div>
   );
 };
 
-// Confirmation Modal Component
 const DeleteConfirmModal: FC<{
   onConfirm: () => void;
   onCancel: () => void;
 }> = ({ onConfirm, onCancel }) => {
+  const { t } = useTranslation();
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-white p-6 rounded shadow-lg text-center w-80">
-        <h2 className="text-lg font-semibold mb-4 text-black">Confirm Deletion</h2>
-        <p className="text-black mb-4">Are you sure you want to delete this category?</p>
+        <h2 className="text-lg font-semibold mb-4 text-black">{t("confirmDeletion")}</h2>
+        <p className="text-black mb-4">{t("confirmDeleteCategory")}</p>
         <div className="flex justify-center gap-4">
-          <button className="bg-red-500 text-white px-4 py-2 rounded" onClick={onConfirm}>
-            Yes, Delete
+          <button
+            className="bg-red-500 text-white px-4 py-2 rounded"
+            onClick={onConfirm}
+          >
+            {t("yesDelete")}
           </button>
-          <button className="bg-gray-300 px-4 py-2 rounded" onClick={onCancel}>
-            Cancel
+          <button
+            className="bg-gray-300 px-4 py-2 rounded"
+            onClick={onCancel}
+          >
+            {t("cancel")}
           </button>
         </div>
       </div>

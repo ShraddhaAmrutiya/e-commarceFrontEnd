@@ -1,4 +1,3 @@
-
 import { FC, useEffect, useRef, useState } from "react";
 import { useAppDispatch, useAppSelector } from "../redux/hooks";
 import {
@@ -6,11 +5,13 @@ import {
   MdOutlineLogout,
 } from "react-icons/md";
 import { doLogout } from "../redux/features/authSlice";
-import { resetCartItems } from "../redux/features/cartSlice";  // New action to reset cart
-import { resetWishlistItems } from "../redux/features/WishlistSlice";  // New action to reset wishlist
+import { resetCartItems } from "../redux/features/cartSlice";  
+import { resetWishlistItems } from "../redux/features/WishlistSlice";  
 import { Link, useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 
 const CustomPopup: FC = () => {
+  const { t } = useTranslation();
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const [isVisible, setVisible] = useState(false);
@@ -74,7 +75,7 @@ const CustomPopup: FC = () => {
                 </td>
                 <td className="hover:underline cursor-pointer text-lg pl-2">
                   <Link to="/account" onClick={hidePopup}>
-                    Account
+                    {t("account")}
                   </Link>
                 </td>
               </tr>
@@ -82,7 +83,7 @@ const CustomPopup: FC = () => {
                 <td className="text-center">🧾</td>
                 <td className="hover:underline cursor-pointer text-lg pl-2">
                   <Link to="/orders" onClick={hidePopup}>
-                    Orders
+                    {t("ordersCommon")}
                   </Link>
                 </td>
               </tr>
@@ -95,7 +96,7 @@ const CustomPopup: FC = () => {
                   onClick={handleLogout}
                   data-test="logout-btn"
                 >
-                  Logout
+                  {t("logout")}
                 </td>
               </tr>
             </tbody>
