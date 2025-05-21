@@ -23,7 +23,7 @@ export interface CartItem {
   quantity: number;
 }
 interface ReviewUser {
-  name?: string;
+  userName?: string;
 }
 
 interface Review {
@@ -711,7 +711,7 @@ const SingleProduct: FC = () => {
 
         <div className="px-2 max-h-[80vh] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-400">
           <h2 className="text-2xl">{product?.title}</h2>
-          {product?.rating && <RatingStar rating={averageRating} />}
+{product?.rating !== undefined && <RatingStar rating={averageRating} />}
           {product?.price !== undefined && (
             <PriceSection discountPercentage={product.discountPercentage ?? 0} price={product.price} />
           )}
@@ -983,7 +983,7 @@ const SingleProduct: FC = () => {
               <li key={index} className="border p-2 rounded">
                 <div className="flex items-center">
                   <RatingStar rating={review.rating} />
-                  <span className="ml-2 font-medium">{review.user?.name || "Anonymous"}</span>
+                  <span className="ml-2 font-medium">{review.user?.userName  }</span>
                 </div>
                 <p>{review.comment}</p>
               </li>
