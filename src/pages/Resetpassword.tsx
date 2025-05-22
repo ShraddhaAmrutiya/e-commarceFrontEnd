@@ -52,7 +52,6 @@ useEffect(() => {
       toast.success(data.message || t("reset.success"));
       setTimeout(() => navigate("/login"), 3000);
     } catch (error) {
-      console.error("Reset password error:", error);
       toast.error(t("reset.serverError"));
     } finally {
       setLoading(false);

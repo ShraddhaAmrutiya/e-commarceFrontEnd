@@ -92,13 +92,11 @@ export const checkAuthStatus = createAsyncThunk(
       const userName = localStorage.getItem("userName");
 
       if (!userId || userId === "undefined") {
-        console.error("Please login!");
         return rejectWithValue("Not authenticated");
       }
 
       return { userName: userName || "", userId, isLoggedIn: true };
     } catch (error) {
-      console.error("⚠️ Error in checkAuthStatus:", error);
       return rejectWithValue("Not authenticated");
     }
   }

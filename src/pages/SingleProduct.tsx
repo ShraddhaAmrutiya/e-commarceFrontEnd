@@ -18,6 +18,8 @@ import Modal from "react-modal";
 import BASE_URL from "../config/apiconfig";
 import { useTranslation } from "react-i18next";
 
+import * as Rating from "react-rating";
+import { FaStar, FaRegStar, FaStarHalfAlt } from "react-icons/fa";
 export interface CartItem {
   productId: Product;
   quantity: number;
@@ -95,8 +97,6 @@ const SingleProduct: FC = () => {
       setCategory(categoryName);
     } catch (error) {
       toast.error(t("sp.errorFatchingProduct"));
-
-      console.error(error);
     } finally {
       setLoading(false);
     }
@@ -232,7 +232,6 @@ const SingleProduct: FC = () => {
       setProduct(data.product);
       setIsModalOpen(false);
     } catch (error) {
-      console.error("Error during update product:", error);
       toast.error(t("sp.updateFailed", { message: (error as Error).message }));
     }
   };
@@ -279,7 +278,7 @@ const SingleProduct: FC = () => {
           toast.success("Product removed from wishlist.");
         })
         .catch((error) => {
-          console.error(`Failed to remove product from wishlist: ${error.message}`);
+          toast.error(`Failed to remove product from wishlist: ${error.message}`);
         });
 
       toast.success("Product deleted successfully.");
@@ -347,7 +346,6 @@ const SingleProduct: FC = () => {
           throw new Error(data.message || t("sp.addToCartFailed"));
         }
       } catch (error) {
-        console.error("Error adding product to cart:", error);
         toast.error(t("sp.addToCartFailed"));
       }
     });
@@ -375,7 +373,6 @@ const SingleProduct: FC = () => {
       await fetchProductDetails();
     } catch (error) {
       toast.error("Failed to replace image");
-      console.error(error);
     }
   };
 
@@ -398,7 +395,6 @@ const SingleProduct: FC = () => {
       await fetchProductDetails();
     } catch (error) {
       toast.error(t("sp.imageDeletationFail"));
-      console.error(error);
     }
   };
 
@@ -427,7 +423,6 @@ const SingleProduct: FC = () => {
       await fetchProductDetails();
     } catch (error) {
       toast.error(t("sp.addImagefail"));
-      console.error(error);
     }
   };
 
@@ -511,7 +506,6 @@ const SingleProduct: FC = () => {
         dispatch(fetchWishlistItems());
       }
     } catch (error) {
-      console.error("Wishlist toggle error:", error);
       toast.error((error as Error).message || t("sp.failTOUpdateWishlist"));
     }
   };
@@ -522,7 +516,7 @@ const SingleProduct: FC = () => {
       const data = await res.json();
       if (res.ok) setReviews(data.reviews || []);
     } catch (err) {
-      console.error(t("errorFatchingReview"), err);
+      toast.error(t("errorFatchingReview"));
     }
   };
 
@@ -563,7 +557,6 @@ const SingleProduct: FC = () => {
       await fetchReviews();
     } catch (err) {
       toast.error(t("Errorsubmittingreview"));
-      console.error(err);
     }
   };
 
@@ -992,19 +985,21 @@ const SingleProduct: FC = () => {
         )}
 
         {/* Add Review Form */}
+
         <div className="mt-4">
           <h4 className="font-semibold">Add Your Review</h4>
           <div className="flex items-center space-x-2">
-            <label>{t("Rating")}:</label>
-            <input
-              type="number"
-              min={1}
-              max={5}
-              value={newReview.rating}
-              onChange={(e) => setNewReview({ ...newReview, rating: +e.target.value })}
-              className="border px-2 py-1 w-16"
+            <label className="mr-2">{t("Rating")}:</label>
+            <Rating.default
+              fractions={10}
+              initialRating={newReview.rating}
+              onChange={(value: number) => setNewReview({ ...newReview, rating: value })}
+              emptySymbol={<FaRegStar size={30} className="text-gray-400" />}
+              fullSymbol={<FaStar size={30} className="text-yellow-400" />}
+              placeholderSymbol={<FaStarHalfAlt size={30} className="text-yellow-300" />}
             />
           </div>
+
           <textarea
             rows={3}
             className="w-full border p-2 mt-2"

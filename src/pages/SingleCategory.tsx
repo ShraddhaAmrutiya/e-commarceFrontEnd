@@ -31,7 +31,6 @@ const SingleCategory: FC = () => {
         const data = await response.json();
         setCategoryName(data.name || t("singleCategory.unknownCategory"));
       } catch (error) {
-        console.error("Error fetching category details:", error);
         setError(t("singleCategory.errorLoadingCategory"));
       }
     };
@@ -50,7 +49,6 @@ const SingleCategory: FC = () => {
         const data = await response.json();
         setProductList(data.products || []);
       } catch (error) {
-        console.error("Error fetching products:", error);
         setError(t("singleCategory.errorLoadingProducts"));
       } finally {
         setLoading(false);

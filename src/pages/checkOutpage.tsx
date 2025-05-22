@@ -70,10 +70,8 @@ const CheckoutPage = () => {
       }, 1500);
     } catch (error: unknown) {
       if (error instanceof Error) {
-        console.error("Error placing order:", error.message);
         setMessage(t("checkout.orderFailure"));
       } else {
-        console.error("Unexpected error:", error);
         setMessage(t("checkout.somethingWentWrong"));
       }
     } finally {

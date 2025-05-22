@@ -114,7 +114,6 @@ const maxQuantity = Math.min(10,product.stock);
           toast.error(data.message || t("failedToAddToCart"));
         }
       } catch (error) {
-        console.error("Error adding to cart:", error);
         toast.error(t("errorAddingToCart"));
       }
     });

@@ -48,7 +48,6 @@ const AllCategories: FC = () => {
       const data = await res.json();
       dispatch(addCategories(data));
     } catch (error) {
-      console.error("Error fetching categories:", error);
       toast.error(t("failedToLoadCategories"));
     }
   }, [token, dispatch, language, t]);

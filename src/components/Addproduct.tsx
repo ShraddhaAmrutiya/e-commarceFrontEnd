@@ -253,12 +253,7 @@ const AddProduct = () => {
           {formErrors.brand && <p className="error">{t(formErrors.brand)}</p>}
         </div>
 
-        {/* <div className="form-group">
-          <label>{t("ratingLabel")}</label>
-          <input type="number" name="rating" value={formData.rating} onChange={handleChange} />
-          {formErrors.rating && <p className="error">{t(formErrors.rating)}</p>}
-        </div> */}
-
+       
         <div className="form-group">
           <label>{t("imagesLabel")}</label>
           {images.map((_img, index) => (

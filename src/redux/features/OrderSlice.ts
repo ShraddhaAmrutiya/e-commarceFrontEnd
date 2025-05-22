@@ -74,8 +74,7 @@
         return response.data;
       } catch (error) {
         if (error instanceof Error) {
-          console.error("Order placement error:", error.message);
-          toast.error("Failed to place order.");
+          // toast.error("Failed to place order.");
           return thunkAPI.rejectWithValue(error.message);
         } else if (typeof error === "object" && error !== null && "response" in error) {
           const axiosError = error as { response?: { data?: { message?: string } } };

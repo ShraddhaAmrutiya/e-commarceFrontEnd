@@ -57,7 +57,7 @@ const LoginModal: FC = () => {
         toast.warning(data.message || t("unexpectedResponse"));
       }
     } catch (error) {
-      console.error("Error:", error);
+      // console.error("Error:", error);
       toast.error(t("somethingWentWrongTryAgain"));
     } finally {
       setIsSending(false);
