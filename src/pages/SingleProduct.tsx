@@ -457,7 +457,6 @@ const SingleProduct: FC = () => {
     return Number((sum / reviews.length).toFixed(1));
   }, [reviews]);
 
-  console.log(averageRating, "avragerating");
 
   const wishlistItems = useAppSelector((state) => state.wishlistReducer.wishlistItems);
 
@@ -943,7 +942,7 @@ const SingleProduct: FC = () => {
             {/* Buttons */}
             <div className="flex justify-between space-x-2">
               <button type="button" onClick={handleUpdateProduct} className="w-full bg-blue-600 text-white p-2 rounded">
-                {t("updateLable")}
+                {t("update")}
               </button>
               <button
                 type="button"

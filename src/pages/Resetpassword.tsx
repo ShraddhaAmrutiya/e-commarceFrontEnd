@@ -1,4 +1,4 @@
-import { useState, FormEvent } from "react";
+import { useState, FormEvent,useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import BASE_URL from "../config/apiconfig";
@@ -9,8 +9,10 @@ const ResetPassword = () => {
   const { token } = useParams<{ token: string }>();
   const navigate = useNavigate();
   const language = localStorage.getItem("language") || "en";
-  i18n.changeLanguage(language); // Ensure UI uses stored language
-
+useEffect(() => {
+  i18n.changeLanguage(language);
+// eslint-disable-next-line react-hooks/exhaustive-deps
+}, [language]);
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
