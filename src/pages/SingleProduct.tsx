@@ -457,7 +457,6 @@ const SingleProduct: FC = () => {
     return Number((sum / reviews.length).toFixed(1));
   }, [reviews]);
 
-
   const wishlistItems = useAppSelector((state) => state.wishlistReducer.wishlistItems);
 
   useEffect(() => {
@@ -523,18 +522,18 @@ const SingleProduct: FC = () => {
       const data = await res.json();
       if (res.ok) setReviews(data.reviews || []);
     } catch (err) {
-      console.error("Error fetching reviews", err);
+      console.error(t("errorFatchingReview"), err);
     }
   };
 
   const handleReviewSubmit = async () => {
     if (newReview.rating < 1 || newReview.rating > 5) {
-      alert("Rating must be between 1 and 5");
+      alert(t("ratingRange"));
       return;
     }
 
     if (!token || !userId || !_id) {
-      return toast.error("Login required to post reviews.");
+      return toast.error(t("loginrequired"));
     }
 
     try {
@@ -552,16 +551,18 @@ const SingleProduct: FC = () => {
         }),
       });
 
-      if (!res.ok) throw new Error("Failed to submit review");
+      const data = await res.json();
 
-      toast.success("Review submitted");
+      if (!res.ok) {
+        toast.error(data.message || t("failTOSUbmitRev"));
+        return;
+      }
 
+      toast.success(t("Reviewsubmitted"));
       setNewReview({ rating: 0, comment: "" });
-
       await fetchReviews();
-
     } catch (err) {
-      toast.error("Error submitting review");
+      toast.error(t("Errorsubmittingreview"));
       console.error(err);
     }
   };
@@ -693,9 +694,9 @@ const SingleProduct: FC = () => {
                   <button
                     onClick={() => {
                       if (imageToDelete !== null) {
-                        handleDeleteImage(imageToDelete); 
+                        handleDeleteImage(imageToDelete);
                         setShowDeleteConfirm(false);
-                        setImageToDelete(null); 
+                        setImageToDelete(null);
                       }
                     }}
                     className="px-4 py-1 text-sm bg-red-600 text-white rounded hover:bg-red-700"
@@ -710,7 +711,7 @@ const SingleProduct: FC = () => {
 
         <div className="px-2 max-h-[80vh] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-400">
           <h2 className="text-2xl">{product?.title}</h2>
-{product?.rating !== undefined && <RatingStar rating={averageRating} />}
+          {product?.rating !== undefined && <RatingStar rating={averageRating} />}
           {product?.price !== undefined && (
             <PriceSection discountPercentage={product.discountPercentage ?? 0} price={product.price} />
           )}
@@ -982,7 +983,7 @@ const SingleProduct: FC = () => {
               <li key={index} className="border p-2 rounded">
                 <div className="flex items-center">
                   <RatingStar rating={review.rating} />
-                  <span className="ml-2 font-medium">{review.user?.userName  }</span>
+                  <span className="ml-2 font-medium">{review.user?.userName}</span>
                 </div>
                 <p>{review.comment}</p>
               </li>
@@ -994,7 +995,7 @@ const SingleProduct: FC = () => {
         <div className="mt-4">
           <h4 className="font-semibold">Add Your Review</h4>
           <div className="flex items-center space-x-2">
-            <label>Rating:</label>
+            <label>{t("Rating")}:</label>
             <input
               type="number"
               min={1}
@@ -1007,12 +1008,12 @@ const SingleProduct: FC = () => {
           <textarea
             rows={3}
             className="w-full border p-2 mt-2"
-            placeholder="Write your comment"
+            placeholder={t("Writeyourcomment")}
             value={newReview.comment}
             onChange={(e) => setNewReview({ ...newReview, comment: e.target.value })}
           />
           <button onClick={handleReviewSubmit} className="bg-blue-600 text-white px-4 py-2 mt-2 rounded w-full">
-            Submit Review
+            {t("SubmitReview")}
           </button>
         </div>
       </div>

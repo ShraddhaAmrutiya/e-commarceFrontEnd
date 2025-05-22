@@ -49,7 +49,6 @@ const AllProducts: FC = () => {
                 Array.isArray(product.images) && product.images.length > 0
                   ? `${BASE_URL}${product.images[0]}`
                   : `${BASE_URL}/uploads/default-image.jpg`;
-    console.log("Product rating..................:", product.rating);
 
               return {
                 ...product,
@@ -60,7 +59,7 @@ const AllProducts: FC = () => {
         );
 
         dispatch(addProducts(allProducts));
-      } catch (error) {
+      } catch (error) { 
         console.error("Error fetching products:", error);
       } finally {
         setLoading(false);

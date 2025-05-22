@@ -62,7 +62,7 @@ const ProductCard: FC<Product> = ({
   return;
 }
 
-      const maxQuantity = product.stock;
+const maxQuantity = Math.min(10,product.stock);
       const newQuantity = existingCartItem
         ? Math.min(existingCartItem.quantity + 1, maxQuantity)
         : 1;

@@ -208,7 +208,7 @@
     "message": "תודה על הרכישה. תוכל לצפות בהזמנות הקודמות שלך למטה.",
     "viewOrders": "צפה בהזמנות קודמות"
   },
-   "profile": {
+  "profile": {
     "title": "החשבון שלך",
     "username": "שם משתמש",
     "firstName": "שם פרטי",
@@ -231,7 +231,7 @@
       "genericError": "משהו השתבש. נסה שוב."
     }
   },
-   "reset": {
+  "reset": {
     "title": "איפוס סיסמה",
     "newPassword": "סיסמה חדשה",
     "confirmPassword": "אשר סיסמה",
@@ -243,12 +243,12 @@
     "genericError": "משהו השתבש.",
     "serverError": "שגיאת שרת. נסה שוב מאוחר יותר."
   },
-   "search": {
+  "search": {
     "resultsFor": "תוצאות חיפוש עבור:",
     "noProducts": "לא נמצאו מוצרים.",
     "error": "החיפוש נכשל"
   },
-   "singleCategory": {
+  "singleCategory": {
     "categories": "קטגוריות",
     "loading": "טוען...",
     "loadingProducts": "טוען מוצרים...",
@@ -259,7 +259,7 @@
     "fetchCategoryError": "נכשל בטעינת פרטי הקטגוריה",
     "fetchProductsError": "נכשל בטעינת מוצרים"
   },
-   "wishlist": {
+  "wishlist": {
     "title": "רשימת המשאלות שלך",
     "loading": "טוען פריטי רשימת משאלות...",
     "empty": "רשימת המשאלות שלך ריקה.",
@@ -268,7 +268,7 @@
     "noTitle": "אין כותרת",
     "productImageAlt": "תמונת מוצר"
   },
-    "sp": {
+  "sp": {
     "productNotFound": "המוצר לא נמצא!",
     "errorFatchingProduct": "שגיאה בשליפת פרטי המוצר!",
     "invalidpId": "מזהה מוצר לא חוקי!",
@@ -318,5 +318,15 @@
   "delete_product": "מחק מוצר",
   "similar_products": "מוצרים דומים",
   "confirm_delete_product": "האם אתה בטוח שברצונך למחוק את המוצר הזה?",
-  "yes_delete": "כן, מחק"
+  "yes_delete": "כן, מחק",
+  "invalidCategoryName": "שם הקטגוריה חייב להכיל בין 3 ל-20 תווים ויכול לכלול רק אותיות, רווחים, נקודות, קווים תחתונים או מקפים.",
+  "errorFatchingReview": "שגיאה בקבלת ביקורות",
+  "ratingRange": "הדירוג חייב להיות בין 1 ל-5",
+  "loginrequired": "נדרש להתחבר כדי לפרסם ביקורת.",
+  "failTOSUbmitRev": "שליחת הביקורת נכשלה",
+  "Reviewsubmitted": "הביקורת נשלחה בהצלחה",
+  "Errorsubmittingreview": "שגיאה בשליחת ביקורת",
+  "Writeyourcomment": "כתוב את ההערה שלך",
+  "SubmitReview": "שלח ביקורת",
+  "Rating": "דירוג"
 }

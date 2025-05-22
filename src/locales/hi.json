@@ -318,5 +318,15 @@
   "delete_product": "उत्पाद हटाएं",
   "similar_products": "समान उत्पाद",
   "confirm_delete_product": "क्या आप वाकई इस उत्पाद को हटाना चाहते हैं?",
-  "yes_delete": "हाँ, हटाएं"
+  "yes_delete": "हाँ, हटाएं",
+  "invalidCategoryName": "श्रेणी का नाम 3 से 20 अक्षरों का होना चाहिए और केवल अक्षर, स्पेस, डॉट, अंडरस्कोर या हाइफ़न शामिल होने चाहिए।",
+  "errorFatchingReview": "समीक्षा प्राप्त करने में त्रुटि",
+  "ratingRange": "रेटिंग 1 और 5 के बीच होनी चाहिए",
+  "loginrequired": "समीक्षा पोस्ट करने के लिए लॉगिन आवश्यक है।",
+  "failTOSUbmitRev": "समीक्षा सबमिट करने में विफल",
+  "Reviewsubmitted": "समीक्षा सफलतापूर्वक सबमिट हुई",
+  "Errorsubmittingreview": "समीक्षा सबमिट करते समय त्रुटि",
+  "Writeyourcomment": "अपनी टिप्पणी लिखें",
+  "SubmitReview": "समीक्षा सबमिट करें",
+  "Rating": "रेटिंग"
 }
