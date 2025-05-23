@@ -231,7 +231,7 @@
       "genericError": "कुछ गलत हुआ। कृपया पुनः प्रयास करें।"
     }
   },
-   "reset": {
+  "reset": {
     "title": "अपना पासवर्ड रीसेट करें",
     "newPassword": "नया पासवर्ड",
     "confirmPassword": "पासवर्ड की पुष्टि करें",
@@ -243,12 +243,12 @@
     "genericError": "कुछ गलत हो गया।",
     "serverError": "सर्वर त्रुटि। कृपया बाद में पुन: प्रयास करें।"
   },
-   "search": {
+  "search": {
     "resultsFor": "के लिए खोज परिणाम:",
     "noProducts": "कोई उत्पाद नहीं मिला।",
     "error": "खोज विफल"
   },
-   "singleCategory": {
+  "singleCategory": {
     "categories": "श्रेणियाँ",
     "loading": "लोड हो रहा है...",
     "loadingProducts": "प्रोडक्ट्स लोड हो रहे हैं...",
@@ -268,7 +268,7 @@
     "noTitle": "कोई शीर्षक नहीं",
     "productImageAlt": "उत्पाद छवि"
   },
-   "sp": {
+  "sp": {
     "productNotFound": "उत्पाद नहीं मिला!",
     "errorFatchingProduct": "उत्पाद विवरण लाने में त्रुटि!",
     "invalidpId": "अमान्य उत्पाद आईडी!",
@@ -278,7 +278,17 @@
       "discountRange": "छूट 0 और 100 के बीच होनी चाहिए।",
       "stockPositive": "स्टॉक एक सकारात्मक संख्या होनी चाहिए।",
       "ratingRange": "रेटिंग 0 और 5 के बीच होनी चाहिए।",
-      "brandRequired": "ब्रांड आवश्यक है।"
+      "brandRequired": "ब्रांड आवश्यक है।",
+      "failTOUpdateWishlist": "विशलिस्ट को अपडेट करने में विफल",
+      "Deletefailed": "हटाना असफल",
+      "itemRemovedFromCart": "आइटम को कार्ट से हटा दिया गया है।",
+      "failedRemoveItem": "आपके कार्ट से उत्पाद हटाने में विफल।",
+      "failedRemoveItemWishlist": "विशलिस्ट से उत्पाद हटाने में विफल।",
+      "productDelete": "उत्पाद सफलतापूर्वक हटाया गया।",
+      "failedProductDelete": "उत्पाद को हटाने में विफल।",
+      "imageUpdateFail": "छवि अपडेट विफल",
+      "imageReplaced": "छवि सफलतापूर्वक बदली गई!",
+      "imgReplaceFailed": "छवि बदलने में विफल"
     },
     "updateFailed": "अद्यतन विफल रहा",
     "updated": "उत्पाद अद्यतन हुआ!",

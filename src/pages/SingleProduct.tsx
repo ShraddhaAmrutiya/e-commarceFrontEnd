@@ -55,10 +55,7 @@ const SingleProduct: FC = () => {
   const [imageToDelete, setImageToDelete] = useState<number | null>(null);
   const language = localStorage.getItem("language") || "en";
   const userId = useAppSelector((state) => state.authReducer.userId) || localStorage.getItem("userId");
-  const [reviews, setReviews] = useState<Review[]>([
-    { rating: 4, comment: "Good product!" },
-    { rating: 5, comment: "Excellent!" },
-  ]);
+  const [reviews, setReviews] = useState<Review[]>([]);
   const [newReview, setNewReview] = useState<Review>({ rating: 0, comment: "" });
   const token = localStorage.getItem("accessToken");
   const Role = useAppSelector((state) => state.authReducer.Role);
@@ -202,7 +199,6 @@ const SingleProduct: FC = () => {
 
       if (formData.title) formDataToSend.append("title", formData.title);
       if (formData.price !== undefined) formDataToSend.append("price", String(formData.price));
-      // if (formData.rating !== undefined) formDataToSend.append("rating", String(formData.rating));
       if (formData.category) {
         const categoryValue = typeof formData.category === "string" ? formData.category : formData.category.name;
 
@@ -250,7 +246,7 @@ const SingleProduct: FC = () => {
       });
 
       const data = await res.json();
-      if (!res.ok) throw new Error(data.message || "Delete failed");
+      if (!res.ok) throw new Error(data.message || t("sp.Deletefailed"));
 
       const userId = localStorage.getItem("userId");
       if (userId) {
@@ -266,25 +262,25 @@ const SingleProduct: FC = () => {
 
         await response.json();
         if (response.ok) {
-          toast.success("Product removed from your cart.");
+          toast.success(t("sp.itemRemovedFromCart"));
         } else {
-          toast.error("Failed to remove product from your cart.");
+          toast.error(t("sp.failedRemoveItem"));
         }
       }
 
       await dispatch(removeWishlistItem({ productId: _id }))
         .unwrap()
         .then(() => {
-          toast.success("Product removed from wishlist.");
+          toast.success(t("sp.removedWwishlist"));
         })
         .catch((error) => {
-          toast.error(`Failed to remove product from wishlist: ${error.message}`);
+          toast.error((t("sp.failedRemoveItemWishlist" ,` ${error.message}`)));
         });
 
-      toast.success("Product deleted successfully.");
+      toast.success(t("sp.productDelete"));
       navigate("/");
     } catch (error) {
-      toast.error("Failed to delete product.");
+      toast.error(t("sp.failedProductDelete"));
     }
   };
 
@@ -367,12 +363,12 @@ const SingleProduct: FC = () => {
       });
 
       const data = await res.json();
-      if (!res.ok) throw new Error(data.message || "Image update failed");
+      if (!res.ok) throw new Error(data.message || t("sp.imageUpdateFail"));
 
-      toast.success("Image replaced successfully!");
+      toast.success(t("sp.imageReplaced"));
       await fetchProductDetails();
     } catch (error) {
-      toast.error("Failed to replace image");
+      toast.error(t("sp.imgReplaceFailed"));
     }
   };
 

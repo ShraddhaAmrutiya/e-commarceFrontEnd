@@ -278,7 +278,17 @@
       "discountRange": "ההנחה חייבת להיות בין 0 ל-100.",
       "stockPositive": "המלאי חייב להיות מספר חיובי.",
       "ratingRange": "הדירוג חייב להיות בין 0 ל-5.",
-      "brandRequired": "נדרש מותג."
+      "brandRequired": "נדרש מותג.",
+       "failTOUpdateWishlist": "נכשל בעדכון רשימת המשאלות",
+  "Deletefailed": "המחיקה נכשלה",
+  "itemRemovedFromCart": "המוצר הוסר מהעגלה.",
+  "failedRemoveItem": "נכשל בהסרת המוצר מהעגלה שלך.",
+  "failedRemoveItemWishlist": "נכשל בהסרת המוצר מרשימת המשאלות שלך.",
+  "productDelete": "המוצר נמחק בהצלחה.",
+  "failedProductDelete": "נכשל במחיקת המוצר.",
+  "imageUpdateFail": "עדכון התמונה נכשל",
+  "imageReplaced": "התמונה הוחלפה בהצלחה!",
+  "imgReplaceFailed": "החלפת התמונה נכשלה"
     },
     "updateFailed": "העדכון נכשל",
     "updated": "המוצר עודכן!",

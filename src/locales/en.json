@@ -280,7 +280,17 @@
       "discountRange": "Discount must be between 0 and 100.",
       "stockPositive": "Stock must be a positive number.",
       "ratingRange": "Rating must be between 0 and 5.",
-      "brandRequired": "Brand is required."
+      "brandRequired": "Brand is required.",
+      "failTOUpdateWishlist": "Failed to update wishlist",
+      "Deletefailed": "Delete failed",
+      "itemRemovedFromCart": "Item removed from cart.",
+      "failedRemoveItem": "Failed to remove product from your cart.",
+      "failedRemoveItemWishlist": "Failed to remove product from your wishlist.",
+      "productDelete": "Product deleted successfully.",
+      "failedProductDelete": "Failed to delete product.",
+      "imageUpdateFail": "Image update failed",
+      "imageReplaced": "Image replaced successfully!",
+      "imgReplaceFailed": "Failed to replace image"
     },
     "updateFailed": "update Failed",
     "updated": "Product updated!",
@@ -297,8 +307,7 @@
     "removedWwishlist": "Item removed from wishlist",
     "alreadyInWishlist": "This product is already in your wishlist",
     "failedTOaddinWishlist": "Failed to add item to wishlist",
-    "addedToWishlist": "Item added to wishlist",
-    "failTOUpdateWishlist": "Failed to update wishlist"
+    "addedToWishlist": "Item added to wishlist"
   },
   "loading": "Loading...",
   "selected": "Selected",
@@ -322,13 +331,13 @@
   "confirm_delete_product": "Are you sure you want to delete this product?",
   "yes_delete": "Yes, Delete",
   "invalidCategoryName": "Category name must be 3-20 characters, letters, spaces, dots, underscores, or hyphens only.",
-  "errorFatchingReview":"Error fetching reviews",
-  "ratingRange":"Rating must be between 1 and 5",
-  "loginrequired":"Login required to post reviews.",
-  "failTOSUbmitRev":"Failed to submit review",
-  "Reviewsubmitted":"Review submitted",
-  "Errorsubmittingreview":"Error submitting review",
-  "Writeyourcomment":"Write your comment",
-  "SubmitReview":"Submit Review",
-  "Rating":"Rating"
+  "errorFatchingReview": "Error fetching reviews",
+  "ratingRange": "Rating must be between 1 and 5",
+  "loginrequired": "Login required to post reviews.",
+  "failTOSUbmitRev": "Failed to submit review",
+  "Reviewsubmitted": "Review submitted",
+  "Errorsubmittingreview": "Error submitting review",
+  "Writeyourcomment": "Write your comment",
+  "SubmitReview": "Submit Review",
+  "Rating": "Rating"
 }

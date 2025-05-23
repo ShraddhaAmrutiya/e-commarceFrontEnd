@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import axios from "axios";
 import { Product } from "../models/Product";
 import toast from "react-hot-toast";
@@ -17,9 +17,12 @@ interface ProductFormData {
   rating: string;
 }
 
+const MAX_IMAGES = 5;
+const MAX_IMAGE_SIZE = 700 * 1024; // 700KB
+
 const AddProduct = () => {
   const { t } = useTranslation();
-
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [categories, setCategories] = useState<string[]>([]);
   const [formData, setFormData] = useState<ProductFormData>({
     category: "",
@@ -34,11 +37,11 @@ const AddProduct = () => {
   });
 
   const [formErrors, setFormErrors] = useState<Partial<Record<keyof ProductFormData, string>>>({});
-  const [images, setImages] = useState<(File | null)[]>([null]);
+  const [images, setImages] = useState<File[]>([]);
+  const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [imageError, setImageError] = useState<string>("");
   const [loading, setLoading] = useState(false);
 
-  const MAX_IMAGE_SIZE = 700 * 1024; // 700KB
   const language = localStorage.getItem("language") || "en";
 
   useEffect(() => {
@@ -68,9 +71,7 @@ const AddProduct = () => {
     }
   }, [formData.price, formData.discountPercentage]);
 
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
-  ) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
@@ -78,37 +79,100 @@ const AddProduct = () => {
     }));
   };
 
-  const handleAddImageInput = () => {
-    setImages((prev) => [...prev, null]);
-  };
+  // Handle multiple image selection at once
+  // const handleImagesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  //   const files = e.target.files;
+  //   if (!files) return;
 
-  const handleRemoveImageInput = (index: number) => {
-    if (images.length === 1) return;
+  //   const validTypes = ["image/jpeg", "image/png", "image/jpg"];
+  //   const newFiles: File[] = [];
+  //   let hasError = false;
 
-    setImages((prev) => {
-      const updated = prev.filter((_, i) => i !== index);
-      if (updated.length < 5) {
-        setImageError("");
-      }
-      return updated;
-    });
-  };
+  //   for (let i = 0; i < files.length; i++) {
+  //     const file = files[i];
+  //     if (!validTypes.includes(file.type)) {
+  //       toast.error(t("invalidImageType"));
+  //       hasError = true;
+  //       break;
+  //     }
+  //     if (file.size > MAX_IMAGE_SIZE) {
+  //       toast.error(t("maxImageLimit"));
+  //       hasError = true;
+  //       break;
+  //     }
+  //     newFiles.push(file);
+  //   }
 
-  const handleImageChange = (index: number, file: File | null) => {
+  //   if (hasError || newFiles.length + images.length > MAX_IMAGES) {
+  //     if (!hasError) toast.error(t("maxImagesAllowed"));
+  //     setImages([]);
+  //     setImagePreviews([]);
+  //     setImageError(t("imageUploadError"));
+  //     if (fileInputRef.current) fileInputRef.current.value = "";
+  //     return;
+  //   }
+
+  //   setImageError("");
+  //   const updatedImages = [...images, ...newFiles];
+  //   setImages(updatedImages);
+
+  //   const newPreviews = newFiles.map((file) => URL.createObjectURL(file));
+  //   setImagePreviews((prev) => [...prev, ...newPreviews]);
+
+  //   // Reset input so same files can be picked again
+  //   if (fileInputRef.current) fileInputRef.current.value = "";
+  // };
+  const handleImagesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files) return;
+
     const validTypes = ["image/jpeg", "image/png", "image/jpg"];
+    const newFiles: File[] = [];
+    let errorMessage = "";
 
-    if (file && !validTypes.includes(file.type)) {
-      setImageError(t("invalidImageType"));
-      return;
-    } else if (file && file.size > MAX_IMAGE_SIZE) {
-      setImageError(t("maxImageLimit"));
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+
+      if (!validTypes.includes(file.type)) {
+        errorMessage = t("invalidImageType");
+        break;
+      }
+
+      if (file.size > MAX_IMAGE_SIZE) {
+        errorMessage = t("maxImageLimit");
+        break;
+      }
+
+      newFiles.push(file);
+    }
+
+    if (errorMessage || newFiles.length + images.length > MAX_IMAGES) {
+      if (!errorMessage) errorMessage = t("maxImagesAllowed");
+
+      // Clear chosen files and error state
+      setImages([]);
+      setImagePreviews([]);
+      setImageError(errorMessage);
+      if (fileInputRef.current) fileInputRef.current.value = "";
       return;
     }
 
+    // Valid input
     setImageError("");
-    const updatedImages = [...images];
-    updatedImages[index] = file;
+    const updatedImages = [...images, ...newFiles];
     setImages(updatedImages);
+
+    const newPreviews = newFiles.map((file) => URL.createObjectURL(file));
+    setImagePreviews((prev) => [...prev, ...newPreviews]);
+
+    // Reset input value to allow reselecting same files
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  const handleRemoveImage = (index: number) => {
+    setImages((prev) => prev.filter((_, i) => i !== index));
+    setImagePreviews((prev) => prev.filter((_, i) => i !== index));
+    if (imageError) setImageError("");
   };
 
   const validateForm = () => {
@@ -133,7 +197,6 @@ const AddProduct = () => {
     if (formData.rating && (rating < 0 || rating > 5)) {
       errors.rating = "ratingInvalid";
     }
-
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
   };
@@ -178,7 +241,8 @@ const AddProduct = () => {
         brand: "",
         rating: "",
       });
-      setImages([null]);
+      setImages([]);
+      setImagePreviews([]);
       setImageError("");
       setFormErrors({});
     } catch (error: unknown) {
@@ -253,38 +317,65 @@ const AddProduct = () => {
           {formErrors.brand && <p className="error">{t(formErrors.brand)}</p>}
         </div>
 
-       
         <div className="form-group">
           <label>{t("imagesLabel")}</label>
-          {images.map((_img, index) => (
-            <div key={index} style={{ display: "flex", alignItems: "center", marginBottom: "8px" }}>
-              <input
-                type="file"
-                accept="image/jpeg,image/png,image/jpg"
-                onChange={(e) => handleImageChange(index, e.target.files?.[0] || null)}
-              />
-              {images.length > 1 && (
-                <button type="button" onClick={() => handleRemoveImageInput(index)} style={{ marginLeft: "10px" }}>
-                  {t("removeImageButton")}
-                </button>
-              )}
-            </div>
-          ))}
+          <input
+            type="file"
+            accept="image/jpeg,image/png,image/jpg"
+            multiple
+            onChange={handleImagesChange}
+            ref={fileInputRef}
+          />
           {imageError && <p className="error">{imageError}</p>}
 
-          <button
-            type="button"
-            onClick={() => {
-              if (images.length >= 5) {
-                setImageError(t("maxImagesAllowed"));
-                return;
-              }
-              setImageError("");
-              handleAddImageInput();
-            }}
-          >
-            {t("addImageButton")}
-          </button>
+          {/* Preview thumbnails */}
+          <div style={{ display: "flex", gap: "10px", marginTop: "10px", flexWrap: "wrap" }}>
+            {imagePreviews.map((src, index) => (
+              <div key={index} style={{ position: "relative" }}>
+                <div style={{ position: "relative", width: 80, height: 80 }}>
+                  <img
+                    src={src}
+                    alt={`preview ${index + 1}`}
+                    style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: 4 }}
+                  />
+                  <div
+                    style={{
+                      position: "absolute",
+                      top: 0,
+                      right: 0,
+                      backgroundColor: "rgba(0, 128, 0, 0.7)",
+                      borderRadius: "0 0 0 8px",
+                      color: "white",
+                      fontSize: 14,
+                      padding: "2px 6px",
+                    }}
+                  >
+                    ✓
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => handleRemoveImage(index)}
+                  style={{
+                    position: "absolute",
+                    top: -6,
+                    right: -6,
+                    background: "red",
+                    color: "white",
+                    border: "none",
+                    borderRadius: "50%",
+                    width: 20,
+                    height: 20,
+                    cursor: "pointer",
+                  }}
+                  aria-label={t("removeImageButton")}
+                >
+                  ×
+                </button>
+              </div>
+            ))}
+          </div>
         </div>
 
         <button type="submit" disabled={loading}>

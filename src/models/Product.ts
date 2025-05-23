@@ -11,6 +11,7 @@ export interface Product {
   stock: number;
   discountPercentage?: number;
   seller?: string | { _id: string };
+  createdAt?: string;
 }
 
 export interface SingleProductProps {

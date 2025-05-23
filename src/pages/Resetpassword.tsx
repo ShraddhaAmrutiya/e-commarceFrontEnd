@@ -50,6 +50,8 @@ useEffect(() => {
       }
 
       toast.success(data.message || t("reset.success"));
+      window.location.reload();
+      localStorage.removeItem("token");
       setTimeout(() => navigate("/login"), 3000);
     } catch (error) {
       toast.error(t("reset.serverError"));
