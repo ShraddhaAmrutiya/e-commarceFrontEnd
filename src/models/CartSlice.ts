@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
-import axios from "axios";
+import axiosInstance from "../utils/axiosInstance";
 import { CartItem } from "../models/CartItem";
 import { RootState } from "../redux/store";
 import BASE_URL from "../config/apiconfig";
@@ -54,7 +54,7 @@ export const fetchCartItems = createAsyncThunk("cart/fetchCartItems", async (use
     const token = localStorage.getItem("accessToken");
     if (!token) return thunkAPI.rejectWithValue("User not logged in");
     const language = localStorage.getItem("language") || "en";
-    const response = await axios.get<FetchCartResponse>(`${BASE_URL}/cart/${userId}`, {
+    const response = await axiosInstance.get<FetchCartResponse>(`${BASE_URL}/cart/${userId}`, {
       headers: { Authorization: `Bearer ${token}`, "Accept-Language": language },
     });
 
@@ -78,7 +78,7 @@ const language = localStorage.getItem("language") || "en"
     if (!token) return rejectWithValue("Access token is missing");
 
     try {
-      await axios.delete(`${BASE_URL}/cart/remove/${productId}`, {
+      await axiosInstance.delete(`${BASE_URL}/cart/remove/${productId}`, {
         headers: {
           Authorization: `Bearer ${token}`,
           userId,

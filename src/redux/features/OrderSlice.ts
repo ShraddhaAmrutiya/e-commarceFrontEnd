@@ -1,5 +1,5 @@
   import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-  import axios from "axios";
+  import axiosInstance from "../../utils/axiosInstance";
   import { toast } from "react-toastify";
 
   export interface OrderItem {
@@ -70,7 +70,7 @@
     "orders/fetchOrders",
     async (userId: string, thunkAPI) => {
       try {
-        const response = await axios.get(`/order/redirect/${userId}`);
+        const response = await axiosInstance.get(`/order/redirect/${userId}`);
         return response.data;
       } catch (error) {
         if (error instanceof Error) {

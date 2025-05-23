@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
-import axios from "axios";
+import axiosInstance from "../utils/axiosInstance";
 import { Product } from "../models/Product";
 import toast from "react-hot-toast";
 import "../AllProduct.css";
@@ -47,7 +47,7 @@ const AddProduct = () => {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const res = await axios.get<{ name: string }[]>("/category/list");
+        const res = await axiosInstance.get<{ name: string }[]>("/category/list");
         const categoryNames = res.data.map((cat) => cat.name);
         setCategories(categoryNames);
       } catch (error) {
@@ -222,7 +222,7 @@ const AddProduct = () => {
     });
 
     try {
-      const res = await axios.post<{ message: string; product: Product }>("/products/create", data, {
+      const res = await axiosInstance.post<{ message: string; product: Product }>("/products/create", data, {
         headers: {
           "Content-Type": "multipart/form-data",
           "Accept-Language": language,

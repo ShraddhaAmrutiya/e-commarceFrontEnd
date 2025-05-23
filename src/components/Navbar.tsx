@@ -10,7 +10,7 @@ import { updateModal } from "../redux/features/authSlice";
 import { fetchWishlistItems } from "../redux/features/WishlistSlice";
 import CustomPopup from "./CustomPopup";
 import { CartItem } from "../models/CartItem";
-import axios from "axios";
+import axiosInstance from "../utils/axiosInstance";
 import { useTranslation } from "react-i18next";
 import i18n from "../i18n";
 type CartApiResponse = {
@@ -86,7 +86,7 @@ const { t } = useTranslation();
     const selectedLang = e.target.value;
     setLanguage(selectedLang);
     localStorage.setItem("language", selectedLang);
-    axios.defaults.headers.common["Accept-Language"] = selectedLang;
+    axiosInstance.defaults.headers.common["Accept-Language"] = selectedLang;
     i18n.changeLanguage(selectedLang);
       window.location.reload();
 

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
+import axiosInstance from "../utils/axiosInstance";
 import toast from "react-hot-toast";
 import { useTranslation } from "react-i18next";
 
@@ -19,7 +19,7 @@ const ManageCategories = () => {
 
   const fetchCategories = async () => {
     try {
-      const res = await axios.get<Category[]>("/category/list");
+      const res = await axiosInstance.get<Category[]>("/category/list");
       setCategories(res.data);
     } catch (error) {
       toast.error(t("failedToLoadCategories"));
@@ -41,7 +41,7 @@ const ManageCategories = () => {
     if (!editingCategory) return;
 
     try {
-      const res = await axios.put<{
+      const res = await axiosInstance.put<{
         message: string;
         category: Category;
       }>(`/category/update/${editingCategory._id}`, {
@@ -62,7 +62,7 @@ const ManageCategories = () => {
     if (!confirmDelete) return;
 
     try {
-      const res = await axios.delete<{ message: string }>(`/category/delete/${id}`);
+      const res = await axiosInstance.delete<{ message: string }>(`/category/delete/${id}`);
       toast.success(res.data.message);
       fetchCategories();
     } catch (error) {

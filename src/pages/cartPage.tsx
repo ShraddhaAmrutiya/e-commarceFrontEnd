@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import { useAppSelector, useAppDispatch } from "../redux/hooks";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import axiosInstance from "../utils/axiosInstance";
 import "react-toastify/dist/ReactToastify.css";
 import { removeFromCart } from "../redux/features/cartSlice";
 import BASE_URL from "../config/apiconfig";

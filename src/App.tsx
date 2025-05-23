@@ -33,13 +33,13 @@ import CheckoutPage from "./pages/checkOutpage";
 import OrdersPage from "./pages/orderPge";
 import ResetPassword from "./pages/Resetpassword";
 import CheckoutDirectPage from "./pages/checkoutDirect";
-import axios from "axios";
+import axiosInstance from "./utils/axiosInstance";
 Modal.setAppElement("#root");
 
 function AppContent() {
   const dispatch = useAppDispatch();
 const language = localStorage.getItem("language") || "en";
-axios.defaults.headers.common["Accept-Language"] = language;
+axiosInstance.defaults.headers.common["Accept-Language"] = language;
 
  useEffect(() => {
   const token = localStorage.getItem("accessToken");
@@ -49,13 +49,13 @@ axios.defaults.headers.common["Accept-Language"] = language;
   const language = localStorage.getItem("language") || "en"; 
 
   if (token && userId && role && userName) {
-    axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-    axios.defaults.headers.common["userId"] = userId;
-    axios.defaults.headers.common["Role"] = role;
-    axios.defaults.headers.common["userName"] = userName;
+    axiosInstance.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+    axiosInstance.defaults.headers.common["userId"] = userId;
+    axiosInstance.defaults.headers.common["Role"] = role;
+    axiosInstance.defaults.headers.common["userName"] = userName;
   }
 
-  axios.defaults.headers.common["Accept-Language"] = language; 
+  axiosInstance.defaults.headers.common["Accept-Language"] = language; 
 }, []);
 
   useEffect(() => {

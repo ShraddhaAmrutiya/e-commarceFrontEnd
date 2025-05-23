@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import axios from "axios";
+import axiosInstance from "../../utils/axiosInstance";
 import { RootState } from "../store";
 import BASE_URL from "../../config/apiconfig";
 interface WishlistItem {
@@ -41,7 +41,7 @@ export const fetchWishlistItems = createAsyncThunk<WishlistItem[], void, { state
 
       if (!userId || !token) return rejectWithValue("User ID or access token is missing");
 
-      const response = await axios.get(`${BASE_URL}/wishlist/${userId}`, {
+      const response = await axiosInstance.get(`${BASE_URL}/wishlist/${userId}`, {
         headers: { Authorization: `Bearer ${token}`, "Accept-Language": language },
       });
 
@@ -72,7 +72,7 @@ export const addWishlistItem = createAsyncThunk<WishlistItem, { productId: strin
 
       if (!userId || !token) return rejectWithValue("User ID or access token is missing");
 
-      const response = await axios.post(
+      const response = await axiosInstance.post(
         `${BASE_URL}/wishlist/add`,
         { productId },
         {
@@ -109,7 +109,7 @@ export const removeWishlistItem = createAsyncThunk<string, { productId: string }
       const language = localStorage.getItem("language") || "en";
       if (!userId || !token) return rejectWithValue("User ID or access token is missing");
 
-      await axios.delete(`${BASE_URL}/wishlist/remove/${productId}`, {
+      await axiosInstance.delete(`${BASE_URL}/wishlist/remove/${productId}`, {
         headers: {
           Authorization: `Bearer ${token}`,
           "Accept-Language": language,

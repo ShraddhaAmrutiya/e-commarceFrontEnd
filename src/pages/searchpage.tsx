@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import BASE_URL from "../config/apiconfig";
-import axios from "axios";
+import axiosInstance from "../utils/axiosInstance";
 import { useTranslation } from "react-i18next";
 
 type Product = {
@@ -26,7 +26,7 @@ const SearchPage = () => {
     const fetchData = async () => {
       try {
         if (query) {
-          const res = await axios.get<Product[]>(`${BASE_URL}/products/search?q=${query}`);
+          const res = await axiosInstance.get<Product[]>(`${BASE_URL}/products/search?q=${query}`);
           setProducts(res.data);
         }
       } catch (err) {

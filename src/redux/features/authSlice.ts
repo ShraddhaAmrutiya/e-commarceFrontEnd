@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
-import axios from "axios";
+import axiosInstance from "../../utils/axiosInstance";
 import { AuthSlice } from "../../models/AuthSlice";
 import { toast } from "react-toastify";
 import BASE_URL from "../../config/apiconfig";
@@ -16,10 +16,10 @@ interface LoginResponse {
   Role: string;
 }
 
-axios.defaults.baseURL = `${BASE_URL}`;
-axios.defaults.withCredentials = true;
+axiosInstance.defaults.baseURL = `${BASE_URL}`;
+axiosInstance.defaults.withCredentials = true;
 
-axios.interceptors.request.use(
+axiosInstance.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("accessToken");
     if (token) {
@@ -44,7 +44,7 @@ export const doLogin = createAsyncThunk(
   "authSlice/doLogin",
   async ({ userName, password }: LoginProps, { rejectWithValue }) => {
     try {
-      const response = await axios.post<LoginResponse>(
+      const response = await axiosInstance.post<LoginResponse>(
         `${BASE_URL}/users/login`,
         { userName, password }
       );

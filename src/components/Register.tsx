@@ -1,5 +1,5 @@
 import { useState } from "react";
-import axios from "axios";
+import axiosInstance from "../utils/axiosInstance";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import BASE_URL from "../config/apiconfig";
@@ -96,7 +96,7 @@ const Register = () => {
         age: Number(formData.age),
       };
 
-      const res = await axios.post(`${BASE_URL}/users/register`, payload, {
+      const res = await axiosInstance.post(`${BASE_URL}/users/register`, payload, {
         headers: {
           "Accept-Language": i18n.language,
         },
@@ -118,10 +118,10 @@ const Register = () => {
         localStorage.setItem("Role", data.Role);
         localStorage.setItem("userName", data.userName);
 
-        axios.defaults.headers.common["Authorization"] = `Bearer ${data.token}`;
-        axios.defaults.headers.common["userId"] = data.userId;
-        axios.defaults.headers.common["Role"] = data.Role;
-        axios.defaults.headers.common["userName"] = data.userName;
+        axiosInstance.defaults.headers.common["Authorization"] = `Bearer ${data.token}`;
+        axiosInstance.defaults.headers.common["userId"] = data.userId;
+        axiosInstance.defaults.headers.common["Role"] = data.Role;
+        axiosInstance.defaults.headers.common["userName"] = data.userName;
 
         toast.success(t("regSuccess"));
 

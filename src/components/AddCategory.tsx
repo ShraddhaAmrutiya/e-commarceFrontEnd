@@ -1,5 +1,5 @@
 import React, { useState, FormEvent } from "react";
-import axios from "axios";
+import axiosInstance from "../utils/axiosInstance";
 import toast from "react-hot-toast";
 import { useAppDispatch } from "../redux/hooks";
 import { addCategories } from "../redux/features/productSlice";
@@ -42,7 +42,7 @@ const AddCategory: React.FC = () => {
     if (error) return;
 
     try {
-      const res = await axios.post<CategoryResponse>("/category/add", {
+      const res = await axiosInstance.post<CategoryResponse>("/category/add", {
         name,
         description,
       });
