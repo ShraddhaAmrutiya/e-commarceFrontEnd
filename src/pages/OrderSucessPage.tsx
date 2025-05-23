@@ -15,7 +15,7 @@ const OrderSuccessPage: React.FC<OrderSuccessPageProps> = ({ userId }) => {
   useEffect(() => {
     const getPastOrdersUrl = async () => {
       try {
-        const response = await axios.get<{ redirectUrl: string }>(`/orders/redirect/${userId}`);
+        const response = await axiosInstance.get<{ redirectUrl: string }>(`/orders/redirect/${userId}`);
         if (response.data.redirectUrl) {
           setRedirectUrl(response.data.redirectUrl);
         }

@@ -49,7 +49,7 @@ const Cart = () => {
   const fetchCartItems = async () => {
     if (!userId || !token) return;
     try {
-      const { data } = await axios.get<CartResponse>(`${BASE_URL}/cart/${userId}`, { headers });
+      const { data } = await axiosInstance.get<CartResponse>(`${BASE_URL}/cart/${userId}`, { headers });
       setCartItems(data.cartItems);
     } catch {
       toast.error(t("failedFetchCart"));
@@ -87,7 +87,7 @@ const Cart = () => {
     }));
 
     try {
-      const { data } = await axios.put<CartResponse>(`${BASE_URL}/cart`, { userId, productId, quantity }, { headers });
+      const { data } = await axiosInstance.put<CartResponse>(`${BASE_URL}/cart`, { userId, productId, quantity }, { headers });
       setCartItems(data.cartItems);
     } catch {
       toast.error(t("failedUpdateQuantity"));
@@ -104,7 +104,7 @@ const Cart = () => {
         data: { userId, productId },
       };
 
-      const response = await axios.delete<CartResponse>(`${BASE_URL}/cart`, config);
+      const response = await axiosInstance.delete<CartResponse>(`${BASE_URL}/cart`, config);
 
       if (response.status === 200) {
         setCartItems(response.data.cartItems);
@@ -133,7 +133,7 @@ const Cart = () => {
           headers,
           data: { userId, productId },
         };
-        await axios.delete(`${BASE_URL}/cart`, config);
+        await axiosInstance.delete(`${BASE_URL}/cart`, config);
 
         dispatch(removeFromCart(productId));
         setCartItems((prev) => prev.filter((item) => item.productId?._id !== productId));
@@ -159,7 +159,7 @@ const Cart = () => {
     if (!userId || !token) return;
 
     try {
-      await axios.delete(`${BASE_URL}/cart/${userId}`, { headers });
+      await axiosInstance.delete(`${BASE_URL}/cart/${userId}`, { headers });
       setCartItems([]);
       setShowModal(false);
       window.location.reload();

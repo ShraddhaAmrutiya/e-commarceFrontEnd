@@ -52,7 +52,7 @@ const CheckoutPage = () => {
     }
     setLoading(true);
     try {
-      await axios.post(
+      await axiosInstance.post(
         `${BASE_URL}/order/cart/${userId}`,
         {},
         {

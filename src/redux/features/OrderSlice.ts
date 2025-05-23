@@ -46,7 +46,7 @@
     "orders/placeOrder",
     async (orderData: { userId: string; items: OrderItem[]; totalAmount: number }, thunkAPI) => {
       try {
-        const response = await axios.post("/orders", orderData);
+        const response = await axiosInstance.post("/orders", orderData);
         return response.data;
       } catch (error) {
         if (error instanceof Error) {
