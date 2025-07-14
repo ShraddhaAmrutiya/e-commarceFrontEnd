@@ -1,6 +1,7 @@
 import { FC, useEffect } from "react";
-import HeroSection from "../components/HeroSection";
-import Features from "../components/Features";
+// import HeroSection from "../components/HeroSection";
+import SlidingBannerq from "./SlidingBanner";
+// import Features from "../components/Features";
 import TrendingProducts from "../components/TrendingProducts";
 import { useAppDispatch } from "../redux/hooks";
 import BASE_URL from "../config/apiconfig";
@@ -51,8 +52,8 @@ const Home: FC = () => {
 
   return (
     <div className="dark:bg-slate-800">
-      <HeroSection />
-      <Features />
+      <SlidingBannerq />
+      {/* <Features /> */}
       <TrendingProducts />
       <br />
     </div>

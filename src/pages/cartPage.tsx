@@ -178,151 +178,297 @@ const Cart = () => {
   if (!Array.isArray(cartItems) || cartItems.length === 0) {
     return <h2 className="text-center text-xl mt-6">🛒 {t("cartEmpty")}</h2>;
   }
-
   return (
-    <div className="container relative">
-      <h1 className="text-center text-2xl font-bold mb-6 mt-6">🛒 {t("shoppingCart")}</h1>
+  <div className="container mx-auto px-4 py-6 min-h-[80vh]">
+    <h1 className="text-center text-3xl font-bold mb-8">🛒 {t("shoppingCart")}</h1>
 
-      <div className="space-y-8">
-        {cartItems
-          .filter((item) => item.productId)
-          .map((item) => {
-            const imageList = Array.isArray(item.productId?.images)
-              ? item.productId.images
-              : typeof item.productId?.images === "string"
-              ? [item.productId.images]
+    <div className="space-y-6">
+      {cartItems
+        .filter((item) => item.productId)
+        .map((item) => {
+          const product = item.productId;
+          const imageList = Array.isArray(product.images)
+            ? product.images
+            : typeof product.images === "string"
+              ? [product.images]
               : [];
 
-            const imageUrl =
-              imageList.length > 0
-                ? imageList[0].startsWith("/")
-                  ? `${BASE_URL}${imageList[0]}`
-                  : imageList[0]
-                : "/placeholder.jpg";
+          const imageUrl = imageList.length > 0
+            ? imageList[0].startsWith("/")
+              ? `${BASE_URL}${imageList[0]}`
+              : imageList[0]
+            : "/placeholder.jpg";
 
-            return (
-              <div key={item._id} className="flex items-center space-x-5 border p-4 rounded-lg shadow">
+          return (
+            <div
+              key={item._id}
+              className="flex flex-col sm:flex-row items-center sm:items-start gap-4 bg-white border border-gray-200 rounded-lg shadow p-4"
+            >
+              {/* Product Image */}
+              <div className="w-32 h-32 flex-shrink-0 cursor-pointer" onClick={() => navigate(`/products/${product._id}`)}>
                 <img
                   src={imageUrl}
-                  alt={item.productId?.title || t("product")}
-                  className="w-24 h-24 object-cover rounded-lg cursor-pointer"
-                  onClick={() => navigate(`/products/${item.productId?._id}`)}
+                  alt={product.title || t("product")}
+                  className="w-full h-full object-cover rounded-md"
                 />
-                <div className="flex-grow">
-                  <h2 className="text-xl font-semibold">{item.productId?.title}</h2>
-                  <p className="text-gray-600">{item.productId?.description}</p>
-                  <p className="text-green-600 font-bold">
-                    {t("price")}: ₹{item.productId?.salePrice || item.productId?.price}
-                  </p>
-                  {(item.productId?.stock === 0 || item.productId?.stock === undefined) && (
-                    <p className="text-red-500 font-semibold">{t("outOfStock")}</p>
-                  )}
-                  <div className="flex items-center space-x-2 mt-1">
-                    <button
-                      className="bg-gray-200 px-2 rounded"
-                      disabled={quantityMap[item.productId?._id] === 1}
-                      onClick={() => handleQuantityChange(item.productId?._id, quantityMap[item.productId?._id] - 1)}
-                    >
-                      -
-                    </button>
+              </div>
 
-                    <input
-                      type="number"
-                      min="1"
-                      max={item.productId?.stock}
-                      value={quantityMap[item.productId?._id] || 1}
-                      onChange={(e) => handleQuantityChange(item.productId?._id, parseInt(e.target.value))}
-                      className="w-16 text-center border rounded px-2 py-1"
-                    />
+              {/* Product Info */}
+              <div className="flex-1 w-full">
+                <h2 className="text-xl font-semibold text-gray-800">{product.title}</h2>
+                <p className="text-gray-500 mt-1 line-clamp-2">{product.description}</p>
+                <p className="mt-2 text-lg font-bold text-green-600">
+                  ₹{product.salePrice || product.price}
+                </p>
+                {product.stock === 0 && (
+                  <p className="text-red-600 font-semibold mt-1">{t("outOfStock")}</p>
+                )}
 
-                    <button
-                      className="bg-gray-200 px-2 rounded"
-                      onClick={() => handleQuantityChange(item.productId?._id, quantityMap[item.productId?._id] + 1)}
-                    >
-                      +
-                    </button>
-                  </div>
+                {/* Quantity Controls */}
+                <div className="flex items-center mt-3 gap-2">
+                  <button
+                    className="px-3 py-1 bg-gray-200 rounded"
+                    disabled={quantityMap[product._id] === 1}
+                    onClick={() => handleQuantityChange(product._id, quantityMap[product._id] - 1)}
+                  >
+                    -
+                  </button>
+                  <input
+                    type="number"
+                    min="1"
+                    max={product.stock}
+                    value={quantityMap[product._id] || 1}
+                    onChange={(e) => handleQuantityChange(product._id, parseInt(e.target.value))}
+                    className="w-16 text-center border border-gray-300 rounded py-1"
+                  />
+                  <button
+                    className="px-3 py-1 bg-gray-200 rounded"
+                    onClick={() => handleQuantityChange(product._id, quantityMap[product._id] + 1)}
+                  >
+                    +
+                  </button>
                 </div>
+              </div>
+
+              {/* Remove Button */}
+              <div className="mt-4 sm:mt-0">
                 <button
-                  className="bg-red-500 text-white px-4 py-2 rounded"
-                  onClick={() => handleRemoveFromCart(item.productId?._id)}
+                  onClick={() => handleRemoveFromCart(product._id)}
                   disabled={removeLoading}
+                  className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded text-sm"
                 >
-                  {removeLoading ?  t("removing") : t("remove")}
+                  {removeLoading ? t("removing") : t("remove")}
                 </button>
               </div>
-            );
-          })}
-      </div>
+            </div>
+          );
+        })}
+    </div>
 
-      <h2 className="text-right text-xl font-bold mt-6">
-        {t("total")}: ₹
-        {cartItems
-          .filter((item) => item.productId)
-          .reduce((acc, item) => acc + item.quantity * (item.productId?.salePrice || item.productId?.price), 0)
-          .toFixed(2)}
-      </h2>
+    {/* Cart Total */}
+    <div className="mt-8 text-right text-xl font-bold text-gray-800">
+      {t("total")}: ₹
+      {cartItems
+        .filter((item) => item.productId)
+        .reduce((acc, item) => acc + item.quantity * (item.productId?.salePrice || item.productId?.price), 0)
+        .toFixed(2)}
+    </div>
 
-      <button className="checkout-btn" onClick={handleCheckout} disabled={loading}>
-        {loading ?  t("processing") : t("proceedToCheckout")}
-      </button>
-
+    {/* Buttons */}
+    <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
       <button
-        className="empty-cart-btn bg-gray-500 text-white px-4 py-2 rounded mt-4 w-full"
+        className="bg-blue-600 hover:bg-blue-700 text-white text-lg font-medium py-3 px-6 rounded w-full"
+        onClick={handleCheckout}
+        disabled={loading}
+      >
+        {loading ? t("processing") : t("proceedToCheckout")}
+      </button>
+      <button
+        className="bg-gray-500 hover:bg-gray-600 text-white text-lg font-medium py-3 px-6 rounded w-full"
         onClick={() => setShowModal(true)}
       >
- {t("emptyCart")}      </button>
+        {t("emptyCart")}
+      </button>
+    </div>
 
-      {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
-          <div className="bg-white p-6 rounded-lg shadow-lg text-center w-96">
-            <h2 className="text-xl font-bold mb-4">{itemToRemove ? t("removeItem") : t("clearCart")}</h2>
-            <p className="mb-6">
-              {itemToRemove
-                ? t("removeLastItemWarning")
-                : t("clearCartWarning")}
-            </p>
-            <div className="flex justify-center space-x-4">
-              <button
-                className="bg-red-500 text-white px-4 py-2 rounded"
-                onClick={itemToRemove ? confirmRemoveLastItem : confirmClearCart}
-              >
-                {t("yes")}
-              </button>
-              <button
-                className="bg-gray-300 text-black px-4 py-2 rounded"
-                onClick={() => {
-                  setShowModal(false);
-                  setItemToRemove(null);
-                }}
-              >
-                {t("cancel")}
-              </button>
-            </div>
+    {/* Modal */}
+    {showModal && (
+      <div className="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center px-4">
+        <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-md text-center">
+          <h2 className="text-xl font-bold mb-4">
+            {itemToRemove ? t("removeItem") : t("clearCart")}
+          </h2>
+          <p className="mb-6">
+            {itemToRemove ? t("removeLastItemWarning") : t("clearCartWarning")}
+          </p>
+          <div className="flex justify-center gap-4">
+            <button
+              className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded"
+              onClick={itemToRemove ? confirmRemoveLastItem : confirmClearCart}
+            >
+              {t("yes")}
+            </button>
+            <button
+              className="bg-gray-300 hover:bg-gray-400 text-black px-4 py-2 rounded"
+              onClick={() => {
+                setShowModal(false);
+                setItemToRemove(null);
+              }}
+            >
+              {t("cancel")}
+            </button>
           </div>
         </div>
-      )}
+      </div>
+    )}
+  </div>
+);
 
-      <style>
-        {`
-          .checkout-btn {
-            background-color: rgb(15, 87, 241);
-            color: white;
-            padding: 12px;
-            border-radius: 5px;
-            width: 100%;
-            cursor: pointer;
-            margin-top: 20px;
-          }
 
-          .checkout-btn:disabled {
-            background-color: #ccc;
-            cursor: not-allowed;
-          }
-        `}
-      </style>
-    </div>
-  );
+//   return (
+//     <div className="container relative">
+//       <h1 className="text-center text-2xl font-bold mb-6 mt-6">🛒 {t("shoppingCart")}</h1>
+
+//       <div className="space-y-8">
+//         {cartItems
+//           .filter((item) => item.productId)
+//           .map((item) => {
+//             const imageList = Array.isArray(item.productId?.images)
+//               ? item.productId.images
+//               : typeof item.productId?.images === "string"
+//               ? [item.productId.images]
+//               : [];
+
+//             const imageUrl =
+//               imageList.length > 0
+//                 ? imageList[0].startsWith("/")
+//                   ? `${BASE_URL}${imageList[0]}`
+//                   : imageList[0]
+//                 : "/placeholder.jpg";
+
+//             return (
+//               <div key={item._id} className="flex items-center space-x-5 border p-4 rounded-lg shadow">
+//                 <img
+//                   src={imageUrl}
+//                   alt={item.productId?.title || t("product")}
+//                   className="w-24 h-24 object-cover rounded-lg cursor-pointer"
+//                   onClick={() => navigate(`/products/${item.productId?._id}`)}
+//                 />
+//                 <div className="flex-grow">
+//                   <h2 className="text-xl font-semibold">{item.productId?.title}</h2>
+//                   <p className="text-gray-600">{item.productId?.description}</p>
+//                   <p className="text-green-600 font-bold">
+//                     {t("price")}: ₹{item.productId?.salePrice || item.productId?.price}
+//                   </p>
+//                   {(item.productId?.stock === 0 || item.productId?.stock === undefined) && (
+//                     <p className="text-red-500 font-semibold">{t("outOfStock")}</p>
+//                   )}
+//                   <div className="flex items-center space-x-2 mt-1">
+//                     <button
+//                       className="bg-gray-200 px-2 rounded"
+//                       disabled={quantityMap[item.productId?._id] === 1}
+//                       onClick={() => handleQuantityChange(item.productId?._id, quantityMap[item.productId?._id] - 1)}
+//                     >
+//                       -
+//                     </button>
+
+//                     <input
+//                       type="number"
+//                       min="1"
+//                       max={item.productId?.stock}
+//                       value={quantityMap[item.productId?._id] || 1}
+//                       onChange={(e) => handleQuantityChange(item.productId?._id, parseInt(e.target.value))}
+//                       className="w-16 text-center border rounded px-2 py-1"
+//                     />
+
+//                     <button
+//                       className="bg-gray-200 px-2 rounded"
+//                       onClick={() => handleQuantityChange(item.productId?._id, quantityMap[item.productId?._id] + 1)}
+//                     >
+//                       +
+//                     </button>
+//                   </div>
+//                 </div>
+//                 <button
+//                   className="bg-red-500 text-white px-4 py-2 rounded"
+//                   onClick={() => handleRemoveFromCart(item.productId?._id)}
+//                   disabled={removeLoading}
+//                 >
+//                   {removeLoading ?  t("removing") : t("remove")}
+//                 </button>
+//               </div>
+//             );
+//           })}
+//       </div>
+
+//       <h2 className="text-right text-xl font-bold mt-6">
+//         {t("total")}: ₹
+//         {cartItems
+//           .filter((item) => item.productId)
+//           .reduce((acc, item) => acc + item.quantity * (item.productId?.salePrice || item.productId?.price), 0)
+//           .toFixed(2)}
+//       </h2>
+
+//       <button className="checkout-btn" onClick={handleCheckout} disabled={loading}>
+//         {loading ?  t("processing") : t("proceedToCheckout")}
+//       </button>
+
+//       <button
+//         className="empty-cart-btn bg-gray-500 text-white px-4 py-2 rounded mt-4 w-full"
+//         onClick={() => setShowModal(true)}
+//       >
+//  {t("emptyCart")}      </button>
+
+//       {showModal && (
+//         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+//           <div className="bg-white p-6 rounded-lg shadow-lg text-center w-96">
+//             <h2 className="text-xl font-bold mb-4">{itemToRemove ? t("removeItem") : t("clearCart")}</h2>
+//             <p className="mb-6">
+//               {itemToRemove
+//                 ? t("removeLastItemWarning")
+//                 : t("clearCartWarning")}
+//             </p>
+//             <div className="flex justify-center space-x-4">
+//               <button
+//                 className="bg-red-500 text-white px-4 py-2 rounded"
+//                 onClick={itemToRemove ? confirmRemoveLastItem : confirmClearCart}
+//               >
+//                 {t("yes")}
+//               </button>
+//               <button
+//                 className="bg-gray-300 text-black px-4 py-2 rounded"
+//                 onClick={() => {
+//                   setShowModal(false);
+//                   setItemToRemove(null);
+//                 }}
+//               >
+//                 {t("cancel")}
+//               </button>
+//             </div>
+//           </div>
+//         </div>
+//       )}
+
+//       <style>
+//         {`
+//           .checkout-btn {
+//             background-color: rgb(15, 87, 241);
+//             color: white;
+//             padding: 12px;
+//             border-radius: 5px;
+//             width: 100%;
+//             cursor: pointer;
+//             margin-top: 20px;
+//           }
+
+//           .checkout-btn:disabled {
+//             background-color: #ccc;
+//             cursor: not-allowed;
+//           }
+//         `}
+//       </style>
+//     </div>
+//   );
 };
 
 export default Cart;

@@ -19,7 +19,7 @@ type CartApiResponse = {
 };
 
 const Navbar: FC = () => {
-const { t } = useTranslation();
+  const { t } = useTranslation();
   const [searchTerm, setSearchTerm] = useState("");
   const [authMenuOpen, setAuthMenuOpen] = useState(false);
   const [language, setLanguage] = useState(localStorage.getItem("language") || "en");
@@ -88,8 +88,7 @@ const { t } = useTranslation();
     localStorage.setItem("language", selectedLang);
     axiosInstance.defaults.headers.common["Accept-Language"] = selectedLang;
     i18n.changeLanguage(selectedLang);
-      window.location.reload();
-
+    window.location.reload();
   };
 
   const showCart = () => {
@@ -110,148 +109,148 @@ const { t } = useTranslation();
       }
     });
   };
-
   return (
-    <div className="py-4 bg-white dark:bg-slate-600 top-0 sticky z-10 shadow-lg font-karla">
-      <div className="container mx-auto px-4">
-        <div className="flex justify-between items-center">
-          <Link to="/" className="text-2xl font-bold dark:text-white">
-            {t("websiteName")}
-          </Link>
+    <header className="bg-white dark:bg-slate-800 shadow-lg sticky top-0 z-50 font-karla transition-all">
+      <div className="container mx-auto px-6 py-4 flex flex-wrap md:flex-nowrap items-center justify-between gap-4">
+        {/* Logo */}
+        <Link
+          to="/"
+          className="flex items-center gap-2 text-2xl font-extrabold tracking-tight text-blue-600 dark:text-white"
+        >
+          <img src="/public/emptyCart.jpg" alt="Logo" className="w-10 h-10 object-contain rounded" />
+          ArtStore
+        </Link>
 
-          <div className="lg:flex hidden w-full max-w-[400px]">
-            <input
-              type="text"
-              placeholder={t("searchPlaceholder")}
-              className="border-2 border-blue-500 px-6 py-2 w-full dark:text-white dark:bg-slate-800"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-            />
-            <div
-              className="bg-blue-500 text-white text-[26px] grid place-items-center px-4 cursor-pointer"
-              onClick={handleSearch}
-            >
-              <BsSearch />
-            </div>
-          </div>
+        {/* Search Bar */}
+        <div className="flex w-full max-w-xl flex-grow">
+          <input
+            type="text"
+            placeholder={t("searchPlaceholder")}
+            className="w-full px-4 py-3 border-2 border-blue-500 rounded-l-md text-sm focus:outline-none dark:bg-slate-700 dark:text-white"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+          />
+          <button className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-3 rounded-r-md" onClick={handleSearch}>
+            <BsSearch size={20} />
+          </button>
+        </div>
 
-          <div className="flex gap-4 md:gap-8 items-center dark:text-white">
-            <Link to="/products" className="text-xl font-bold text-blue-600">
+        {/* Navigation + Icons */}
+        <div className="flex items-center gap-6 mt-2 md:mt-0 text-[15px] font-medium dark:text-white">
+          {/* Nav Links */}
+          <div className="flex items-center gap-6 text-lg font-semibold">
+            <Link to="/products" className="hover:text-blue-600 transition-colors">
               {t("products")}
             </Link>
-            <Link to="/categories" className="text-xl font-bold text-blue-600">
+            <Link to="/categories" className="hover:text-blue-600 transition-colors">
               {t("categories")}
             </Link>
-
-            {Role === "admin" && (
-              <Link
-                to="/addcategory"
-                className="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 text-sm md:text-base"
-              >
-                {t("addCategory")}
-              </Link>
-            )}
-
-            {(Role === "admin" || Role === "seller") && (
-              <Link
-                to="/Addproduct"
-                className="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 text-sm md:text-base"
-              >
-                {t("addProduct")}
-              </Link>
-            )}
-
-            {/* Auth */}
-            <div className="relative" ref={authMenuRef}>
-              {userName ? (
-                <div className="flex items-center gap-2">
-                  <img src="https://robohash.org/Terry.png?set=set4" alt="avatar" className="w-6" />
-                  <CustomPopup />
-                </div>
-              ) : (
-                <div
-                  onClick={() => setAuthMenuOpen(!authMenuOpen)}
-                  className="flex items-center gap-1 cursor-pointer hover:opacity-85"
-                >
-                  <FaUser className="text-gray-500 text-2xl dark:text-white" />
-                  <span className="dark:text-white">{t("loginCommon")}</span>
-                </div>
-              )}
-              {!userName && authMenuOpen && (
-                <div className="absolute right-0 mt-2 w-72 bg-white dark:bg-slate-700 rounded-lg shadow-lg border dark:border-gray-600 z-50">
-                  <div
-                    onClick={() => {
-                      dispatch(updateModal(true));
-                      setAuthMenuOpen(false);
-                    }}
-                    className="px-4 py-2 hover:bg-gray-100 dark:hover:bg-slate-600 cursor-pointer"
-                  >
-                    {t("loginCommon")}
-                  </div>
-                  <Link
-                    to="/register"
-                    onClick={() => setAuthMenuOpen(false)}
-                    className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-slate-600"
-                  >
-                    {t("register")}
-                  </Link>
-                </div>
-              )}
-            </div>
-
-            {/* Wishlist */}
-            <div
-              className="text-gray-500 text-[32px] relative hover:cursor-pointer hover:opacity-80"
-              onClick={() => {
-                if (!userId) {
-                  setShowNotification(true);
-                  setTimeout(() => setShowNotification(false), 3000);
-                  return;
-                }
-                navigate("/wishlist");
-              }}
-            >
-              <AiOutlineHeart className="dark:text-white" />
-              {typeof wishlistCount === "number" && (
-                <div className="absolute top-[-10px] right-[-10px] bg-red-600 w-[25px] h-[25px] rounded-full text-white text-[12px] grid place-items-center">
-                  {wishlistCount}
-                </div>
-              )}
-            </div>
-
-            {/* Cart */}
-            <div
-              className="text-gray-500 text-[32px] relative hover:cursor-pointer hover:opacity-80"
-              onClick={showCart}
-            >
-              <AiOutlineShoppingCart className="dark:text-white" />
-              <div className="absolute top-[-15px] right-[-10px] bg-red-600 w-[25px] h-[25px] rounded-full text-white text-[14px] grid place-items-center">
-                {cartCount}
-              </div>
-            </div>
-
-            {/* Language Selector */}
-            <select
-              value={language}
-              onChange={handleLanguageChange}
-              className="border border-gray-300 dark:border-gray-500 px-2 py-1 rounded bg-white dark:bg-slate-800 dark:text-white text-sm"
-            >
-              <option value="en">English</option>
-              <option value="hi">Hindi</option>
-              <option value="he">Hebrew</option>
-            </select>
           </div>
-        </div>
-      </div>
 
-      {showNotification && (
-        <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-blue-400 text-black py-12 px-16 rounded-lg shadow-lg">
-          <span>{t("pleaseLogin") || "Please Login to see the items"}</span>
+          {/* Admin/Seller Buttons */}
+          {(Role === "admin" || Role === "seller") && (
+            <Link to="/Addproduct" className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded-md text-sm">
+              + {t("addProduct")}
+            </Link>
+          )}
+          {Role === "admin" && (
+            <Link to="/addcategory" className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded-md text-sm">
+              + {t("addCategory")}
+            </Link>
+          )}
+
+          {/* Wishlist */}
+          <button
+            onClick={() => {
+              if (!userId) {
+                setShowNotification(true);
+                setTimeout(() => setShowNotification(false), 3000);
+                return;
+              }
+              navigate("/wishlist");
+            }}
+            className="relative"
+          >
+            <AiOutlineHeart size={28} className="hover:text-red-500" />
+            {wishlistCount > 0 && (
+              <span className="absolute -top-2 -right-2 bg-red-600 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">
+                {wishlistCount}
+              </span>
+            )}
+          </button>
+
+          {/* Cart */}
+          <button onClick={showCart} className="relative">
+            <AiOutlineShoppingCart size={28} className="hover:text-blue-600" />
+            {cartCount > 0 && (
+              <span className="absolute -top-2 -right-2 bg-red-600 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">
+                {cartCount}
+              </span>
+            )}
+          </button>
+
+          {/* Auth */}
+          <div className="relative" ref={authMenuRef}>
+            {userName ? (
+              <div className="flex items-center gap-2 cursor-pointer">
+                <img src="https://robohash.org/Terry.png?set=set4" alt="avatar" className="w-8 h-8 rounded-full" />
+                <CustomPopup />
+              </div>
+            ) : (
+              <div
+                onClick={() => setAuthMenuOpen(!authMenuOpen)}
+                className="flex items-center gap-1 cursor-pointer hover:text-blue-500"
+              >
+                <FaUser className="text-xl" />
+                <span>{t("loginCommon")}</span>
+              </div>
+            )}
+
+            {!userName && authMenuOpen && (
+              <div className="absolute right-0 mt-2 w-64 bg-white dark:bg-slate-700 rounded shadow-lg z-50 border dark:border-slate-600">
+                <div
+                  onClick={() => {
+                    dispatch(updateModal(true));
+                    setAuthMenuOpen(false);
+                  }}
+                  className="px-4 py-2 hover:bg-gray-100 dark:hover:bg-slate-600 cursor-pointer"
+                >
+                  {t("loginCommon")}
+                </div>
+                <Link
+                  to="/register"
+                  onClick={() => setAuthMenuOpen(false)}
+                  className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-slate-600"
+                >
+                  {t("register")}
+                </Link>
+              </div>
+            )}
+          </div>
+
+          {/* Language Selector */}
+          <select
+            value={language}
+            onChange={handleLanguageChange}
+            className="ml-2 px-2 py-1 text-sm border border-gray-300 dark:border-slate-500 rounded dark:bg-slate-800 dark:text-white"
+          >
+            <option value="en">EN</option>
+            <option value="hi">HI</option>
+            <option value="he">HE</option>
+          </select>
         </div>
-      )}
-    </div>
+
+        {/* Login Required Notification */}
+        {showNotification && (
+          <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-blue-500 text-white px-6 py-4 rounded-lg shadow-lg z-50">
+            {t("pleaseLogin")}
+          </div>
+        )}
+      </div>
+    </header>
   );
+
 };
 
 export default Navbar;

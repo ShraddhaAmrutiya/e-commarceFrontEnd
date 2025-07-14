@@ -1,22 +1,76 @@
+/* 🌐 Font Imports */
 @import url('https://fonts.googleapis.com/css2?family=Karla&family=Lato&family=Lora:wght@700&display=swap');
 
+/* 🌀 Swiper Styles */
+@import 'swiper/css';
+@import 'swiper/css/navigation';
+@import 'swiper/css/pagination';
+
+/* 🧩 Tailwind Base Setup */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* styles.css */
+/* ----------------------------
+🎨 Global Design Tokens / Styling
+----------------------------- */
+body {
+  @apply font-karla text-gray-800 dark:text-gray-200 bg-gradient-to-br from-white to-purple-50 dark:from-gray-900 dark:to-gray-800;
+}
+
+h1, h2, h3 {
+  @apply font-lora;
+}
+
+h1 {
+  @apply text-4xl font-bold mb-4;
+}
+h2 {
+  @apply text-3xl font-semibold mb-3;
+}
+h3 {
+  @apply text-2xl font-medium mb-2;
+}
+
+/* ----------------------------
+✨ Utility Additions
+----------------------------- */
+
+/* Popup Animations */
 .popup-enter {
-  @apply opacity-0;
+  @apply opacity-0 scale-95;
 }
-
 .popup-enter-active {
-  @apply transition-opacity duration-300 opacity-100;
+  @apply transition-all duration-300 opacity-100 scale-100;
 }
-
 .popup-exit {
-  @apply opacity-100;
+  @apply opacity-100 scale-100;
+}
+.popup-exit-active {
+  @apply transition-all duration-300 opacity-0 scale-95;
 }
 
-.popup-exit-active {
-  @apply transition-opacity duration-300 opacity-0;
+/* Smooth Image Hover Zoom */
+.image-hover-zoom {
+  @apply transition-transform duration-300 ease-in-out hover:scale-105;
+}
+
+/* Card Glow Hover */
+.card-glow {
+  @apply transition-shadow hover:shadow-lg hover:shadow-purple-200 dark:hover:shadow-purple-800;
+}
+
+/* Subtle Button Styles */
+.btn-art {
+  @apply px-5 py-2 rounded-full bg-purple-600 text-white hover:bg-purple-700 transition;
+}
+
+/* Transparent Glass Background (for overlay text) */
+.glass-bg {
+  @apply bg-white bg-opacity-30 backdrop-blur-md border border-white/30 rounded-lg p-4;
+}
+
+/* Swiper slide text styling */
+.slide-text-overlay {
+  @apply bg-black bg-opacity-40 p-6 rounded-lg text-white text-center max-w-xl;
 }
