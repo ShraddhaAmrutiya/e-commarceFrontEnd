@@ -19,8 +19,7 @@ import PriceSection from "../components/PriceSection";
 import ProductList from "../components/ProductList";
 import useAuth from "../hooks/useAuth";
 import { RootState } from "../redux/store";
-  const language = localStorage.getItem("language") || "en";
-
+const language = localStorage.getItem("language") || "en";
 
 interface Review {
   rating: number;
@@ -58,9 +57,7 @@ const SingleProduct: FC = () => {
       if (!data?.product?._id) return toast.error(t("sp.productNotFound"));
 
       const productImages = Array.isArray(data.product.images)
-        ? data.product.images.map((img: string) =>
-            img.startsWith("/") ? `${BASE_URL}${img}` : img
-          )
+        ? data.product.images.map((img: string) => (img.startsWith("/") ? `${BASE_URL}${img}` : img))
         : [];
 
       setProduct({ ...data.product, images: productImages });
@@ -94,7 +91,7 @@ const SingleProduct: FC = () => {
     fetchProductDetails();
     fetchReviews();
     dispatch(fetchWishlistItems());
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [_id]);
 
   useEffect(() => {
@@ -103,10 +100,10 @@ const SingleProduct: FC = () => {
     } else if (typeof product?.category === "object") {
       fetchSimilar(product.category.name);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [product]);
 
-    const handleReviewSubmit = async () => {
+  const handleReviewSubmit = async () => {
     if (newReview.rating < 1 || newReview.rating > 5) {
       alert(t("ratingRange"));
       return;
@@ -166,23 +163,23 @@ const SingleProduct: FC = () => {
         });
 
         if (!res.ok) throw new Error();
-          const existingProductIndex = cartItems.findIndex((item) => item.productId._id === product._id);
-   const existingCartItem = cartItems[existingProductIndex];
-      const maxQuantity = product.stock || 10; //
-      const newQuantity = existingCartItem ? Math.min(existingCartItem.quantity + 1, maxQuantity) : 1;
+        const existingProductIndex = cartItems.findIndex((item) => item.productId._id === product._id);
+        const existingCartItem = cartItems[existingProductIndex];
+        const maxQuantity = product.stock || 10; //
+        const newQuantity = existingCartItem ? Math.min(existingCartItem.quantity + 1, maxQuantity) : 1;
         dispatch(
-         addToCart({
-              _id: existingCartItem?._id || "unique-cart-id",
-              title: product.title,
-              price: product.price,
-              rating: product.rating,
-              category: product.category,
-              productId: product,
-              quantity: newQuantity,
-              images: product.images,
-              discountPercentage: product.discountPercentage,
-              stock: product.stock,
-            })
+          addToCart({
+            _id: existingCartItem?._id || "unique-cart-id",
+            title: product.title,
+            price: product.price,
+            rating: product.rating,
+            category: product.category,
+            productId: product,
+            quantity: newQuantity,
+            images: product.images,
+            discountPercentage: product.discountPercentage,
+            stock: product.stock,
+          })
         );
         toast.success(t("sp.added"));
       } catch {
@@ -222,10 +219,7 @@ const SingleProduct: FC = () => {
   const handleBuyNow = () => {
     if (!product) return;
     requireAuth(() => {
-      sessionStorage.setItem(
-        "checkoutItem",
-        JSON.stringify({ ...product, productId: product._id, quantity: 1 })
-      );
+      sessionStorage.setItem("checkoutItem", JSON.stringify({ ...product, productId: product._id, quantity: 1 }));
       navigate("/checkoutDirect");
     });
   };
@@ -235,95 +229,85 @@ const SingleProduct: FC = () => {
   return (
     <div className="container mx-auto px-4 py-8 font-karla">
       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {/* Image Section */}
-        <div>
-          {selectedImg && (
-            <img
-              src={selectedImg}
-              alt={product.title}
-              className="w-full h-80 object-cover rounded shadow"
-            />
-          )}
-          <div className="flex gap-2 mt-4">
-            {product.images?.map((img, idx) => (
-              <img
-                key={idx}
-                src={img}
-                onClick={() => setSelectedImg(img)}
-                className={`w-16 h-16 object-cover rounded cursor-pointer border ${
-                  selectedImg === img ? "border-blue-500" : ""
-                }`}
-              />
-            ))}
+        <div className="flex flex-col items-center gap-5">
+          <div className="flex gap-4">
+            <div className="flex flex-col gap-2">
+              {product.images?.map((img, idx) => (
+                <img
+                  key={idx}
+                  src={img}
+                  onClick={() => setSelectedImg(img)}
+                  className={`w-20 h-20 object-cover rounded cursor-pointer border ${
+                    selectedImg === img ? "border-blue-500" : ""
+                  }`}
+                />
+              ))}
+            </div>
+
+            {/* Main Image */}
+            <div className="flex-1">
+              {selectedImg && (
+                <img
+                  src={selectedImg}
+                  alt={product.title}
+                  className="w-full max-w-[700px] aspect-square object-cover rounded-xl shadow-lg"
+                />
+              )}
+            </div>
           </div>
         </div>
 
-        {/* Info Section */}
-        <div className="space-y-4">
+        <div className="space-y-3 lg:col-span-2">
           <h1 className="text-2xl font-bold">{product.title}</h1>
           <RatingStar rating={averageRating} />
           <PriceSection price={product.price} discountPercentage={product.discountPercentage ?? 0} />
-          <p className="text-gray-600">{product.description}</p>
+          {product.description && (
+            <div className="pr-2">
+              <h3>Product Description:</h3>
+              <p className="text-gray-900 max-h-36 overflow-y-auto whitespace-pre-line">{product.description}</p>
+            </div>
+          )}
 
-          <table className="mt-4 text-sm">
-            <tbody>
-              {product.brand && (
-                <tr>
-                  <td className="font-semibold pr-2">{t("brand")}:</td>
-                  <td>{product.brand}</td>
-                </tr>
-              )}
-              {product.category && (
-                <tr>
-                  <td className="font-semibold pr-2">{t("category")}:</td>
-                  <td>{typeof product.category === "object" ? product.category.name : product.category}</td>
-                </tr>
-              )}
-              <tr>
-                <td className="font-semibold pr-2">{t("stock")}:</td>
-                <td>{product.stock}</td>
-              </tr>
-            </tbody>
-          </table>
-
-          <div className="flex gap-3">
-            <button onClick={handleAddToCart} className="flex items-center gap-1 bg-black text-white px-4 py-2 rounded">
-              <AiOutlineShoppingCart /> {t("add_to_cart")}
-            </button>
-            <button onClick={handleBuyNow} className="flex items-center gap-1 bg-blue-600 text-white px-4 py-2 rounded">
-              <FaHandHolding /> {t("buy_now")}
-            </button>
-            <button onClick={handleWishlistToggle} className="text-2xl">
-              {isInWishlist ? <MdFavorite className="text-red-600" /> : <MdFavoriteBorder />}
-            </button>
+          <div className="fspace-y-2 text-lg text-gray-800 ">
+            {product.brand && (
+              <p>
+                <span className="font-semibold">{t("brand")}:</span> {product.brand}
+              </p>
+            )}
+            {product.category && (
+              <p>
+                <span className="font-semibold">{t("category")}:</span>{" "}
+                {typeof product.category === "object" ? product.category.name : product.category}
+              </p>
+            )}
+            <p>
+              <span className="font-semibold">{t("stock")}:</span> {product.stock}
+            </p>
           </div>
         </div>
+      </div>
+      <div className="flex justify-start gap-3 mt-8 ml-20 ">
+        <button
+          onClick={handleAddToCart}
+          className="flex items-center gap-1 bg-black text-white px-6 py-3 rounded text-lg"
+        >
+          <AiOutlineShoppingCart /> {t("add_to_cart")}
+        </button>
+
+        <button
+          onClick={handleBuyNow}
+          className="flex items-center gap-1 bg-blue-600 text-white px-6 py-3 rounded text-lg"
+        >
+          <FaHandHolding /> {t("buy_now")}
+        </button>
+
+        <button onClick={handleWishlistToggle} className="text-3xl">
+          {isInWishlist ? <MdFavorite className="text-red-600" /> : <MdFavoriteBorder />}
+        </button>
       </div>
 
       {/* Reviews */}
       <div className="mt-10">
-        <h2 className="text-lg font-semibold mb-2">{t("customerReviews")}</h2>
-        {reviews.length === 0 ? (
-          <p className="text-gray-500">{t("noReviewsYet")}</p>
-        ) : (
-          <ul className="space-y-3">
-            {reviews.map((r, idx) => (
-              <li key={idx} className="bg-gray-100 p-3 rounded">
-                <div className="flex items-center gap-2">
-                  <RatingStar rating={r.rating} />
-                  <span className="text-sm font-medium">{r.user?.userName}</span>
-                </div>
-                <p className="text-sm">{r.comment}</p>
-              </li>
-            ))}
-          </ul>
-        )}
-           {similar.length > 0 && (
-        <div className="mt-10">
-          <ProductList title={t("similar_products")} products={similar} />
-        </div>
-      )}
-
         <div className="mt-6">
           <h3 className="text-md font-medium mb-1">{t("addReview")}</h3>
           <Rating
@@ -341,17 +325,38 @@ const SingleProduct: FC = () => {
             className="w-full border mt-2 p-2 rounded"
             placeholder={t("Writeyourcomment")}
           />
-          <button
-            onClick={handleReviewSubmit}
-            className="mt-2 bg-green-600 text-white px-4 py-2 rounded"
-          >
+          <button onClick={handleReviewSubmit} className="mt-2 bg-green-600 text-white px-4 py-2 rounded">
             {t("SubmitReview")}
           </button>
         </div>
+        <h2 className="text-lg font-semibold mb-2">{t("customerReviews")}</h2>
+
+        <div className="max-h-64 overflow-y-auto pr-2">
+          {reviews.length === 0 ? (
+            <p className="text-gray-500">{t("noReviewsYet")}</p>
+          ) : (
+            <ul className="space-y-3">
+              {reviews.map((r, idx) => (
+                <li key={idx} className="bg-gray-100 p-3 rounded">
+                  <div className="flex items-center gap-2">
+                    <RatingStar rating={r.rating} />
+                    <span className="text-sm font-medium">{r.user?.userName}</span>
+                  </div>
+                  <p className="text-sm">{r.comment}</p>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+
+        {similar.length > 0 && (
+          <div className="mt-10">
+            <ProductList title={t("similar_products")} products={similar} />
+          </div>
+        )}
       </div>
 
       {/* Similar Products */}
-   
     </div>
   );
 };

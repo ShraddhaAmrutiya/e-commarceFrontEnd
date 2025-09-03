@@ -17,12 +17,36 @@ type CartApiResponse = {
   cartItems: CartItem[];
   cartCount: number;
 };
+type Product = {
+  _id: string;
+  title: string;
+  description: string;
+  price: number;
+  salePrice: number;
+  discountPercentage: number;
+  stock: number;
+  brand: string;
+  images: string[];
+  rating: number;
+};
+
+type CategoryResponse = {
+  category: string;
+  products: Product[];
+};
+
+type ProductsApiResponse = {
+  message: string;
+  categories: CategoryResponse[];
+};
 
 const Navbar: FC = () => {
   const { t } = useTranslation();
   const [searchTerm, setSearchTerm] = useState("");
   const [authMenuOpen, setAuthMenuOpen] = useState(false);
   const [language, setLanguage] = useState(localStorage.getItem("language") || "en");
+  const [products, setProducts] = useState<Product[]>([]);
+  const [suggestions, setSuggestions] = useState<Product[]>([]);
   const authMenuRef = useRef<HTMLDivElement>(null);
   const dispatch = useAppDispatch();
 
@@ -45,7 +69,38 @@ const Navbar: FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [showNotification, setShowNotification] = useState(false);
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const res = await axiosInstance.get<ProductsApiResponse>("/products/all");
 
+        const allProducts: Product[] = res.data.categories.flatMap((cat) => cat.products);
+
+        setProducts(allProducts);
+      } catch (error) {
+        console.error("Error fetching products", error);
+      }
+    };
+    fetchProducts();
+  }, []);
+
+  // ✅ Filter suggestions when typing
+  useEffect(() => {
+    if (searchTerm.trim().length > 0) {
+      const filtered = products.filter((p) => p.title.toLowerCase().includes(searchTerm.toLowerCase()));
+      setSuggestions(filtered.slice(0, 6)); // max 6 suggestions
+    } else {
+      setSuggestions([]);
+    }
+  }, [searchTerm, products]);
+
+  const handleSearch = () => {
+    if (searchTerm.trim()) {
+      navigate(`/search?q=${encodeURIComponent(searchTerm.trim())}`);
+      setSearchTerm("");
+      setSuggestions([]);
+    }
+  };
   useEffect(() => {
     const storedUserId = localStorage.getItem("userId");
     const finalUserId = userId || storedUserId;
@@ -74,13 +129,6 @@ const Navbar: FC = () => {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
-
-  const handleSearch = () => {
-    if (searchTerm.trim()) {
-      navigate(`/search?q=${encodeURIComponent(searchTerm.trim())}`);
-      setSearchTerm("");
-    }
-  };
 
   const handleLanguageChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const selectedLang = e.target.value;
@@ -121,8 +169,8 @@ const Navbar: FC = () => {
           ArtStore
         </Link>
 
-        {/* Search Bar */}
-        <div className="flex w-full max-w-xl flex-grow">
+        {/* ✅ Search with suggestions */}
+        <div className="relative flex w-full max-w-xl flex-grow">
           <input
             type="text"
             placeholder={t("searchPlaceholder")}
@@ -134,8 +182,37 @@ const Navbar: FC = () => {
           <button className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-3 rounded-r-md" onClick={handleSearch}>
             <BsSearch size={20} />
           </button>
-        </div>
 
+          {/* Suggestions dropdown */}
+          {suggestions.length > 0 && (
+            <ul className="absolute top-full left-0 w-full bg-white dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded-b-md shadow-lg z-50">
+              {suggestions.map((item) => (
+                <li
+                  key={item._id}
+                  className="flex items-center gap-3 px-4 py-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-slate-600"
+                  onClick={() => {
+                    setSearchTerm("");
+                    setSuggestions([]);
+                    navigate(`/products/${item._id}`);
+                  }}
+                >
+                  <img
+                    src={
+                      item.images?.[0] ? `${axiosInstance.defaults.baseURL}${item.images[0]}` : "/default-product.jpg"
+                    }
+                    alt={item.title}
+                    className="w-10 h-10 object-cover rounded"
+                  />
+
+                  <div>
+                    <p className="font-medium">{item.title}</p>
+                    <p className="text-sm text-gray-500">₹{item.salePrice}</p>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
         {/* Navigation + Icons */}
         <div className="flex items-center gap-6 mt-2 md:mt-0 text-[15px] font-medium dark:text-white">
           {/* Nav Links */}
@@ -250,7 +327,6 @@ const Navbar: FC = () => {
       </div>
     </header>
   );
-
 };
 
 export default Navbar;
