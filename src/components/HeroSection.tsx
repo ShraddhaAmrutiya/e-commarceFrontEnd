@@ -27,7 +27,7 @@ const HeroSection: FC = () => {
           </div>
         </div>
         <div>
-          <img src="http://localhost:5000/uploads/1747043058586-download.jpg" alt="Shoes" className="ml-auto" />
+          <img src="http://localhost:3000/uploads/1747043058586-download.jpg" alt="Shoes" className="ml-auto" />
         </div>
       </div>
     </div>

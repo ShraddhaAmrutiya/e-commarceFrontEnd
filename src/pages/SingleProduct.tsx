@@ -1,112 +1,529 @@
-import { FC, useEffect, useMemo, useState } from "react";
+
+import { FC, useEffect, useState, useMemo } from "react";
+import { useSelector } from "react-redux";
 import { useParams, useNavigate } from "react-router-dom";
-import { useAppDispatch, useAppSelector } from "../redux/hooks";
-
-import { useTranslation } from "react-i18next";
-import { AiOutlineShoppingCart } from "react-icons/ai";
-import { FaHandHolding, FaStar, FaRegStar, FaStarHalfAlt } from "react-icons/fa";
-import { MdFavorite, MdFavoriteBorder } from "react-icons/md";
-import Rating from "react-rating";
-import toast from "react-hot-toast";
-// import Modal from "react-modal";
-
-import { Product } from "../models/Product";
 import { addToCart } from "../redux/features/cartSlice";
-import { fetchWishlistItems, removeWishlistItem } from "../redux/features/WishlistSlice";
-import BASE_URL from "../config/apiconfig";
+import { Product } from "../models/Product";
 import RatingStar from "../components/RatingStar";
 import PriceSection from "../components/PriceSection";
+import toast from "react-hot-toast";
+import { AiOutlineShoppingCart } from "react-icons/ai";
+import { FaHandHoldingDollar } from "react-icons/fa6";
 import ProductList from "../components/ProductList";
 import useAuth from "../hooks/useAuth";
+import { MdFavoriteBorder, MdFavorite } from "react-icons/md";
+import { useAppDispatch, useAppSelector } from "../redux/hooks";
+import { fetchWishlistItems, removeWishlistItem } from "../redux/features/WishlistSlice";
 import { RootState } from "../redux/store";
-  const language = localStorage.getItem("language") || "en";
+import Modal from "react-modal";
+import BASE_URL from "../config/apiconfig";
+import { useTranslation } from "react-i18next";
 
+import * as Rating from "react-rating";
+import { FaStar, FaRegStar, FaStarHalfAlt } from "react-icons/fa";
+export interface CartItem {
+  productId: Product;
+  quantity: number;
+}
+interface ReviewUser {
+  userName?: string;
+}
 
 interface Review {
   rating: number;
   comment: string;
-  user?: { userName?: string };
+  user?: ReviewUser;
 }
 
 const SingleProduct: FC = () => {
-  const { _id } = useParams<{ _id?: string }>();
   const { t } = useTranslation();
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
-  const { requireAuth } = useAuth();
-  const token = localStorage.getItem("accessToken");
-  const userId = useAppSelector((s) => s.authReducer.userId) || localStorage.getItem("userId");
-  // const Role = useAppSelector((s) => s.authReducer.Role);
+  const { _id } = useParams<{ _id?: string }>();
   const [product, setProduct] = useState<Product | null>(null);
+  const [isInWishlist, setIsInWishlist] = useState(false);
+  const [, setImgs] = useState<string[]>([]);
+  const [selectedImg, setSelectedImg] = useState<File | string | null>(null);
+  const [Category, setCategory] = useState<string>("");
+  const [similar, setSimilar] = useState<Product[]>([]);
+  const { requireAuth } = useAuth();
+  const [formErrors, setFormErrors] = useState<{ [key: string]: string }>({});
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [formData, setFormData] = useState<Partial<Product>>({});
+  const [loading, setLoading] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [imageToDelete, setImageToDelete] = useState<number | null>(null);
+  const language = localStorage.getItem("language") || "en";
+  const userId = useAppSelector((state) => state.authReducer.userId) || localStorage.getItem("userId");
   const [reviews, setReviews] = useState<Review[]>([]);
   const [newReview, setNewReview] = useState<Review>({ rating: 0, comment: "" });
-  const [selectedImg, setSelectedImg] = useState<string | null>(null);
-  const [isInWishlist, setIsInWishlist] = useState(false);
-  const [similar, setSimilar] = useState<Product[]>([]);
-  const cartItems = useAppSelector((s: RootState) => s.cartReducer.cartItems);
+  const [isZoomOpen, setIsZoomOpen] = useState(false);
 
-  const averageRating = useMemo(() => {
-    if (!reviews.length) return 0;
-    return Number((reviews.reduce((a, b) => a + b.rating, 0) / reviews.length).toFixed(1));
-  }, [reviews]);
+  const token = localStorage.getItem("accessToken");
+  const Role = useAppSelector((state) => state.authReducer.Role);
+ useEffect(() => {
+  dispatch(fetchWishlistItems());
+
+  // Scroll to top every time product id changes
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}, [dispatch, _id]);
+
 
   const fetchProductDetails = async () => {
     if (!_id) return;
+    setLoading(true);
     try {
       const res = await fetch(`${BASE_URL}/products/${_id}`);
       const data = await res.json();
-      if (!data?.product?._id) return toast.error(t("sp.productNotFound"));
+      if (!data || !data.product || !data.product._id) {
+        toast.error(t("sp.productNotFound"));
 
-      const productImages = Array.isArray(data.product.images)
-        ? data.product.images.map((img: string) =>
-            img.startsWith("/") ? `${BASE_URL}${img}` : img
-          )
+        return;
+      }
+
+      const { images, category } = data.product;
+
+      const categoryName =
+        typeof category === "object" && category?.name
+          ? category.name
+          : typeof category === "string"
+          ? category
+          : "Unknown";
+
+      const fullImageUrls = Array.isArray(images)
+        ? images.map((img) => (img.startsWith("/") ? `${BASE_URL}${img}` : img))
         : [];
 
-      setProduct({ ...data.product, images: productImages });
-      setSelectedImg(productImages[0]);
-    } catch {
+      setProduct(data.product);
+      setImgs(fullImageUrls);
+      setSelectedImg(fullImageUrls.length > 0 ? fullImageUrls[0] : "");
+      setCategory(categoryName);
+    } catch (error) {
       toast.error(t("sp.errorFatchingProduct"));
+    } finally {
+      setLoading(false);
     }
   };
 
-  const fetchSimilar = async (category: string) => {
+  useEffect(() => {
+    if (!_id) {
+      toast.error(t("sp.invalidpId"));
+
+      return;
+    }
+
+    fetchProductDetails();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [_id]);
+
+  useEffect(() => {
+    if (!Category) return;
+
+    fetch(`${BASE_URL}/products/category/${Category}`)
+      .then((res) => res.json())
+      .then((data) => {
+        setSimilar(data.products.filter((p: Product) => p._id !== _id));
+      });
+  }, [Category, _id]);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+
+    if (name === "discountPercentage") {
+      const discount = parseFloat(value);
+      const price = parseFloat(formData.price?.toString() || "0");
+
+      if (!isNaN(discount) && !isNaN(price)) {
+        const salePrice = price - (price * discount) / 100;
+
+        setFormData((prev) => ({
+          ...prev,
+          discountPercentage: discount,
+          salePrice: parseFloat(salePrice.toFixed(2)),
+        }));
+      } else {
+        setFormData((prev) => ({
+          ...prev,
+          discountPercentage: discount,
+        }));
+      }
+    } else if (name === "price") {
+      const price = parseFloat(value);
+      const discount = parseFloat(formData.discountPercentage?.toString() || "0");
+
+      if (!isNaN(price) && !isNaN(discount)) {
+        const salePrice = price - (price * discount) / 100;
+
+        setFormData((prev) => ({
+          ...prev,
+          price,
+          salePrice: parseFloat(salePrice.toFixed(2)),
+        }));
+      } else {
+        setFormData((prev) => ({
+          ...prev,
+          price,
+        }));
+      }
+    } else {
+      setFormData((prev) => ({
+        ...prev,
+        [name]: value,
+      }));
+    }
+  };
+
+  const validateForm = () => {
+    const errors: { [key: string]: string } = {};
+
+    if (!formData.title || formData.title.trim() === "") errors.title = t("sp.validation.titleRequired");
+    if (formData.price === undefined || formData.price <= 0) errors.price = t("sp.validation.pricePositive");
+    if (
+      formData.discountPercentage !== undefined &&
+      (formData.discountPercentage < 0 || formData.discountPercentage > 100)
+    ) {
+      errors.discountPercentage = t("sp.validation.discountRange");
+    }
+    if (formData.stock === undefined || formData.stock < 0) errors.stock = t("sp.validation.stockPositive");
+    if (formData.rating !== undefined && (formData.rating < 0 || formData.rating > 5))
+      errors.rating = t("sp.validation.ratingRange");
+    if (!formData.brand || formData.brand.trim() === "") errors.brand = t("sp.validation.brandRequired");
+
+    return errors;
+  };
+
+  const handleUpdateProduct = async () => {
+    if (!product || !_id || !token) return;
+
+    const errors = validateForm();
+    setFormErrors(errors);
+
+    if (Object.keys(errors).length > 0) return;
+
     try {
-      const res = await fetch(`${BASE_URL}/products/category/${category}`);
+      const formDataToSend = new FormData();
+
+      if (formData.title) formDataToSend.append("title", formData.title);
+      if (formData.price !== undefined) formDataToSend.append("price", String(formData.price));
+      if (formData.category) {
+        const categoryValue = typeof formData.category === "string" ? formData.category : formData.category.name;
+
+        formDataToSend.append("category", categoryValue);
+      }
+      if (formData.description) formDataToSend.append("description", formData.description);
+      if (formData.discountPercentage !== undefined)
+        formDataToSend.append("discountPercentage", String(formData.discountPercentage));
+      if (formData.stock !== undefined) formDataToSend.append("stock", String(formData.stock));
+      if (formData.brand) formDataToSend.append("brand", formData.brand);
+
+      const res = await fetch(`${BASE_URL}/products/update/${_id}`, {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Accept-Language": language,
+        },
+        body: formDataToSend,
+      });
+
       const data = await res.json();
-      setSimilar(data.products?.filter((p: Product) => p._id !== _id));
-    } catch {
-      console.error("Failed to fetch similar products");
+      if (!res.ok) {
+        throw new Error(data.message || t("sp.updateFailed"));
+      }
+
+      toast.success(t("sp.updated"));
+      setProduct(data.product);
+      setIsModalOpen(false);
+    } catch (error) {
+      toast.error(t("sp.updateFailed", { message: (error as Error).message }));
+    }
+  };
+  const handleDeleteProduct = async () => {
+    if (!_id || !token) return;
+
+    setIsDeleteModalOpen(false);
+
+    try {
+      const res = await fetch(`${BASE_URL}/products/delete/${_id}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Accept-Language": language,
+        },
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || t("sp.validation.Deletefailed"));
+
+      const userId = localStorage.getItem("userId");
+      if (userId) {
+        const response = await fetch(`${BASE_URL}/cart/${userId}`, {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+            "Accept-Language": language,
+          },
+          body: JSON.stringify({ productId: _id }),
+        });
+
+        await response.json();
+        if (response.ok) {
+          toast.success(t("sp.validation.itemRemovedFromCart"));
+        } else {
+          toast.error(t("sp.failedRemoveItem"));
+        }
+      }
+
+      await dispatch(removeWishlistItem({ productId: _id }))
+        .unwrap()
+        .then(() => {
+          toast.success(t("sp.validation.removedWwishlist"));
+        })
+        .catch((error) => {
+          toast.error((t("sp.validation.failedRemoveItemWishlist" ,` ${error.message}`)));
+        });
+
+      toast.success(t("sp.validation.productDelete"));
+      navigate("/");
+    } catch (error) {
+      toast.error(t("sp.validation.failedProductDelete"));
     }
   };
 
+  const cartItems = useSelector((state: RootState) => state.cartReducer.cartItems);
+
+  const addCart = async () => {
+    requireAuth(async () => {
+      if (!product || !product._id) {
+        toast.error(t("sp.productNotFound"));
+        return;
+      }
+
+      const existingProductIndex = cartItems.findIndex((item) => item.productId._id === product._id);
+
+      const existingCartItem = cartItems[existingProductIndex];
+      const maxQuantity = product.stock || 10; //
+      const newQuantity = existingCartItem ? Math.min(existingCartItem.quantity + 1, maxQuantity) : 1;
+
+      if (existingCartItem && existingCartItem.quantity >= maxQuantity) {
+        toast(t("sp.maxQuantityReached"));
+
+        return;
+      }
+
+      try {
+        const res = await fetch(`${BASE_URL}/cart`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+            "Accept-Language": language,
+          },
+          body: JSON.stringify({
+            userId,
+            productId: product._id,
+            quantity: newQuantity,
+          }),
+        });
+
+        const data = await res.json();
+
+        if (res.ok) {
+          dispatch(
+            addToCart({
+              _id: existingCartItem?._id || "unique-cart-id",
+              title: product.title,
+              price: product.price,
+              rating: product.rating,
+              category: product.category,
+              productId: product,
+              quantity: newQuantity,
+              images: product.images,
+              discountPercentage: product.discountPercentage,
+              stock: product.stock,
+            })
+          );
+          toast.success(existingCartItem ? t("sp.quantityIncreased") : t("sp.added"));
+        } else {
+          throw new Error(data.message || t("sp.addToCartFailed"));
+        }
+      } catch (error) {
+        toast.error(t("sp.addToCartFailed"));
+      }
+    });
+  };
+  const handleReplaceImage = async (file: File, index: number) => {
+    if (!_id || !token) return;
+
+    const formData = new FormData();
+    formData.append("image", file);
+
+    try {
+      const res = await fetch(`${BASE_URL}/products/${_id}/images/${index}`, {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Accept-Language": language,
+        },
+        body: formData,
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || t("sp.imageUpdateFail"));
+
+      toast.success(t("sp.imageReplaced"));
+      await fetchProductDetails();
+    } catch (error) {
+      toast.error(t("sp.imgReplaceFailed"));
+    }
+  };
+
+  const handleDeleteImage = async (index: number) => {
+    if (!_id || !token) return;
+
+    try {
+      const res = await fetch(`${BASE_URL}/products/${_id}/images/${index}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Accept-Language": language,
+        },
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || t("sp.imageDeletationFail"));
+
+      toast.success(t("sp.imageDelete"));
+      await fetchProductDetails();
+    } catch (error) {
+      toast.error(t("sp.imageDeletationFail"));
+    }
+  };
+
+  const handleAddImages = async (files: File[]) => {
+    if (!_id || !token || files.length === 0) return;
+
+    const formData = new FormData();
+    files.forEach((file) => {
+      formData.append("images", file);
+    });
+
+    try {
+      const res = await fetch(`${BASE_URL}/products/${_id}/images`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Accept-Language": language,
+        },
+        body: formData,
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || t("sp.addImagefail"));
+
+      toast.success(t("sp.imagesAdded"));
+      await fetchProductDetails();
+    } catch (error) {
+      toast.error(t("sp.addImagefail"));
+    }
+  };
+
+  const buyNow = () => {
+    requireAuth(() => {
+      if (!product || !_id) return;
+
+      const checkoutData = {
+        productId: _id,
+        quantity: 1,
+        title: product.title,
+        price: product.price,
+        salePrice: product.salePrice,
+        rating: product.rating,
+        category: product.category,
+        image: product.images,
+      };
+
+      sessionStorage.setItem("checkoutItem", JSON.stringify(checkoutData));
+
+      navigate("/checkoutDirect");
+    });
+  };
+  const averageRating = useMemo(() => {
+    if (reviews.length === 0) return 0;
+    const sum = reviews.reduce((acc, r) => acc + r.rating, 0);
+    return Number((sum / reviews.length).toFixed(1));
+  }, [reviews]);
+
+  const wishlistItems = useAppSelector((state) => state.wishlistReducer.wishlistItems);
+
+  useEffect(() => {
+    if (product) {
+      const isProductInWishlist = wishlistItems.some((wishlistItem) =>
+        wishlistItem.products.some((item) => item.productId && item.productId._id === product._id)
+      );
+      setIsInWishlist(isProductInWishlist);
+    }
+  }, [wishlistItems, product]);
+
+  const handleWishlistToggle = async () => {
+    if (!product) return;
+    if (!token) return toast.error(t("sp.NOtoken"));
+    if (!userId) return toast.error(t("sp.NoUserId"));
+
+    try {
+      if (isInWishlist) {
+        dispatch(removeWishlistItem({ productId: product._id }));
+        toast.success(t("sp.removedWwishlist"));
+      } else {
+        const response = await fetch(`${BASE_URL}/wishlist/add`, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+            "Accept-Language": language,
+            userId,
+          },
+          body: JSON.stringify({
+            productId: product._id,
+            name: product.title,
+            price: product.price,
+            image: product.images || [],
+          }),
+        });
+
+        if (!response.ok) {
+          const errorDetails = await response.text();
+          const errorObj = JSON.parse(errorDetails);
+
+          if (errorObj.message === "Product already in wishlist") {
+            toast.error(t("sp.alreadyInWishlist"));
+            setIsInWishlist(true);
+            return;
+          }
+
+          throw new Error(t("sp.failedTOaddinWishlist"));
+        }
+        toast.success(t("sp.addedToWishlist"));
+        setIsInWishlist(true);
+        dispatch(fetchWishlistItems());
+      }
+    } catch (error) {
+      toast.error((error as Error).message || t("sp.failTOUpdateWishlist"));
+    }
+  };
   const fetchReviews = async () => {
+    if (!_id) return;
     try {
       const res = await fetch(`${BASE_URL}/reviews/products/${_id}`);
       const data = await res.json();
-      setReviews(data.reviews || []);
-    } catch {
+      if (res.ok) setReviews(data.reviews || []);
+    } catch (err) {
       toast.error(t("errorFatchingReview"));
     }
   };
 
-  useEffect(() => {
-    fetchProductDetails();
-    fetchReviews();
-    dispatch(fetchWishlistItems());
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [_id]);
-
-  useEffect(() => {
-    if (product?.category && typeof product.category === "string") {
-      fetchSimilar(product.category);
-    } else if (typeof product?.category === "object") {
-      fetchSimilar(product.category.name);
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [product]);
-
-    const handleReviewSubmit = async () => {
+  const handleReviewSubmit = async () => {
     if (newReview.rating < 1 || newReview.rating > 5) {
       alert(t("ratingRange"));
       return;
@@ -146,212 +563,513 @@ const SingleProduct: FC = () => {
     }
   };
 
-  const handleAddToCart = async () => {
-    requireAuth(async () => {
-      if (!product) return;
-      const existing = cartItems.find((i) => i.productId._id === product._id);
-      const quantity = existing ? existing.quantity + 1 : 1;
-      const maxQty = product.stock ?? 10;
-
-      if (quantity > maxQty) return toast.error(t("sp.maxQuantityReached"));
-
-      try {
-        const res = await fetch(`${BASE_URL}/cart`, {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({ userId, productId: product._id, quantity }),
-        });
-
-        if (!res.ok) throw new Error();
-          const existingProductIndex = cartItems.findIndex((item) => item.productId._id === product._id);
-   const existingCartItem = cartItems[existingProductIndex];
-      const maxQuantity = product.stock || 10; //
-      const newQuantity = existingCartItem ? Math.min(existingCartItem.quantity + 1, maxQuantity) : 1;
-        dispatch(
-         addToCart({
-              _id: existingCartItem?._id || "unique-cart-id",
-              title: product.title,
-              price: product.price,
-              rating: product.rating,
-              category: product.category,
-              productId: product,
-              quantity: newQuantity,
-              images: product.images,
-              discountPercentage: product.discountPercentage,
-              stock: product.stock,
-            })
-        );
-        toast.success(t("sp.added"));
-      } catch {
-        toast.error(t("sp.addToCartFailed"));
-      }
-    });
-  };
-
-  const handleWishlistToggle = async () => {
-    if (!product || !token || !userId) return;
-    try {
-      if (isInWishlist) {
-        dispatch(removeWishlistItem({ productId: product._id }));
-        toast.success(t("sp.removedWwishlist"));
-      } else {
-        const res = await fetch(`${BASE_URL}/wishlist/add`, {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-            userId,
-          },
-          body: JSON.stringify({ productId: product._id, name: product.title }),
-        });
-
-        if (!res.ok) return toast.error(t("sp.failedTOaddinWishlist"));
-
-        toast.success(t("sp.addedToWishlist"));
-        dispatch(fetchWishlistItems());
-      }
-      setIsInWishlist(!isInWishlist);
-    } catch {
-      toast.error(t("sp.failTOUpdateWishlist"));
-    }
-  };
-
-  const handleBuyNow = () => {
-    if (!product) return;
-    requireAuth(() => {
-      sessionStorage.setItem(
-        "checkoutItem",
-        JSON.stringify({ ...product, productId: product._id, quantity: 1 })
-      );
-      navigate("/checkoutDirect");
-    });
-  };
-
-  if (!product) return <div className="text-center py-20">{t("loading")}</div>;
-
+  useEffect(() => {
+    fetchProductDetails();
+    fetchReviews();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [_id]);
+  
   return (
-    <div className="container mx-auto px-4 py-8 font-karla">
-      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {/* Image Section */}
-        <div>
-          {selectedImg && (
-            <img
-              src={selectedImg}
-              alt={product.title}
-              className="w-full h-80 object-cover rounded shadow"
-            />
-          )}
-          <div className="flex gap-2 mt-4">
-            {product.images?.map((img, idx) => (
-              <img
-                key={idx}
-                src={img}
-                onClick={() => setSelectedImg(img)}
-                className={`w-16 h-16 object-cover rounded cursor-pointer border ${
-                  selectedImg === img ? "border-blue-500" : ""
+    <div className="container mx-auto pt-8 dark:text-white">
+      {loading && <div>{t("loading")}</div>}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 px-4 font-karla">
+        <div className="space-y-4 mt-6">
+         {selectedImg && (
+  <img
+    src={typeof selectedImg === "string" ? selectedImg : URL.createObjectURL(selectedImg)}
+    alt={t("selected")}
+    className="h-80 w-full object-cover rounded border cursor-zoom-in"
+    onClick={() => setIsZoomOpen(true)}
+  />
+)}
+          <div className="flex flex-wrap gap-4">
+            {/* Image Thumbnails visible to all */}
+            {product?.images?.map((img, index) => {
+              const imgUrl = img.startsWith("/") ? `${BASE_URL}${img}` : img;
+
+              return (
+                <div key={index} className="relative w-12 h-12 border rounded overflow-hidden group">
+                  <img
+                    src={imgUrl}
+                    alt={`Image ${index}`}
+                    onClick={() => setSelectedImg(imgUrl)}
+                    className={`w-full h-full object-cover cursor-pointer transition ${
+                      selectedImg === imgUrl ? "ring-2 ring-blue-500" : ""
+                    }`}
+                  />
+
+                  {/* Show Delete and Replace only to Admin or Product Owner Seller */}
+                  {(Role === "admin" || (Role === "seller" && product?.seller === userId)) && (
+                    <>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (window.confirm(t("confirm_delete_image"))) {
+                            handleDeleteImage(index);
+                          }
+                        }}
+                        className="absolute top-1 right-1 bg-red-600 text-white text-xs px-1 rounded"
+                      >
+                        ✕
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => document.getElementById(`replace-input-${index}`)?.click()}
+                        className="absolute bottom-1 left-1 bg-yellow-500 text-white text-xs px-1 rounded"
+                      >
+                        {t("replace")}
+                      </button>
+
+                      <input
+                        type="file"
+                        id={`replace-input-${index}`}
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) handleReplaceImage(file, index);
+                        }}
+                      />
+                    </>
+                  )}
+                </div>
+              );
+            })}
+
+            {(Role === "admin" || (Role === "seller" && product?.seller === userId)) && (
+              <div
+                className={`flex flex-col items-center justify-center w-24 h-24 border border-dashed rounded cursor-pointer hover:bg-gray-100 ${
+                  (product?.images?.length ?? 0) >= 5 ? "opacity-50 cursor-not-allowed" : ""
                 }`}
-              />
-            ))}
+                onClick={() => {
+                  if ((product?.images?.length ?? 0) >= 5) {
+                    toast.error("You can only add up to 5 images.");
+                  }
+                }}
+              >
+                <label
+                  htmlFor="add-images"
+                  className={`text-center text-sm ${
+                    (product?.images?.length ?? 0) >= 5 ? "text-gray-300" : "text-gray-700"
+                  }`}
+                >
+                  + Add
+                </label>
+                <input
+                  type="file"
+                  id="add-images"
+                  accept="image/*"
+                  multiple
+                  className="hidden"
+                  disabled={(product?.images?.length ?? 0) >= 5}
+                  onChange={(e) => {
+                    const files = e.target.files;
+                    if (files && files.length > 0) {
+                      handleAddImages(Array.from(files));
+                    }
+                  }}
+                />
+              </div>
+            )}
           </div>
+          {showDeleteConfirm && (
+            <div className="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center">
+              <div className="bg-white p-5 rounded-lg shadow-lg max-w-sm w-full">
+                <h2 className="text-lg font-semibold mb-2">{t("delete_image")}</h2>
+                <p className="text-sm text-gray-600 mb-4">{t("delete_image_confirmation")}</p>
+                <div className="flex justify-end gap-3">
+                  <button
+                    onClick={() => {
+                      setShowDeleteConfirm(false);
+                      setImageToDelete(null);
+                    }}
+                    className="px-4 py-1 text-sm bg-gray-200 rounded hover:bg-gray-300"
+                  >
+                    {t("cancel")}
+                  </button>
+                  <button
+                    onClick={() => {
+                      if (imageToDelete !== null) {
+                        handleDeleteImage(imageToDelete);
+                        setShowDeleteConfirm(false);
+                        setImageToDelete(null);
+                      }
+                    }}
+                    className="px-4 py-1 text-sm bg-red-600 text-white rounded hover:bg-red-700"
+                  >
+                    {t("delete")}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
-        {/* Info Section */}
-        <div className="space-y-4">
-          <h1 className="text-2xl font-bold">{product.title}</h1>
-          <RatingStar rating={averageRating} />
-          <PriceSection price={product.price} discountPercentage={product.discountPercentage ?? 0} />
-          <p className="text-gray-600">{product.description}</p>
+        <div className="px-2 max-h-[80vh] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-400">
+          <h2 className="text-2xl">{product?.title}</h2>
+          {product?.rating !== undefined && <RatingStar rating={averageRating} />}
+          {product?.price !== undefined && (
+            <PriceSection discountPercentage={product.discountPercentage ?? 0} price={product.price} />
+          )}
 
-          <table className="mt-4 text-sm">
-            <tbody>
-              {product.brand && (
-                <tr>
-                  <td className="font-semibold pr-2">{t("brand")}:</td>
-                  <td>{product.brand}</td>
-                </tr>
-              )}
-              {product.category && (
-                <tr>
-                  <td className="font-semibold pr-2">{t("category")}:</td>
-                  <td>{typeof product.category === "object" ? product.category.name : product.category}</td>
-                </tr>
-              )}
-              <tr>
-                <td className="font-semibold pr-2">{t("stock")}:</td>
-                <td>{product.stock}</td>
-              </tr>
-            </tbody>
-          </table>
+          {product && (
+            <table className="mt-2">
+              <tbody>
+                {product.brand && (
+                  <tr>
+                    <td className="pr-2 font-bold">{t("brand")}</td>
+                    <td>{product.brand}</td>
+                  </tr>
+                )}
+                {typeof product.category === "object" && product.category?.name && (
+                  <tr>
+                    <td className="pr-2 font-bold">{t("category")}</td>
+                    <td>{product.category.name}</td>
+                  </tr>
+                )}
+                {product.description && (
+                  <tr>
+                    <td className="pr-2 font-bold">{t("description")}</td>
+                    <td>{product.description}</td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          )}
+          {product?.stock === 0 && <p className="text-red-600 mt-4 font-semibold">{t("out_of_stock")}</p>}
 
-          <div className="flex gap-3">
-            <button onClick={handleAddToCart} className="flex items-center gap-1 bg-black text-white px-4 py-2 rounded">
+          <div className="flex justify-between mt-4">
+            {/* <button className="flex items-center bg-black text-white p-2 rounded w-24" onClick={addCart}>
               <AiOutlineShoppingCart /> {t("add_to_cart")}
-            </button>
-            <button onClick={handleBuyNow} className="flex items-center gap-1 bg-blue-600 text-white px-4 py-2 rounded">
-              <FaHandHolding /> {t("buy_now")}
-            </button>
-            <button onClick={handleWishlistToggle} className="text-2xl">
-              {isInWishlist ? <MdFavorite className="text-red-600" /> : <MdFavoriteBorder />}
-            </button>
+            </button> */}
+              {/* <a
+    href={`https://wa.me/7874501471?text=Hi, I'm interested in ${product?.title} (Price: ₹${product?.price}).`}
+    target="_blank"
+    rel="noopener noreferrer"
+    className="flex items-center justify-center bg-green-600 text-white p-2 rounded w-32"
+  >
+    💬 Inquiry Now
+  </a> */}
+  <a
+  href={`https://wa.me/917874501471?text=Hi, I'm interested in ${product?.title} (Price: ₹${product?.price}). Here is the product link: ${window.location.href}`}
+  target="_blank"
+  rel="noopener noreferrer"
+  className="flex items-center justify-center gap-2 bg-gradient-to-r from-green-500 to-green-700 text-white font-semibold p-2 px-4 rounded-2xl shadow-lg hover:scale-105 transition-transform duration-300"
+>
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 32 32"
+    fill="currentColor"
+    className="w-5 h-5"
+  >
+    <path d="M16 .5C7.44.5.5 7.44.5 16c0 2.83.74 5.58 2.15 8.01L.5 31.5l7.68-2.07A15.45 15.45 0 0016 31.5C24.56 31.5 31.5 24.56 31.5 16S24.56.5 16 .5zm0 28.45c-2.6 0-5.13-.69-7.35-1.99l-.53-.31-4.56 1.23 1.23-4.56-.31-.53A12.43 12.43 0 013.55 16C3.55 9.14 9.14 3.55 16 3.55S28.45 9.14 28.45 16 22.86 28.95 16 28.95zm7.02-8.4c-.39-.2-2.31-1.14-2.67-1.27-.36-.13-.62-.2-.88.2-.26.39-1.01 1.27-1.24 1.53-.23.26-.46.29-.85.1-.39-.2-1.65-.61-3.14-1.94-1.16-1.04-1.94-2.31-2.17-2.7-.23-.39-.02-.6.17-.79.17-.17.39-.46.59-.69.2-.23.26-.39.39-.65.13-.26.07-.49-.03-.69-.1-.2-.88-2.12-1.21-2.91-.32-.78-.65-.68-.88-.68-.23 0-.49-.03-.75-.03s-.69.1-1.05.49c-.36.39-1.38 1.35-1.38 3.3 0 1.94 1.42 3.81 1.62 4.07.2.26 2.8 4.28 6.77 6 .95.41 1.69.65 2.27.84.95.3 1.81.26 2.49.16.76-.11 2.31-.95 2.64-1.87.33-.91.33-1.7.23-1.87-.1-.16-.36-.26-.75-.46z"/>
+  </svg>
+  Inquiry Now
+</a>
+
           </div>
+
+          {/* <div className="flex mt-4 items-center space-x-2">
+            <button
+              className="flex items-center text-2xl ml-4"
+              onClick={handleWishlistToggle}
+              style={{ color: isInWishlist ? "red" : "black" }}
+            >
+              {isInWishlist ? <MdFavorite /> : <MdFavoriteBorder />}
+            </button>
+            <span>{isInWishlist ? t("remove_from_wishlist") : t("add_to_wishlist")}</span>
+          </div> */}
+
+          {(Role === "admin" || (Role === "seller" && product?.seller === userId)) && (
+            <div className="mt-6 space-x-3">
+              <button
+                onClick={() => {
+                  setFormData({
+                    title: product?.title || "",
+                    description: product?.description || "",
+                    price: product?.price,
+                    salePrice: product?.salePrice,
+                    discountPercentage: product?.discountPercentage,
+                    stock: product?.stock,
+                    brand: product?.brand,
+                    rating: product?.rating,
+                    category: typeof product?.category === "object" ? product.category.name : product?.category,
+                    images: product?.images || [],
+                  });
+                  setIsModalOpen(true);
+                }}
+                className="bg-blue-600 text-white px-4 py-2 rounded"
+              >
+                {t("edit_product")}
+              </button>
+
+              <button onClick={() => setIsDeleteModalOpen(true)} className="bg-red-600 text-white px-4 py-2 rounded">
+                {t("delete_product")}
+              </button>
+            </div>
+          )}
         </div>
       </div>
+      {similar.length > 0 && <ProductList title={t("similar_products")} products={similar} />}
+      <Modal
+        isOpen={isModalOpen}
+        onRequestClose={() => {
+          setIsModalOpen(false);
+          setFormData({});
+        }}
+        className="bg-white p-5 rounded-md shadow-md max-w-md h-[80vh] mx-auto mt-20 overflow-hidden"
+      >
+        <h2 className="text-xl font-bold mb-4">{t("edit_product")}</h2>
 
-      {/* Reviews */}
-      <div className="mt-10">
-        <h2 className="text-lg font-semibold mb-2">{t("customerReviews")}</h2>
+        <div className="overflow-y-auto h-[calc(100%-2rem)] pr-2 space-y-3">
+          <form className="space-y-3">
+            <div className="space-y-1">
+              <label htmlFor="title" className="text-sm font-medium text-gray-700">
+                {t("titleLabel")}
+              </label>
+              <input
+                type="text"
+                name="title"
+                id="title"
+                value={formData.title || ""}
+                onChange={handleInputChange}
+                className="w-full p-2 border"
+                placeholder="Title"
+              />
+              {formErrors.title && <p className="text-red-500 text-sm">{formErrors.title}</p>}
+            </div>
+
+            {/* Description Field */}
+            <div className="space-y-1">
+              <label htmlFor="description" className="text-sm font-medium text-gray-700">
+                {t("descriptionLabel")}
+              </label>
+              <input
+                type="text"
+                name="description"
+                id="description"
+                value={formData.description || ""}
+                onChange={handleInputChange}
+                className="w-full p-2 border"
+                placeholder="Description"
+              />
+              {formErrors.description && <p className="text-red-500 text-sm">{formErrors.description}</p>}
+            </div>
+
+            {/* Price Field */}
+            <div className="space-y-1">
+              <label htmlFor="price" className="text-sm font-medium text-gray-700">
+                {t("priceLabel")}
+              </label>
+              <input
+                type="number"
+                name="price"
+                id="price"
+                value={formData.price || ""}
+                onChange={handleInputChange}
+                className="w-full p-2 border"
+                placeholder="Price"
+              />
+              {formErrors.price && <p className="text-red-500 text-sm">{formErrors.price}</p>}
+            </div>
+
+            {/* Sale Price Field */}
+            <div className="space-y-1">
+              <label htmlFor="salePrice" className="text-sm font-medium text-gray-700">
+                {t("salePriceLabel")}
+              </label>
+              <input
+                type="number"
+                name="salePrice"
+                id="salePrice"
+                value={formData.salePrice !== undefined && formData.salePrice !== null ? formData.salePrice : ""}
+                className="w-full p-2 border"
+                placeholder="Sale Price"
+                disabled // This disables the field
+              />
+            </div>
+
+            {/* Discount Percentage Field */}
+            <div className="space-y-1">
+              <label htmlFor="discountPercentage" className="text-sm font-medium text-gray-700">
+                {t("discountLabel")}
+              </label>
+              <input
+                type="number"
+                name="discountPercentage"
+                id="discountPercentage"
+                value={formData.discountPercentage}
+                onChange={handleInputChange}
+                className="w-full p-2 border"
+                placeholder="Discount %"
+                min="0"
+                max="100"
+              />
+              {formErrors.discountPercentage && <p className="text-red-500 text-sm">{formErrors.discountPercentage}</p>}
+            </div>
+
+            {/* Stock Quantity Field */}
+            {/* <div className="space-y-1">
+              <label htmlFor="stock" className="text-sm font-medium text-gray-700">
+                {t("stockLabel")}
+              </label>
+              <input
+                type="number"
+                name="stock"
+                id="stock"
+                value={formData.stock || ""}
+                onChange={handleInputChange}
+                className="w-full p-2 border"
+                placeholder="Stock Quantity"
+              />
+              {formErrors.stock && <p className="text-red-500 text-sm">{formErrors.stock}</p>}
+            </div> */}
+
+            <div className="space-y-1 mb-4">
+              <label htmlFor="rating" className="text-sm font-medium text-gray-700">
+                Average Rating
+              </label>
+              <input
+                type="number"
+                id="rating"
+                value={averageRating}
+                readOnly
+                className="w-full p-2 border bg-gray-100 cursor-not-allowed"
+                min={0}
+                max={5}
+                step={0.1}
+              />
+            </div>
+
+            {/* Brand Field */}
+            <div className="space-y-1">
+              <label htmlFor="brand" className="text-sm font-medium text-gray-700">
+                {t("brandLabel")}
+              </label>
+              <input
+                type="text"
+                name="brand"
+                id="brand"
+                value={formData.brand || ""}
+                onChange={handleInputChange}
+                className="w-full p-2 border"
+                placeholder="Brand"
+              />
+              {formErrors.brand && <p className="text-red-500 text-sm">{formErrors.brand}</p>}
+            </div>
+
+            {/* Buttons */}
+            <div className="flex justify-between space-x-2">
+              <button type="button" onClick={handleUpdateProduct} className="w-full bg-blue-600 text-white p-2 rounded">
+                {t("update")}
+              </button>
+              <button
+                type="button"
+                onClick={() => setIsModalOpen(false)}
+                className="w-full bg-gray-600 text-white p-2 rounded"
+              >
+                {t("cancel")}
+              </button>
+            </div>
+          </form>
+        </div>
+      </Modal>
+
+      {/* Modal for delete confirmation */}
+      <Modal
+        isOpen={isDeleteModalOpen}
+        onRequestClose={() => setIsDeleteModalOpen(false)}
+        className="bg-white p-6 rounded-md shadow-md max-w-md mx-auto mt-20"
+      >
+        <h2 className="text-xl font-bold mb-4">{t("confirm_delete_product")}</h2>
+        <div className="flex justify-between space-x-2">
+          <button onClick={handleDeleteProduct} className="w-full bg-red-600 text-white p-2 rounded">
+            {t("yes_delete")}
+          </button>
+          <button onClick={() => setIsDeleteModalOpen(false)} className="w-full bg-gray-600 text-white p-2 rounded">
+            {t("cancel")}
+          </button>
+        </div>
+      </Modal>
+      <div className="border p-6 rounded shadow bg-white h-fit">
+        <h3 className="text-lg font-semibold mb-2">Customer Reviews</h3>
         {reviews.length === 0 ? (
-          <p className="text-gray-500">{t("noReviewsYet")}</p>
+          <p className="text-sm text-gray-600">No reviews yet.</p>
         ) : (
-          <ul className="space-y-3">
-            {reviews.map((r, idx) => (
-              <li key={idx} className="bg-gray-100 p-3 rounded">
-                <div className="flex items-center gap-2">
-                  <RatingStar rating={r.rating} />
-                  <span className="text-sm font-medium">{r.user?.userName}</span>
+          <ul className="space-y-2 max-h-64 overflow-y-auto">
+            {reviews.map((review: Review, index: number) => (
+              <li key={index} className="border p-2 rounded">
+                <div className="flex items-center">
+                  <RatingStar rating={review.rating} />
+                  <span className="ml-2 font-medium">{review.user?.userName}</span>
                 </div>
-                <p className="text-sm">{r.comment}</p>
+                <p>{review.comment}</p>
               </li>
             ))}
           </ul>
         )}
-           {similar.length > 0 && (
-        <div className="mt-10">
-          <ProductList title={t("similar_products")} products={similar} />
-        </div>
-      )}
 
-        <div className="mt-6">
-          <h3 className="text-md font-medium mb-1">{t("addReview")}</h3>
-          <Rating
-            fractions={10}
-            initialRating={newReview.rating}
-            onChange={(value: number) => setNewReview((prev) => ({ ...prev, rating: value }))}
-            emptySymbol={<FaRegStar size={24} className="text-gray-400" />}
-            fullSymbol={<FaStar size={24} className="text-yellow-500" />}
-            placeholderSymbol={<FaStarHalfAlt size={24} className="text-yellow-400" />}
-          />
+        {/* Add Review Form */}
+
+        <div className="mt-4">
+          <h4 className="font-semibold">Add Your Review</h4>
+          <div className="flex items-center space-x-2">
+            <label className="mr-2">{t("Rating")}:</label>
+            <Rating.default
+              fractions={10}
+              initialRating={newReview.rating}
+              onChange={(value: number) => setNewReview({ ...newReview, rating: value })}
+              emptySymbol={<FaRegStar size={30} className="text-gray-400" />}
+              fullSymbol={<FaStar size={30} className="text-yellow-400" />}
+              placeholderSymbol={<FaStarHalfAlt size={30} className="text-yellow-300" />}
+            />
+          </div>
+
           <textarea
             rows={3}
-            value={newReview.comment}
-            onChange={(e) => setNewReview((prev) => ({ ...prev, comment: e.target.value }))}
-            className="w-full border mt-2 p-2 rounded"
+            className="w-full border p-2 mt-2"
             placeholder={t("Writeyourcomment")}
+            value={newReview.comment}
+            onChange={(e) => setNewReview({ ...newReview, comment: e.target.value })}
           />
-          <button
-            onClick={handleReviewSubmit}
-            className="mt-2 bg-green-600 text-white px-4 py-2 rounded"
-          >
+          <button onClick={handleReviewSubmit} className="bg-blue-600 text-white px-4 py-2 mt-2 rounded w-full">
             {t("SubmitReview")}
           </button>
         </div>
+                {isZoomOpen && selectedImg && (
+          <div
+            className="fixed inset-0 z-50 bg-black bg-opacity-80 flex items-center justify-center"
+            onClick={() => setIsZoomOpen(false)}
+          >
+            <div className="relative max-w-4xl w-full max-h-[90vh]">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsZoomOpen(false);
+                }}
+                className="absolute top-4 right-4 text-white text-2xl bg-black bg-opacity-70 rounded-full px-3 py-1 hover:bg-opacity-90"
+              >
+                ✕
+              </button>
+              <img
+                src={
+                  typeof selectedImg === "string"
+                    ? selectedImg
+                    : selectedImg
+                    ? URL.createObjectURL(selectedImg)
+                    : ""
+                }
+                alt="Zoomed"
+                className="w-full h-auto object-contain max-h-[80vh] mx-auto"
+                onClick={(e) => e.stopPropagation()}
+              />
+            </div>
+        </div>
+      )}
+        
       </div>
-
-      {/* Similar Products */}
-   
+      
     </div>
   );
 };

@@ -8,23 +8,25 @@ import 'swiper/css/pagination';
 
 const slides = [
   {
-    id: 1,
-    image: "/public/emptyCart.jpg",
-    title: "🎨 Embrace the World of Fine Art",
-    subtitle: "Exclusive hand-painted pieces now available.",
-  },
-  {
-    id: 2,
-    image: "/assets/banner2.jpg",
-    title: "🖌️ Abstract Expression Reimagined",
-    subtitle: "Modern art for modern homes. 30% off today.",
-  },
-  {
-    id: 3,
-    image: "/assets/banner3.jpg",
-    title: "🖼️ Canvas Prints for Every Space",
-    subtitle: "Timeless beauty. Affordable art starts at $19.",
-  },
+  id: 1,
+  image: "/public/logo1.jpg", 
+  title: "✨ Welcome to Aaraksha Resin Art",
+  subtitle: "Discover timeless resin creations – customized, elegant, and made with love.",
+},
+{
+  id: 2,
+  image: "/public/rakhi.JPEG", 
+  title: "🌸 Rakhi Special Orders Now Open",
+  subtitle: "Custom Rakhis for Bhai & Bhabhi – starting from ₹149. Limited slots!",
+}
+,
+ {
+  id: 3,
+  image: "/public/banner.png", 
+  title: "🖼️ Handcrafted Resin Art Pieces",
+  subtitle: "From photo frames to keychains – starting at ₹149. Preserve your memories in art.",
+}
+
 ];
 
 const SlidingBanner: FC = () => {
