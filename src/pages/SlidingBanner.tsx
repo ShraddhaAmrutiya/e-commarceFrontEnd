@@ -15,9 +15,9 @@ const slides = [
 },
 {
   id: 2,
-  image: "/public/rakhi.JPEG", 
-  title: "🌸 Rakhi Special Orders Now Open",
-  subtitle: "Custom Rakhis for Bhai & Bhabhi – starting from ₹149. Limited slots!",
+  image: "/public/jumkha.jpg", 
+  title: "🌸 Navratri jhumkha  Orders Now Open",
+  subtitle: "Custom resin handmade jumkhas, starting from just 299 rupees Limited slots!",
 }
 ,
  {

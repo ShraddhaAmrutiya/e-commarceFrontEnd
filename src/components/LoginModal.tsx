@@ -303,7 +303,7 @@ const LoginModal: FC = () => {
               {t("forgotPassword")}
             </button>
 
-            <p className="text-center text-sm mt-2">
+            {/* <p className="text-center text-sm mt-2">
               {t("dontHaveAccount")}{" "}
               <span
                 onClick={() => {
@@ -314,7 +314,7 @@ const LoginModal: FC = () => {
               >
                 {t("createAccount")}
               </span>
-            </p>
+            </p> */}
           </form>
         ) : (
           // Forgot Password Form

@@ -3,6 +3,7 @@ import { FC, useEffect, useState, FormEvent } from "react";
 import { toast } from "react-toastify";
 import BASE_URL from "../config/apiconfig";
 import { useTranslation } from "react-i18next";
+import { MdEmail, MdPhone, MdPerson, MdCake, MdWc } from "react-icons/md";
 
 interface Address {
   address: string;
@@ -43,7 +44,7 @@ const Profile: FC = () => {
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
-        "Accept-Language": language
+        "Accept-Language": language,
       },
     })
       .then((res) => res.json())
@@ -64,18 +65,21 @@ const Profile: FC = () => {
     }
 
     try {
-      const response = await fetch(`${BASE_URL}/users/reset-passwordwitholdpassword/`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Accept-Language": language,
-        },
-        body: JSON.stringify({
-          userName: info.userName,
-          oldPassword,
-          newPassword,
-        }),
-      });
+      const response = await fetch(
+        `${BASE_URL}/users/reset-passwordwitholdpassword/`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Accept-Language": language,
+          },
+          body: JSON.stringify({
+            userName: info.userName,
+            oldPassword,
+            newPassword,
+          }),
+        }
+      );
 
       const data = await response.json();
 
@@ -100,57 +104,81 @@ const Profile: FC = () => {
   };
 
   return (
-    <div className="container mx-auto w-full max-w-5xl dark:text-white bg-gradient-to-r from-purple-500 to-blue-500 p-6 rounded-lg">
-      <h1 className="text-4xl font-extrabold text-center text-white mb-6">{t("profile.title")}</h1>
-      <div className="bg-white dark:bg-slate-800 rounded-lg shadow-2xl p-8">
-        <div className="grid lg:grid-cols-2 gap-6">
-          <div className="bg-gradient-to-r from-purple-200 to-blue-300 rounded-lg p-6 shadow-lg">
-            <table className="w-full">
-              <tbody>
-                <tr><td className="font-semibold py-3 text-lg">{t("profile.username")}</td><td className="py-3 text-lg">{info?.userName}</td></tr>
-                <tr><td className="font-semibold py-3 text-lg">{t("profile.firstName")}</td><td className="py-3 text-lg">{info?.firstName}</td></tr>
-                <tr><td className="font-semibold py-3 text-lg">{t("profile.lastName")}</td><td className="py-3 text-lg">{info?.lastName}</td></tr>
-                <tr><td className="font-semibold py-3 text-lg">{t("profile.email")}</td><td className="py-3 text-lg">{info?.email}</td></tr>
-                <tr><td className="font-semibold py-3 text-lg">{t("profile.phone")}</td><td className="py-3 text-lg">{info?.phone}</td></tr>
-                <tr><td className="font-semibold py-3 text-lg">{t("profile.age")}</td><td className="py-3 text-lg">{info?.age}</td></tr>
-                <tr><td className="font-semibold py-3 text-lg">{t("profile.gender")}</td><td className="py-3 text-lg">{info?.gender}</td></tr>
-              </tbody>
-            </table>
-          </div>
+    <div className="container mx-auto w-full max-w-6xl px-4 py-8">
+      <h1 className="text-3xl sm:text-4xl font-extrabold text-center mb-8 text-transparent bg-clip-text bg-gradient-to-r from-purple-500 to-blue-500">
+        {t("profile.title")}
+      </h1>
 
-          {/* Password Reset Form */}
-          <div className="bg-white dark:bg-slate-700 rounded-lg p-6 shadow-lg">
-            <h3 className="text-xl font-bold mb-4">{t("profile.resetTitle")}</h3>
-            <form onSubmit={handlePasswordChange} className="space-y-4">
-              <input
-                type="password"
-                placeholder={t("profile.oldPassword")}
-                value={oldPassword}
-                onChange={(e) => setOldPassword(e.target.value)}
-                className="w-full border rounded px-4 py-2"
-              />
-              <input
-                type="password"
-                placeholder={t("profile.newPassword")}
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-                className="w-full border rounded px-4 py-2"
-              />
-              <input
-                type="password"
-                placeholder={t("profile.confirmPassword")}
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                className="w-full border rounded px-4 py-2"
-              />
-              <button
-                type="submit"
-                className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700"
-              >
-                {t("profile.updateButton")}
-              </button>
-            </form>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* User Info Cards */}
+        <div className="space-y-4">
+          <div className="bg-gradient-to-r from-purple-100 to-blue-100 dark:from-slate-700 dark:to-slate-800 rounded-xl shadow-md p-6">
+            <h2 className="text-xl font-bold mb-4">{t("profile.details")}</h2>
+            <div className="space-y-3 text-base">
+              <div className="flex items-center gap-3">
+                <MdPerson className="text-purple-600 text-xl" />
+                <span className="font-semibold">{info?.userName}</span>
+              </div>
+              {/* <div className="flex items-center gap-3">
+                <MdPerson className="text-blue-600 text-xl" />
+                <span>
+                  {info?.firstName} {info?.lastName}
+                </span>
+              </div> */}
+              <div className="flex items-center gap-3">
+                <MdEmail className="text-red-500 text-xl" />
+                <span className="break-all">{info?.email}</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <MdPhone className="text-green-500 text-xl" />
+                <span>{info?.phone}</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <MdCake className="text-orange-500 text-xl" />
+                <span>{info?.age} {t("profile.age")}</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <MdWc className="text-pink-500 text-xl" />
+                <span>{info?.gender}</span>
+              </div>
+            </div>
           </div>
+        </div>
+
+        {/* Password Reset Form */}
+        <div className="bg-white dark:bg-slate-800 rounded-xl shadow-md p-6">
+          <h2 className="text-xl font-bold mb-4 text-gray-800 dark:text-gray-200">
+            {t("profile.resetTitle")}
+          </h2>
+          <form onSubmit={handlePasswordChange} className="space-y-4">
+            <input
+              type="password"
+              placeholder={t("profile.oldPassword")}
+              value={oldPassword}
+              onChange={(e) => setOldPassword(e.target.value)}
+              className="w-full border rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            <input
+              type="password"
+              placeholder={t("profile.newPassword")}
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              className="w-full border rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            <input
+              type="password"
+              placeholder={t("profile.confirmPassword")}
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              className="w-full border rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            <button
+              type="submit"
+              className="w-full py-3 rounded-lg font-semibold text-white bg-gradient-to-r from-purple-500 to-blue-500 hover:opacity-90 transition"
+            >
+              {t("profile.updateButton")}
+            </button>
+          </form>
         </div>
       </div>
     </div>

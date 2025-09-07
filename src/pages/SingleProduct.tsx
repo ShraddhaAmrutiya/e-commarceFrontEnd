@@ -740,17 +740,14 @@ const SingleProduct: FC = () => {
           {product?.stock === 0 && <p className="text-red-600 mt-4 font-semibold">{t("out_of_stock")}</p>}
 
           <div className="flex justify-between mt-4">
-            {/* <button className="flex items-center bg-black text-white p-2 rounded w-24" onClick={addCart}>
+            <button className="flex items-center bg-black text-white p-2 rounded w-24" onClick={addCart}>
               <AiOutlineShoppingCart /> {t("add_to_cart")}
-            </button> */}
-              {/* <a
-    href={`https://wa.me/7874501471?text=Hi, I'm interested in ${product?.title} (Price: ₹${product?.price}).`}
-    target="_blank"
-    rel="noopener noreferrer"
-    className="flex items-center justify-center bg-green-600 text-white p-2 rounded w-32"
-  >
-    💬 Inquiry Now
-  </a> */}
+            </button>
+     
+            <button className="flex items-center bg-black text-white p-2 rounded w-24" onClick={buyNow}>
+              <FaHandHoldingDollar /> {t("buy_now")}
+            </button>
+     
   <a
   href={`https://wa.me/917874501471?text=Hi, I'm interested in ${product?.title} (Price: ₹${product?.price}). Here is the product link: ${window.location.href}`}
   target="_blank"
@@ -770,7 +767,7 @@ const SingleProduct: FC = () => {
 
           </div>
 
-          {/* <div className="flex mt-4 items-center space-x-2">
+          <div className="flex mt-4 items-center space-x-2">
             <button
               className="flex items-center text-2xl ml-4"
               onClick={handleWishlistToggle}
@@ -779,7 +776,7 @@ const SingleProduct: FC = () => {
               {isInWishlist ? <MdFavorite /> : <MdFavoriteBorder />}
             </button>
             <span>{isInWishlist ? t("remove_from_wishlist") : t("add_to_wishlist")}</span>
-          </div> */}
+          </div>
 
           {(Role === "admin" || (Role === "seller" && product?.seller === userId)) && (
             <div className="mt-6 space-x-3">
