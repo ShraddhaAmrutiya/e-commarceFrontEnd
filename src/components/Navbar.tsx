@@ -163,9 +163,9 @@ const Navbar: FC = () => {
           </div>
 
           <span className="text-2xl sm:text-3xl md:text-4xl font-playfair font-bold resin-text-gradient leading-tight hidden sm:block animate-fadeInDown">
-            Aaraksha
+            {/* Aaraksha */}
             <br />
-            <span className="text-lg sm:text-xl md:text-2xl gold-text-gradient">Resin Art</span>
+            {/* <span className="text-lg sm:text-xl md:text-2xl gold-text-gradient">Resin Art</span> */}
           </span>
         </Link>
         {/* Search Bar */}

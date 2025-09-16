@@ -8,7 +8,7 @@ import "react-toastify/dist/ReactToastify.css";
 import { Provider } from "react-redux";
 import { store } from "./redux/store";
 import { useAppDispatch } from "./redux/hooks";
-import { updateModal } from "./redux/features/authSlice";
+import { updateModal, checkAuthStatus } from "./redux/features/authSlice";
 import Navbar from "./components/Navbar";
 import { Route, Routes } from "react-router-dom";
 import Home from "./pages/Home";
@@ -23,7 +23,6 @@ import ScrollToTopButton from "./components/ScrollToTopButton";
 import AllCategories from "./pages/AllCategories";
 import SingleCategory from "./pages/SingleCategory";
 import Cart from "./pages/cartPage";
-import { checkAuthStatus } from "./redux/features/authSlice";
 import SearchPage from "./pages/searchpage";
 import Register from "./components/Register";
 import Login from "./pages/login";
@@ -36,11 +35,14 @@ import CheckoutDirectPage from "./pages/checkoutDirect";
 import axiosInstance from "./utils/axiosInstance";
 import LoadingScreen from "./components/LoadingScreen";
 import ParticleBackground from "./components/ParticleBackground";
+
 Modal.setAppElement("#root");
 
 function AppContent() {
   const dispatch = useAppDispatch();
   const [isLoading, setIsLoading] = useState(true);
+
+  // always set language header
   const language = localStorage.getItem("language") || "en";
   axiosInstance.defaults.headers.common["Accept-Language"] = language;
 
@@ -49,7 +51,7 @@ function AppContent() {
     const userId = localStorage.getItem("userId");
     const role = localStorage.getItem("Role");
     const userName = localStorage.getItem("userName");
-    const language = localStorage.getItem("language") || "en"; 
+    const language = localStorage.getItem("language") || "en";
 
     if (token && userId && role && userName) {
       axiosInstance.defaults.headers.common["Authorization"] = `Bearer ${token}`;
@@ -58,19 +60,18 @@ function AppContent() {
       axiosInstance.defaults.headers.common["userName"] = userName;
     }
 
-    axiosInstance.defaults.headers.common["Accept-Language"] = language; 
+    axiosInstance.defaults.headers.common["Accept-Language"] = language;
   }, []);
 
   useEffect(() => {
     dispatch(updateModal(false));
-    dispatch(checkAuthStatus());
-    
-    // Simulate loading time for better UX
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 2000);
 
-    return () => clearTimeout(timer);
+    // wait for auth check, then hide loader
+    const check = async () => {
+      await dispatch(checkAuthStatus());
+      setIsLoading(false);
+    };
+    check();
   }, [dispatch]);
 
   if (isLoading) {

@@ -117,7 +117,7 @@
 
 // export default AddCategory;
 
-import React, { useState, FormEvent } from "react";
+import  { useState, FormEvent } from "react";
 import axiosInstance from "../utils/axiosInstance";
 import toast from "react-hot-toast";
 import { useAppDispatch } from "../redux/hooks";
