@@ -739,13 +739,23 @@ const SingleProduct: FC = () => {
           )}
           {product?.stock === 0 && <p className="text-red-600 mt-4 font-semibold">{t("out_of_stock")}</p>}
 
-          <div className="flex justify-between mt-4">
-            <button className="flex items-center bg-black text-white p-2 rounded w-24" onClick={addCart}>
-              <AiOutlineShoppingCart /> {t("add_to_cart")}
+          <div className="flex flex-col sm:flex-row gap-4 mt-8">
+            <button 
+              className="btn-resin flex items-center justify-center gap-2 py-4 px-8 text-lg font-semibold shadow-resin hover:shadow-gold transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed" 
+              onClick={addCart}
+              disabled={product?.stock === 0}
+            >
+              <AiOutlineShoppingCart size={20} /> 
+              {t("add_to_cart") || "Add to Cart"}
             </button>
      
-            <button className="flex items-center bg-black text-white p-2 rounded w-24" onClick={buyNow}>
-              <FaHandHoldingDollar /> {t("buy_now")}
+            <button 
+              className="btn-gold flex items-center justify-center gap-2 py-4 px-8 text-lg font-semibold shadow-gold hover:shadow-resin transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed" 
+              onClick={buyNow}
+              disabled={product?.stock === 0}
+            >
+              <FaHandHoldingDollar size={20} /> 
+              {t("buy_now") || "Buy Now"}
             </button>
      
   <a

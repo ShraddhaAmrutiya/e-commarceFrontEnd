@@ -308,66 +308,84 @@ const ProductCard: FC<Product> = ({
       : null;
 
   return (
-    <div className="border border-gray-200 rounded-xl overflow-hidden shadow-sm transition hover:shadow-lg bg-white dark:bg-zinc-800 font-lato">
-      <div className="text-center border-b border-gray-100 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-700">
-        <Link to={`/products/${_id}`}>
-          {imageUrl ? (
-            <img
-              src={imageUrl}
-              alt={title}
-              loading="lazy"
-              className="mx-auto h-48 sm:h-56 md:h-60 w-full object-cover transition-transform duration-200 hover:scale-105"
-            />
-          ) : (
-            <p className="text-gray-400">{t("noImageAvailable")}</p>
-          )}
-        </Link>
+    <Link to={`/products/${_id}`} className="block">
+      <div className="group relative bg-white dark:bg-zinc-800 rounded-2xl overflow-hidden shadow-pearl hover:shadow-resin transition-all duration-500 hover:-translate-y-2 border border-resin-100/50 font-poppins cursor-pointer">
+      {/* Product Image Container */}
+      <div className="relative overflow-hidden bg-gradient-to-br from-pearl-50 to-resin-50">
+        {imageUrl ? (
+          <img
+            src={imageUrl}
+            alt={title}
+            loading="lazy"
+            className="w-full h-48 sm:h-56 md:h-60 object-cover transition-all duration-700 group-hover:scale-110 group-hover:rotate-2"
+          />
+        ) : (
+          <div className="w-full h-48 sm:h-56 md:h-60 flex items-center justify-center bg-gradient-to-br from-resin-100 to-gold-100">
+            <p className="text-resin-500 font-medium">{t("noImageAvailable")}</p>
+          </div>
+        )}
+        
+        {/* Overlay gradient on hover */}
+        <div className="absolute inset-0 bg-gradient-to-t from-resin-500/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+        
+        {/* Floating particles */}
+        <div className="absolute top-2 right-2 w-2 h-2 bg-gold-300 rounded-full opacity-0 group-hover:opacity-100 animate-bounce-slow transition-opacity duration-500"></div>
+        <div className="absolute bottom-2 left-2 w-1.5 h-1.5 bg-resin-300 rounded-full opacity-0 group-hover:opacity-100 animate-bounce-slow transition-opacity duration-500" style={{animationDelay: '0.5s'}}></div>
       </div>
 
-      <div className="p-3 sm:p-4 md:p-5 space-y-2">
-        <p className="text-gray-500 text-sm font-medium dark:text-gray-300">
+      {/* Product Details */}
+      <div className="p-4 sm:p-5 space-y-3">
+        {/* Category */}
+        <p className="text-resin-600 text-xs font-semibold uppercase tracking-wider">
           {typeof category === "string"
             ? category
             : category?.name ?? t("unknownCategory")}
         </p>
 
-        <Link
-          className="font-semibold text-sm sm:text-base hover:underline dark:text-white truncate block"
-          to={`/products/${_id}`}
+        {/* Product Title */}
+        <div
+          className="font-semibold text-sm sm:text-base hover:text-resin-600 dark:text-white line-clamp-2 block transition-colors duration-300"
           title={title}
         >
           {title}
-        </Link>
+        </div>
 
-        <RatingStar rating={rating} />
+        {/* Rating */}
+        <div className="flex items-center">
+          <RatingStar rating={rating} />
+        </div>
 
-        <div className="flex flex-wrap items-center justify-between gap-2 mt-2">
+        {/* Price and Add to Cart */}
+        <div className="flex items-center justify-between gap-3">
           <PriceSection
             discountPercentage={discountPercentage ?? 0}
             price={price}
           />
 
           <button
-  type="button"
-  className="group relative flex items-center justify-center gap-1 hover:bg-blue-500 bg-pink-500 text-white py-1.5 px-3 sm:px-4 rounded text-sm transition"
-  onClick={(e) => {
-    e.stopPropagation();
-    addCart();
-  }}
-  title={t("addToCart")}
->
-  {/* Cart Icon (default) */}
-  <AiOutlineShoppingCart className="text-lg transition-opacity duration-200 group-hover:opacity-0" />
+            type="button"
+            className="group relative flex items-center justify-center w-10 h-10 bg-resin-gradient text-white rounded-full shadow-resin hover:shadow-gold transition-all duration-300 hover:scale-110"
+            onClick={(e) => {
+              e.stopPropagation();
+              addCart();
+            }}
+            title={t("addToCart")}
+          >
+            {/* Cart Icon (default) */}
+            <AiOutlineShoppingCart className="text-lg transition-all duration-300 group-hover:scale-0 group-hover:rotate-180" />
 
-  {/* Plus Icon (on hover) */}
-  <span className="absolute inset-0 flex items-center justify-center">
-    <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 text-lg">+</span>
-  </span>
-</button>
-
+            {/* Plus Icon (on hover) */}
+            <span className="absolute inset-0 flex items-center justify-center">
+              <span className="text-xl font-bold opacity-0 group-hover:opacity-100 transition-all duration-300 transform scale-0 group-hover:scale-100">+</span>
+            </span>
+          </button>
         </div>
       </div>
-    </div>
+
+      {/* Gradient border effect */}
+      <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-resin-400/20 via-gold-400/20 to-ocean-400/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
+      </div>
+    </Link>
   );
 };
 

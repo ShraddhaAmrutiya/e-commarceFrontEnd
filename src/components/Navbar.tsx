@@ -146,51 +146,58 @@ const Navbar: FC = () => {
   };
 
   return (
-    <header className="bg-gradient-to-r from-indigo-300 via-pink-200 to-yellow-100 shadow-lg sticky top-0 z-50 font-karla">
-      <div className="container mx-auto px-6 py-4 flex flex-nowrap items-center justify-between gap-4">
+    <header className="bg-gradient-to-r from-resin-100 via-pearl-50 to-ocean-100 shadow-resin sticky top-0 z-50 font-poppins backdrop-blur-lg border-b border-resin-200/30">
+      <div className="container mx-auto px-4 sm:px-6 py-3 sm:py-4 flex flex-nowrap items-center justify-between gap-2 sm:gap-4">
         {/* Logo */}
         <Link
           to="/"
-          className="flex items-center gap-5 text-2xl font-extrabold tracking-tight text-pink-800 whitespace-nowrap"
+          className="flex items-center gap-3 sm:gap-5 text-2xl font-extrabold tracking-tight whitespace-nowrap group"
         >
-          <img
-            src="/logo1.jpg"
-            alt="Logo"
-            className="w-16 h-16 object-cover rounded-full shadow-lg hover:shadow-2xl transition duration-300"
-          />
+          <div className="relative">
+            <img
+              src="/logo1.jpg"
+              alt="Aaraksha Resin Art Logo"
+              className="w-12 h-12 sm:w-16 sm:h-16 object-cover rounded-full shadow-resin hover:shadow-gold transition-all duration-500 group-hover:scale-110 group-hover:rotate-12"
+            />
+            <div className="absolute inset-0 rounded-full bg-gradient-to-r from-resin-400/20 to-gold-400/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+          </div>
 
-          <span className="text-4xl font-bold drop-shadow-sm leading-tight hidden sm:block">
-            Araksha
+          <span className="text-2xl sm:text-3xl md:text-4xl font-playfair font-bold resin-text-gradient leading-tight hidden sm:block animate-fadeInDown">
+            Aaraksha
             <br />
-            Resin Art
+            <span className="text-lg sm:text-xl md:text-2xl gold-text-gradient">Resin Art</span>
           </span>
         </Link>
         {/* Search Bar */}
-        <div className="flex flex-grow max-w-sm">
+        <div className="flex flex-grow max-w-xs sm:max-w-sm relative group">
           <input
             type="text"
-            placeholder={t("searchPlaceholder") || "Search unique pieces..."}
-            className="w-full px-3 py-2 border-2 border-pink-400 rounded-l-md text-sm focus:outline-none bg-white bg-opacity-70 backdrop-blur-sm"
+            placeholder={t("searchPlaceholder") || "Search unique resin art..."}
+            className="w-full px-4 py-2 sm:py-3 border-2 border-resin-300 rounded-l-xl text-sm focus:outline-none focus:border-resin-500 bg-white/80 backdrop-blur-sm transition-all duration-300 focus:shadow-resin"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleSearch()}
           />
           <button
-            className="bg-pink-500 hover:bg-pink-600 text-white px-3 py-2 rounded-r-md"
+            className="btn-resin rounded-l-none rounded-r-xl px-3 sm:px-4 py-2 sm:py-3 flex items-center justify-center group-hover:scale-105 transition-all duration-300"
             onClick={handleSearch}
           >
-            <BsSearch size={18} />
+            <BsSearch size={16} className="sm:hidden" />
+            <BsSearch size={18} className="hidden sm:block" />
           </button>
         </div>
         {/* Desktop Nav */}
-        <div className="hidden md:flex items-center gap-6 text-[25px] font-medium text-pink-900">
+        <div className="hidden md:flex items-center gap-4 lg:gap-6 text-lg font-medium">
           <Link
             to="/products"
-            className="hover:text-indigo-700 transition-colors"
+            className="text-resin-700 hover:text-resin-500 transition-all duration-300 hover:scale-105 font-semibold"
           >
             {t("products")}
           </Link>
-          <Link to="/categories" className="text-xl font-bold text-blue-600">
+          <Link 
+            to="/categories" 
+            className="text-ocean-600 hover:text-ocean-500 transition-all duration-300 hover:scale-105 font-semibold"
+          >
             Categories
           </Link>
 
@@ -198,13 +205,13 @@ const Navbar: FC = () => {
             <div className="flex gap-2">
               <Link
                 to="/addcategory"
-                className="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 text-sm md:text-base"
+                className="btn-ocean text-sm px-3 py-1.5 rounded-xl"
               >
                 Add Category
               </Link>
               <Link
                 to="/Addproduct"
-                className="bg-pink-500 hover:bg-pink-600 text-white px-3 py-1 rounded-md text-sm shadow-sm"
+                className="btn-gold text-sm px-3 py-1.5 rounded-xl"
               >
                 + {t("addProduct")}
               </Link>
@@ -220,20 +227,20 @@ const Navbar: FC = () => {
               }
               navigate("/wishlist");
             }}
-            className="relative"
+            className="relative group p-2 rounded-full hover:bg-resin-100 transition-all duration-300"
           >
-            <AiOutlineHeart size={26} className="hover:text-red-500" />
+            <AiOutlineHeart size={24} className="text-resin-600 group-hover:text-resin-500 group-hover:scale-110 transition-all duration-300" />
             {wishlistCount > 0 && (
-              <span className="absolute -top-2 -right-2 bg-red-600 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">
+              <span className="absolute -top-1 -right-1 bg-resin-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center animate-bounce-slow">
                 {wishlistCount}
               </span>
             )}
           </button>
 
-          <button onClick={showCart} className="relative">
-            <AiOutlineShoppingCart size={26} className="hover:text-pink-600" />
+          <button onClick={showCart} className="relative group p-2 rounded-full hover:bg-gold-100 transition-all duration-300">
+            <AiOutlineShoppingCart size={24} className="text-gold-600 group-hover:text-gold-500 group-hover:scale-110 transition-all duration-300" />
             {cartCount > 0 && (
-              <span className="absolute -top-2 -right-2 bg-pink-600 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">
+              <span className="absolute -top-1 -right-1 bg-gold-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center animate-bounce-slow">
                 {cartCount}
               </span>
             )}
@@ -241,38 +248,42 @@ const Navbar: FC = () => {
 
           <div className="relative" ref={authMenuRef}>
             {userName ? (
-              <div className="flex items-center gap-2 cursor-pointer">
-                <img
-                  src="/profilepic.jpg"
-                  className="w-14 h-14 rounded-full shadow"
-                />
+              <div className="flex items-center gap-2 cursor-pointer group">
+                <div className="relative">
+                  <img
+                    src="/profilepic.jpg"
+                    className="w-10 h-10 rounded-full shadow-resin group-hover:shadow-gold transition-all duration-300 group-hover:scale-110"
+                    alt="Profile"
+                  />
+                  <div className="absolute inset-0 rounded-full bg-gradient-to-r from-resin-400/20 to-gold-400/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                </div>
                 <CustomPopup />
               </div>
             ) : (
               <div
                 onClick={() => setAuthMenuOpen(!authMenuOpen)}
-                className="flex items-center gap-1 cursor-pointer hover:text-indigo-500"
+                className="flex items-center gap-2 cursor-pointer hover:text-resin-500 transition-all duration-300 p-2 rounded-full hover:bg-resin-100"
               >
-                <FaUser className="text-xl" />
-                <span>{t("loginCommon")}</span>
+                <FaUser className="text-lg" />
+                <span className="font-medium">{t("loginCommon")}</span>
               </div>
             )}
 
             {!userName && authMenuOpen && (
-              <div className="absolute right-0 mt-2 w-64 bg-white bg-opacity-90 backdrop-blur-md rounded shadow-lg z-50 border border-pink-300">
+              <div className="absolute right-0 mt-2 w-64 bg-white/95 backdrop-blur-lg rounded-2xl shadow-resin z-50 border border-resin-200/50 overflow-hidden">
                 <div
                   onClick={() => {
                     dispatch(updateModal(true));
                     setAuthMenuOpen(false);
                   }}
-                  className="px-4 py-2 hover:bg-pink-100 cursor-pointer"
+                  className="px-6 py-3 hover:bg-resin-50 cursor-pointer transition-all duration-300 font-medium text-resin-700"
                 >
                   {t("loginCommon")}
                 </div>
                 <Link
                   to="/register"
                   onClick={() => setAuthMenuOpen(false)}
-                  className="block px-4 py-2 hover:bg-pink-100"
+                  className="block px-6 py-3 hover:bg-resin-50 transition-all duration-300 font-medium text-resin-700"
                 >
                   {t("register")}
                 </Link>
@@ -283,7 +294,7 @@ const Navbar: FC = () => {
           <select
             value={language}
             onChange={handleLanguageChange}
-            className="ml-2 px-2 py-1 text-sm border border-pink-300 rounded bg-white bg-opacity-70 backdrop-blur-sm"
+            className="ml-2 px-3 py-1.5 text-sm border border-resin-300 rounded-xl bg-white/80 backdrop-blur-sm focus:outline-none focus:border-resin-500 transition-all duration-300"
           >
             <option value="en">EN</option>
             <option value="hi">HI</option>
@@ -294,7 +305,7 @@ const Navbar: FC = () => {
         <div className="flex md:hidden items-center">
           <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="text-2xl text-pink-800 hover:text-pink-600"
+            className="text-2xl text-resin-700 hover:text-resin-500 p-2 rounded-full hover:bg-resin-100 transition-all duration-300"
           >
             <HiOutlineDotsVertical />
           </button>
@@ -303,17 +314,29 @@ const Navbar: FC = () => {
         {isMobileMenuOpen && (
           <div
             ref={mobileMenuRef}
-            className="absolute top-full right-4 mt-2 w-56 md:hidden flex flex-col gap-3 text-pink-900 bg-white bg-opacity-95 p-4 rounded-xl shadow-lg z-50"
+            className="absolute top-full right-4 mt-2 w-64 md:hidden flex flex-col gap-2 text-resin-700 bg-white/95 backdrop-blur-lg p-6 rounded-2xl shadow-resin z-50 border border-resin-200/50 animate-fadeInDown"
           >
-            <Link to="/products" onClick={() => setIsMobileMenuOpen(false)}>
+            <Link 
+              to="/products" 
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="px-4 py-2 rounded-xl hover:bg-resin-50 transition-all duration-300 font-medium"
+            >
               {t("products")}
+            </Link>
+
+            <Link 
+              to="/categories" 
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="px-4 py-2 rounded-xl hover:bg-ocean-50 transition-all duration-300 font-medium text-ocean-600"
+            >
+              Categories
             </Link>
 
             {(Role === "admin" || Role === "seller") && (
               <Link
                 to="/Addproduct"
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="bg-pink-500 hover:bg-pink-600 text-white px-3 py-1 rounded-md text-sm shadow-sm"
+                className="btn-gold text-sm px-4 py-2 rounded-xl text-center"
               >
                 + {t("addProduct")}
               </Link>
@@ -324,7 +347,7 @@ const Navbar: FC = () => {
                 showCart();
                 setIsMobileMenuOpen(false);
               }}
-              className="flex items-center gap-2"
+              className="flex items-center gap-3 px-4 py-2 rounded-xl hover:bg-gold-50 transition-all duration-300 font-medium text-gold-600"
             >
               <AiOutlineShoppingCart size={20} />
               Cart ({cartCount})
@@ -340,13 +363,13 @@ const Navbar: FC = () => {
                 navigate("/wishlist");
                 setIsMobileMenuOpen(false);
               }}
-              className="flex items-center gap-2"
+              className="flex items-center gap-3 px-4 py-2 rounded-xl hover:bg-resin-50 transition-all duration-300 font-medium text-resin-600"
             >
               <AiOutlineHeart size={20} />
               Wishlist ({wishlistCount})
             </button>
 
-            <div>
+            <div className="border-t border-resin-200 pt-2 mt-2">
               {userName ? (
                 <CustomPopup />
               ) : (
@@ -356,7 +379,7 @@ const Navbar: FC = () => {
                       setAuthMenuOpen(true);
                       setIsMobileMenuOpen(false);
                     }}
-                    className="cursor-pointer hover:text-indigo-500 flex items-center gap-2"
+                    className="cursor-pointer hover:text-resin-500 flex items-center gap-3 px-4 py-2 rounded-xl hover:bg-resin-50 transition-all duration-300 font-medium"
                   >
                     <FaUser className="text-lg" />
                     {t("loginCommon")}
@@ -364,24 +387,18 @@ const Navbar: FC = () => {
                   <Link
                     to="/register"
                     onClick={() => setIsMobileMenuOpen(false)}
+                    className="block px-4 py-2 rounded-xl hover:bg-resin-50 transition-all duration-300 font-medium"
                   >
                     {t("register")}
-                  </Link>
-                  <Link
-                    to="/categories"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                    className="text-lg font-bold"
-                  >
-                    Categories
                   </Link>
                 </>
               )}
             </div>
           </div>
         )}
-         
+         
         {showNotification && (
-          <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-pink-500 text-white px-6 py-4 rounded-lg shadow-lg z-50">
+          <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-resin-gradient text-white px-6 py-4 rounded-2xl shadow-resin z-50 animate-fadeInUp">
             {t("pleaseLogin")}
           </div>
         )}

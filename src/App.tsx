@@ -2,7 +2,7 @@ import Modal from "react-modal";
 
 Modal.setAppElement("#root");
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { Provider } from "react-redux";
@@ -34,38 +34,52 @@ import OrdersPage from "./pages/orderPge";
 import ResetPassword from "./pages/Resetpassword";
 import CheckoutDirectPage from "./pages/checkoutDirect";
 import axiosInstance from "./utils/axiosInstance";
+import LoadingScreen from "./components/LoadingScreen";
+import ParticleBackground from "./components/ParticleBackground";
 Modal.setAppElement("#root");
 
 function AppContent() {
   const dispatch = useAppDispatch();
-const language = localStorage.getItem("language") || "en";
-axiosInstance.defaults.headers.common["Accept-Language"] = language;
+  const [isLoading, setIsLoading] = useState(true);
+  const language = localStorage.getItem("language") || "en";
+  axiosInstance.defaults.headers.common["Accept-Language"] = language;
 
- useEffect(() => {
-  const token = localStorage.getItem("accessToken");
-  const userId = localStorage.getItem("userId");
-  const role = localStorage.getItem("Role");
-  const userName = localStorage.getItem("userName");
-  const language = localStorage.getItem("language") || "en"; 
+  useEffect(() => {
+    const token = localStorage.getItem("accessToken");
+    const userId = localStorage.getItem("userId");
+    const role = localStorage.getItem("Role");
+    const userName = localStorage.getItem("userName");
+    const language = localStorage.getItem("language") || "en"; 
 
-  if (token && userId && role && userName) {
-    axiosInstance.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-    axiosInstance.defaults.headers.common["userId"] = userId;
-    axiosInstance.defaults.headers.common["Role"] = role;
-    axiosInstance.defaults.headers.common["userName"] = userName;
-  }
+    if (token && userId && role && userName) {
+      axiosInstance.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+      axiosInstance.defaults.headers.common["userId"] = userId;
+      axiosInstance.defaults.headers.common["Role"] = role;
+      axiosInstance.defaults.headers.common["userName"] = userName;
+    }
 
-  axiosInstance.defaults.headers.common["Accept-Language"] = language; 
-}, []);
+    axiosInstance.defaults.headers.common["Accept-Language"] = language; 
+  }, []);
 
   useEffect(() => {
     dispatch(updateModal(false));
-
     dispatch(checkAuthStatus());
+    
+    // Simulate loading time for better UX
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 2000);
+
+    return () => clearTimeout(timer);
   }, [dispatch]);
+
+  if (isLoading) {
+    return <LoadingScreen />;
+  }
 
   return (
     <>
+      <ParticleBackground />
       <Navbar />
       <Routes>
         <Route path="*" element={<h1>Page Not Found</h1>} />

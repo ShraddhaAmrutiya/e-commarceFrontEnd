@@ -203,6 +203,15 @@ const LoginModal: FC = () => {
   const dispatch = useAppDispatch();
   const open = useAppSelector((state) => state.authReducer.modalOpen);
   const userId = useAppSelector((state) => state.authReducer.userId);
+  const isLoggedIn = useAppSelector((state) => state.authReducer.isLoggedIn);
+
+  // Handle navigation after successful login
+  useEffect(() => {
+    if (isLoggedIn && userId) {
+      dispatch(updateModal(false));
+      navigate("/");
+    }
+  }, [isLoggedIn, userId, dispatch, navigate]);
 
   const submitForm = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();

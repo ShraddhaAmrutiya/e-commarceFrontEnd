@@ -1,7 +1,7 @@
 /* globals.css */
 @layer utilities {
   .animated-gradient {
-    background: linear-gradient(-45deg, #f33a01, #ff0062, #03b2f1, #00ffc3);
+    background: linear-gradient(-45deg, #dd57ff, #f59e0b, #0ea5e9, #e889ff);
     background-size: 400% 400%;
     animation: gradientShift 15s ease infinite;
   }
@@ -10,5 +10,69 @@
     0% { background-position: 0% 50% }
     50% { background-position: 100% 50% }
     100% { background-position: 0% 50% }
+  }
+
+  /* Resin Art Specific Animations */
+  .resin-glow {
+    box-shadow: 0 0 20px rgba(221, 87, 255, 0.3), 0 0 40px rgba(221, 87, 255, 0.2);
+  }
+
+  .gold-glow {
+    box-shadow: 0 0 20px rgba(245, 158, 11, 0.3), 0 0 40px rgba(245, 158, 11, 0.2);
+  }
+
+  .ocean-glow {
+    box-shadow: 0 0 20px rgba(14, 165, 233, 0.3), 0 0 40px rgba(14, 165, 233, 0.2);
+  }
+
+  /* Text line clamp utilities */
+  .line-clamp-1 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 1;
+  }
+
+  .line-clamp-2 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+
+  .line-clamp-3 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+  }
+
+  /* Glass morphism effect */
+  .glass-morphism {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+  }
+
+  /* Resin art particle effect */
+  .resin-particles::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: 
+      radial-gradient(circle at 20% 20%, rgba(221, 87, 255, 0.1) 1px, transparent 1px),
+      radial-gradient(circle at 80% 80%, rgba(245, 158, 11, 0.1) 1px, transparent 1px),
+      radial-gradient(circle at 40% 60%, rgba(14, 165, 233, 0.1) 1px, transparent 1px);
+    background-size: 50px 50px, 30px 30px, 40px 40px;
+    animation: particleFloat 20s linear infinite;
+    pointer-events: none;
+  }
+
+  @keyframes particleFloat {
+    0% { transform: translateY(0px) translateX(0px); }
+    100% { transform: translateY(-100px) translateX(50px); }
   }
 }
