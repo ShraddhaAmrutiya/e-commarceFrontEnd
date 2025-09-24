@@ -139,7 +139,6 @@
 
 // export default CheckoutDirectPage;
 
-
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import axiosInstance from "../utils/axiosInstance";
@@ -187,9 +186,7 @@ const CheckoutDirectPage = () => {
     if (!product || !userId || !token) return;
 
     if (product.stock !== undefined && product.stock < 1) {
-      toast.error(
-        t("cart.outOfStockError", { product: product.title }) || `${product.title} is out of stock`
-      );
+      toast.error(t("cart.outOfStockError", { product: product.title }) || `${product.title} is out of stock`);
       return;
     }
 
@@ -232,55 +229,57 @@ const CheckoutDirectPage = () => {
   const price = product.salePrice ?? product.price;
 
   return (
-    <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8">
-      {/* Back Button */}
-      <div className="flex justify-end mb-4">
-        <button
-          onClick={handleBackClick}
-          className="px-4 py-2 bg-gray-300 text-gray-800 rounded-full hover:bg-gray-400 transition"
-        >
-          {t("cart.backToCart") || "Back to product"}
-        </button>
-      </div>
-
-      {/* Heading */}
-      <h2 className="text-2xl font-bold mb-6 text-center">
-        {t("checkout.title") || "Confirm Your Order"}
-      </h2>
-
-      {/* Product Card */}
-      <div className="bg-white rounded-xl shadow-md p-4 sm:p-6 flex flex-col sm:flex-row items-center sm:items-start gap-6">
-        <img
-          src={
-            product.images?.[0]
-              ? product.images[0].startsWith("/")
-                ? `${BASE_URL}${product.images[0]}`
-                : product.images[0]
-              : "/placeholder.jpg"
-          }
-          alt={product.title}
-          className="w-28 h-28 sm:w-32 sm:h-32 object-cover rounded-md"
-        />
-
-        <div className="flex-1 w-full">
-          <h3 className="text-lg sm:text-xl font-semibold">{product.title}</h3>
-          <p className="text-gray-600 mt-1">{t("cart.price")}: ₹{price}</p>
-          <p className="text-gray-700">{t("cart.quantity")}: 1</p>
-          <p className="text-gray-800 font-bold mt-2">{t("cart.total")}: ₹{price}</p>
+    <div className="min-h-screen w-full bg-gray-100 flex justify-center items-start py-8">
+      <div className="w-full max-w-3xl px-4 sm:px-6">
+        {/* Back Button */}
+        <div className="flex justify-end mb-4">
+          <button
+            onClick={handleBackClick}
+            className="px-4 py-2 bg-gray-300 text-gray-800 rounded-full hover:bg-gray-400 transition"
+          >
+            {t("cart.backToCart") || "Back to product"}
+          </button>
         </div>
-      </div>
 
-      {/* Checkout Button */}
-      <div className="mt-8 flex justify-center sm:justify-end">
-        <button
-          onClick={handleDirectOrder}
-          disabled={loading}
-          className="px-6 py-3 bg-blue-600 text-white text-lg rounded-xl hover:bg-blue-700 transition w-full sm:w-auto"
-        >
-          {loading
-            ? t("order.placingOrder") || "Placing Order..."
-            : t("order.placeOrder") || "Place Order"}
-        </button>
+        {/* Heading */}
+        <h2 className="text-2xl font-bold mb-6 text-center">{t("checkout.title") || "Confirm Your Order"}</h2>
+
+        {/* Product Card */}
+        <div className="bg-white rounded-xl shadow-md p-4 sm:p-6 flex flex-col sm:flex-row items-center sm:items-start gap-6">
+          <img
+            src={
+              product.images?.[0]
+                ? product.images[0].startsWith("/")
+                  ? `${BASE_URL}${product.images[0]}`
+                  : product.images[0]
+                : "/placeholder.jpg"
+            }
+            alt={product.title}
+            className="w-28 h-28 sm:w-32 sm:h-32 object-cover rounded-md"
+          />
+
+          <div className="flex-1 w-full">
+            <h3 className="text-lg sm:text-xl font-semibold">{product.title}</h3>
+            <p className="text-gray-600 mt-1">
+              {t("cart.price")}: ₹{price}
+            </p>
+            <p className="text-gray-700">{t("cart.quantity")}: 1</p>
+            <p className="text-gray-800 font-bold mt-2">
+              {t("cart.total")}: ₹{price}
+            </p>
+          </div>
+        </div>
+
+        {/* Checkout Button */}
+        <div className="mt-8 flex justify-center sm:justify-end">
+          <button
+            onClick={handleDirectOrder}
+            disabled={loading}
+            className="px-6 py-3 bg-blue-600 text-white text-lg rounded-xl hover:bg-blue-700 transition w-full sm:w-auto"
+          >
+            {loading ? t("order.placingOrder") || "Placing Order..." : t("order.placeOrder") || "Place Order"}
+          </button>
+        </div>
       </div>
     </div>
   );

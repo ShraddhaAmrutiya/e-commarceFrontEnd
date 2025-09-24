@@ -87,7 +87,11 @@ const Cart = () => {
     }));
 
     try {
-      const { data } = await axiosInstance.put<CartResponse>(`${BASE_URL}/cart`, { userId, productId, quantity }, { headers });
+      const { data } = await axiosInstance.put<CartResponse>(
+        `${BASE_URL}/cart`,
+        { userId, productId, quantity },
+        { headers }
+      );
       setCartItems(data.cartItems);
     } catch {
       toast.error(t("failedUpdateQuantity"));
@@ -184,12 +188,10 @@ const Cart = () => {
             <h2 className="text-4xl font-playfair font-bold resin-text-gradient mb-4">
               {t("cartEmpty") || "Your Cart is Empty"}
             </h2>
-            <p className="text-gray-600 text-lg mb-8">
-              Discover our beautiful resin art collection
-            </p>
+            <p className="text-gray-600 text-lg mb-8">Discover our products</p>
             <button
               onClick={() => navigate("/products")}
-              className="btn-resin px-8 py-4 text-lg font-semibold"
+              className="btn-resin px-8 py-4 text-lg font-semibold border-2 border-border-resin-500 hover:border-resin-500 hover:shadow-lg hover:shadow-resin-500/40 rounded-xl transition-all duration-300"
             >
               ✨ Start Shopping ✨
             </button>
@@ -198,7 +200,7 @@ const Cart = () => {
       </div>
     );
   }
-  
+
   return (
     <div className="min-h-screen pt-24 px-4 py-10 bg-gradient-to-br from-pearl-50 via-resin-50 to-ocean-50 font-poppins">
       <div className="container mx-auto max-w-6xl">
@@ -206,9 +208,7 @@ const Cart = () => {
           <h1 className="text-4xl md:text-5xl font-playfair font-bold resin-text-gradient mb-4">
             🛒 {t("shoppingCart") || "Shopping Cart"}
           </h1>
-          <p className="text-gray-600 text-lg">
-            Review your selected resin art pieces
-          </p>
+          <p className="text-gray-600 text-lg">Review your selected resin art pieces</p>
         </div>
 
         <div className="space-y-6">
@@ -219,25 +219,26 @@ const Cart = () => {
               const imageList = Array.isArray(product.images)
                 ? product.images
                 : typeof product.images === "string"
-                  ? [product.images]
-                  : [];
+                ? [product.images]
+                : [];
 
-              const imageUrl = imageList.length > 0
-                ? imageList[0].startsWith("/")
-                  ? `${BASE_URL}${imageList[0]}`
-                  : imageList[0]
-                : "/placeholder.jpg";
+              const imageUrl =
+                imageList.length > 0
+                  ? imageList[0].startsWith("/")
+                    ? `${BASE_URL}${imageList[0]}`
+                    : imageList[0]
+                  : "/placeholder.jpg";
 
               return (
                 <div
                   key={item._id}
                   className="group bg-white/80 backdrop-blur-sm border border-resin-200/50 rounded-2xl shadow-pearl hover:shadow-resin transition-all duration-500 hover:-translate-y-1 p-6 animate-fadeInUp"
-                  style={{animationDelay: `${index * 0.1}s`}}
+                  style={{ animationDelay: `${index * 0.1}s` }}
                 >
                   <div className="flex flex-col lg:flex-row items-center gap-6">
                     {/* Product Image */}
-                    <div 
-                      className="w-40 h-40 flex-shrink-0 cursor-pointer group-hover:scale-105 transition-transform duration-300" 
+                    <div
+                      className="w-40 h-40 flex-shrink-0 cursor-pointer group-hover:scale-105 transition-transform duration-300"
                       onClick={() => navigate(`/products/${product._id}`)}
                     >
                       <img
@@ -253,7 +254,7 @@ const Cart = () => {
                         {product.title}
                       </h2>
                       <p className="text-gray-600 mb-4 line-clamp-2">{product.description}</p>
-                      
+
                       <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-4">
                         <div className="text-2xl font-bold gold-text-gradient">
                           ₹{product.salePrice || product.price}
@@ -310,17 +311,16 @@ const Cart = () => {
         {/* Cart Total */}
         <div className="mt-12 bg-gradient-to-r from-resin-50 to-gold-50 rounded-2xl p-8 shadow-pearl">
           <div className="text-center">
-            <h3 className="text-2xl font-playfair font-bold resin-text-gradient mb-4">
-              Order Summary
-            </h3>
+            <h3 className="text-2xl font-playfair font-bold resin-text-gradient mb-4">Order Summary</h3>
             <div className="text-4xl font-bold gold-text-gradient mb-6">
-              ₹{cartItems
+              ₹
+              {cartItems
                 .filter((item) => item.productId)
                 .reduce((acc, item) => acc + item.quantity * (item.productId?.salePrice || item.productId?.price), 0)
                 .toFixed(2)}
             </div>
             <p className="text-gray-600 mb-6">
-              {cartItems.length} {cartItems.length === 1 ? 'item' : 'items'} in your cart
+              {cartItems.length} {cartItems.length === 1 ? "item" : "items"} in your cart
             </p>
           </div>
         </div>
@@ -353,14 +353,14 @@ const Cart = () => {
         {showModal && (
           <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center px-4 animate-fadeInUp">
             <div className="bg-white/95 backdrop-blur-lg p-8 rounded-2xl shadow-resin w-full max-w-md text-center border border-resin-200/50">
-              <div className="text-6xl mb-4">
-                {itemToRemove ? "⚠️" : "🗑️"}
-              </div>
+              <div className="text-6xl mb-4">{itemToRemove ? "⚠️" : "🗑️"}</div>
               <h2 className="text-2xl font-playfair font-bold resin-text-gradient mb-4">
                 {itemToRemove ? t("removeItem") || "Remove Item" : t("clearCart") || "Clear Cart"}
               </h2>
               <p className="text-gray-600 mb-8 text-lg">
-                {itemToRemove ? t("removeLastItemWarning") || "Are you sure you want to remove this item?" : t("clearCartWarning") || "Are you sure you want to clear your cart?"}
+                {itemToRemove
+                  ? t("removeLastItemWarning") || "Are you sure you want to remove this item?"
+                  : t("clearCartWarning") || "Are you sure you want to clear your cart?"}
               </p>
               <div className="flex gap-4 justify-center">
                 <button
