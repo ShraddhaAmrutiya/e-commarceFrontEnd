@@ -660,8 +660,8 @@ const SingleProduct: FC = () => {
 
           <div className="flex flex-wrap gap-4">
             {/* Image Thumbnails visible to all */}
-            {product?.images?.map((img, index) => {
-              const imgUrl = img.startsWith("/") ? `${BASE_URL}${img}` : img;
+            {product?.images?.map((_img, index) => {
+              // const imgUrl = img.startsWith("/") ? `${BASE_URL}${img}` : img;
 
               return (
                 <div

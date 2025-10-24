@@ -260,11 +260,11 @@ const AllProducts: FC = () => {
           return dateB - dateA;
         });
 
-        // Extract unique categories
-        const uniqueCategories = [
-          ...new Set(allProducts.map((p: Product) => p.category)),
-        ];
-
+// Extract unique categories
+      const uniqueCategories: string[] = Array.from(
+  new Set(allProducts.map((p: Product) => String(p.category)))
+).filter((c) => c !== "") as string[];
+ 
         setCategories(uniqueCategories);
         dispatch(addProducts(allProducts));
       } catch (error) {
