@@ -12,7 +12,10 @@ import ProductList from "../components/ProductList";
 import useAuth from "../hooks/useAuth";
 import { MdFavoriteBorder, MdFavorite } from "react-icons/md";
 import { useAppDispatch, useAppSelector } from "../redux/hooks";
-import { fetchWishlistItems, removeWishlistItem } from "../redux/features/WishlistSlice";
+import {
+  fetchWishlistItems,
+  removeWishlistItem,
+} from "../redux/features/WishlistSlice";
 import { RootState } from "../redux/store";
 import Modal from "react-modal";
 import BASE_URL from "../config/apiconfig";
@@ -54,9 +57,14 @@ const SingleProduct: FC = () => {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [imageToDelete, setImageToDelete] = useState<number | null>(null);
   const language = localStorage.getItem("language") || "en";
-  const userId = useAppSelector((state) => state.authReducer.userId) || localStorage.getItem("userId");
+  const userId =
+    useAppSelector((state) => state.authReducer.userId) ||
+    localStorage.getItem("userId");
   const [reviews, setReviews] = useState<Review[]>([]);
-  const [newReview, setNewReview] = useState<Review>({ rating: 0, comment: "" });
+  const [newReview, setNewReview] = useState<Review>({
+    rating: 0,
+    comment: "",
+  });
   const [isZoomOpen, setIsZoomOpen] = useState(false);
 
   const token = localStorage.getItem("accessToken");
@@ -75,7 +83,7 @@ const SingleProduct: FC = () => {
       const res = await fetch(`${BASE_URL}/products/${_id}`);
       const data = await res.json();
       if (!data || !data.product || !data.product._id) {
-        toast.error(t("sp.productNotFound"));
+        toast.error(t("productNotFound"));
 
         return;
       }
@@ -98,7 +106,7 @@ const SingleProduct: FC = () => {
       setSelectedImg(fullImageUrls.length > 0 ? fullImageUrls[0] : "");
       setCategory(categoryName);
     } catch (error) {
-      toast.error(t("sp.errorFatchingProduct"));
+      toast.error(t("errorFatchingProduct"));
     } finally {
       setLoading(false);
     }
@@ -106,7 +114,7 @@ const SingleProduct: FC = () => {
 
   useEffect(() => {
     if (!_id) {
-      toast.error(t("sp.invalidpId"));
+      toast.error(t("invalidpId"));
 
       return;
     }
@@ -125,7 +133,9 @@ const SingleProduct: FC = () => {
       });
   }, [Category, _id]);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
     const { name, value } = e.target;
 
     if (name === "discountPercentage") {
@@ -148,7 +158,9 @@ const SingleProduct: FC = () => {
       }
     } else if (name === "price") {
       const price = parseFloat(value);
-      const discount = parseFloat(formData.discountPercentage?.toString() || "0");
+      const discount = parseFloat(
+        formData.discountPercentage?.toString() || "0"
+      );
 
       if (!isNaN(price) && !isNaN(discount)) {
         const salePrice = price - (price * discount) / 100;
@@ -175,18 +187,25 @@ const SingleProduct: FC = () => {
   const validateForm = () => {
     const errors: { [key: string]: string } = {};
 
-    if (!formData.title || formData.title.trim() === "") errors.title = t("sp.validation.titleRequired");
-    if (formData.price === undefined || formData.price <= 0) errors.price = t("sp.validation.pricePositive");
+    if (!formData.title || formData.title.trim() === "")
+      errors.title = t("validation.titleRequired");
+    if (formData.price === undefined || formData.price <= 0)
+      errors.price = t("validation.pricePositive");
     if (
       formData.discountPercentage !== undefined &&
       (formData.discountPercentage < 0 || formData.discountPercentage > 100)
     ) {
-      errors.discountPercentage = t("sp.validation.discountRange");
+      errors.discountPercentage = t("validation.discountRange");
     }
-    if (formData.stock === undefined || formData.stock < 0) errors.stock = t("sp.validation.stockPositive");
-    if (formData.rating !== undefined && (formData.rating < 0 || formData.rating > 5))
-      errors.rating = t("sp.validation.ratingRange");
-    if (!formData.brand || formData.brand.trim() === "") errors.brand = t("sp.validation.brandRequired");
+    if (formData.stock === undefined || formData.stock < 0)
+      errors.stock = t("validation.stockPositive");
+    if (
+      formData.rating !== undefined &&
+      (formData.rating < 0 || formData.rating > 5)
+    )
+      errors.rating = t("validation.ratingRange");
+    if (!formData.brand || formData.brand.trim() === "")
+      errors.brand = t("validation.brandRequired");
 
     return errors;
   };
@@ -203,16 +222,25 @@ const SingleProduct: FC = () => {
       const formDataToSend = new FormData();
 
       if (formData.title) formDataToSend.append("title", formData.title);
-      if (formData.price !== undefined) formDataToSend.append("price", String(formData.price));
+      if (formData.price !== undefined)
+        formDataToSend.append("price", String(formData.price));
       if (formData.category) {
-        const categoryValue = typeof formData.category === "string" ? formData.category : formData.category.name;
+        const categoryValue =
+          typeof formData.category === "string"
+            ? formData.category
+            : formData.category.name;
 
         formDataToSend.append("category", categoryValue);
       }
-      if (formData.description) formDataToSend.append("description", formData.description);
+      if (formData.description)
+        formDataToSend.append("description", formData.description);
       if (formData.discountPercentage !== undefined)
-        formDataToSend.append("discountPercentage", String(formData.discountPercentage));
-      if (formData.stock !== undefined) formDataToSend.append("stock", String(formData.stock));
+        formDataToSend.append(
+          "discountPercentage",
+          String(formData.discountPercentage)
+        );
+      if (formData.stock !== undefined)
+        formDataToSend.append("stock", String(formData.stock));
       if (formData.brand) formDataToSend.append("brand", formData.brand);
 
       const res = await fetch(`${BASE_URL}/products/update/${_id}`, {
@@ -226,14 +254,14 @@ const SingleProduct: FC = () => {
 
       const data = await res.json();
       if (!res.ok) {
-        throw new Error(data.message || t("sp.updateFailed"));
+        throw new Error(data.message || t("updateFailed"));
       }
 
-      toast.success(t("sp.updated"));
+      toast.success(t("updated"));
       setProduct(data.product);
       setIsModalOpen(false);
     } catch (error) {
-      toast.error(t("sp.updateFailed", { message: (error as Error).message }));
+      toast.error(t("updateFailed", { message: (error as Error).message }));
     }
   };
   const handleDeleteProduct = async () => {
@@ -251,7 +279,8 @@ const SingleProduct: FC = () => {
       });
 
       const data = await res.json();
-      if (!res.ok) throw new Error(data.message || t("sp.validation.Deletefailed"));
+      if (!res.ok)
+        throw new Error(data.message || t("validation.Deletefailed"));
 
       const userId = localStorage.getItem("userId");
       if (userId) {
@@ -267,45 +296,53 @@ const SingleProduct: FC = () => {
 
         await response.json();
         if (response.ok) {
-          toast.success(t("sp.validation.itemRemovedFromCart"));
+          toast.success(t("validation.itemRemovedFromCart"));
         } else {
-          toast.error(t("sp.failedRemoveItem"));
+          toast.error(t("failedRemoveItem"));
         }
       }
 
       await dispatch(removeWishlistItem({ productId: _id }))
         .unwrap()
         .then(() => {
-          toast.success(t("sp.validation.removedWwishlist"));
+          toast.success(t("validation.removedWwishlist"));
         })
         .catch((error) => {
-          toast.error(t("sp.validation.failedRemoveItemWishlist", ` ${error.message}`));
+          toast.error(
+            t("validation.failedRemoveItemWishlist", ` ${error.message}`)
+          );
         });
 
-      toast.success(t("sp.validation.productDelete"));
+      toast.success(t("validation.productDelete"));
       navigate("/");
     } catch (error) {
-      toast.error(t("sp.validation.failedProductDelete"));
+      toast.error(t("validation.failedProductDelete"));
     }
   };
 
-  const cartItems = useSelector((state: RootState) => state.cartReducer.cartItems);
+  const cartItems = useSelector(
+    (state: RootState) => state.cartReducer.cartItems
+  );
 
   const addCart = async () => {
     requireAuth(async () => {
       if (!product || !product._id) {
-        toast.error(t("sp.productNotFound"));
+        toast.error(t("productNotFound"));
         return;
       }
 
-      const existingProductIndex = cartItems.findIndex((item) => item.productId._id === product._id);
+      const existingProductIndex = cartItems.findIndex(
+        (item) => item.productId._id === product._id
+      );
 
       const existingCartItem = cartItems[existingProductIndex];
       const maxQuantity = product.stock || 10; //
-      const newQuantity = existingCartItem ? Math.min(existingCartItem.quantity + 1, maxQuantity) : 1;
+      const newQuantity = existingCartItem
+        ? Math.min(existingCartItem.quantity + 1, maxQuantity)
+        : 1;
 
       if (existingCartItem && existingCartItem.quantity >= maxQuantity) {
-        toast(t("sp.maxQuantityReached"));
+        toast(t("maxQuantityReached"));
 
         return;
       }
@@ -342,12 +379,12 @@ const SingleProduct: FC = () => {
               stock: product.stock,
             })
           );
-          toast.success(existingCartItem ? t("sp.quantityIncreased") : t("sp.added"));
+          toast.success(existingCartItem ? t("quantityIncreased") : t("added"));
         } else {
-          throw new Error(data.message || t("sp.addToCartFailed"));
+          throw new Error(data.message || t("addToCartFailed"));
         }
       } catch (error) {
-        toast.error(t("sp.addToCartFailed"));
+        toast.error(t("addToCartFailed"));
       }
     });
   };
@@ -368,12 +405,12 @@ const SingleProduct: FC = () => {
       });
 
       const data = await res.json();
-      if (!res.ok) throw new Error(data.message || t("sp.imageUpdateFail"));
+      if (!res.ok) throw new Error(data.message || t("imageUpdateFail"));
 
-      toast.success(t("sp.imageReplaced"));
+      toast.success(t("imageReplaced"));
       await fetchProductDetails();
     } catch (error) {
-      toast.error(t("sp.imgReplaceFailed"));
+      toast.error(t("imgReplaceFailed"));
     }
   };
 
@@ -390,12 +427,12 @@ const SingleProduct: FC = () => {
       });
 
       const data = await res.json();
-      if (!res.ok) throw new Error(data.message || t("sp.imageDeletationFail"));
+      if (!res.ok) throw new Error(data.message || t("imageDeletationFail"));
 
-      toast.success(t("sp.imageDelete"));
+      toast.success(t("imageDelete"));
       await fetchProductDetails();
     } catch (error) {
-      toast.error(t("sp.imageDeletationFail"));
+      toast.error(t("imageDeletationFail"));
     }
   };
 
@@ -418,12 +455,12 @@ const SingleProduct: FC = () => {
       });
 
       const data = await res.json();
-      if (!res.ok) throw new Error(data.message || t("sp.addImagefail"));
+      if (!res.ok) throw new Error(data.message || t("addImagefail"));
 
-      toast.success(t("sp.imagesAdded"));
+      toast.success(t("imagesAdded"));
       await fetchProductDetails();
     } catch (error) {
-      toast.error(t("sp.addImagefail"));
+      toast.error(t("addImagefail"));
     }
   };
 
@@ -453,12 +490,16 @@ const SingleProduct: FC = () => {
     return Number((sum / reviews.length).toFixed(1));
   }, [reviews]);
 
-  const wishlistItems = useAppSelector((state) => state.wishlistReducer.wishlistItems);
+  const wishlistItems = useAppSelector(
+    (state) => state.wishlistReducer.wishlistItems
+  );
 
   useEffect(() => {
     if (product) {
       const isProductInWishlist = wishlistItems.some((wishlistItem) =>
-        wishlistItem.products.some((item) => item.productId && item.productId._id === product._id)
+        wishlistItem.products.some(
+          (item) => item.productId && item.productId._id === product._id
+        )
       );
       setIsInWishlist(isProductInWishlist);
     }
@@ -466,13 +507,13 @@ const SingleProduct: FC = () => {
 
   const handleWishlistToggle = async () => {
     if (!product) return;
-    if (!token) return toast.error(t("sp.NOtoken"));
-    if (!userId) return toast.error(t("sp.NoUserId"));
+    if (!token) return toast.error(t("Please login."));
+    if (!userId) return toast.error(t("NoUserId"));
 
     try {
       if (isInWishlist) {
         dispatch(removeWishlistItem({ productId: product._id }));
-        toast.success(t("sp.removedWwishlist"));
+        toast.success(t("removedWwishlist"));
       } else {
         const response = await fetch(`${BASE_URL}/wishlist/add`, {
           method: "POST",
@@ -495,19 +536,19 @@ const SingleProduct: FC = () => {
           const errorObj = JSON.parse(errorDetails);
 
           if (errorObj.message === "Product already in wishlist") {
-            toast.error(t("sp.alreadyInWishlist"));
+            toast.error(t("already In Wishlist"));
             setIsInWishlist(true);
             return;
           }
 
-          throw new Error(t("sp.failedTOaddinWishlist"));
+          throw new Error(t("failed TO add in Wishlist"));
         }
-        toast.success(t("sp.addedToWishlist"));
+        toast.success(t("added To Wishlist"));
         setIsInWishlist(true);
         dispatch(fetchWishlistItems());
       }
     } catch (error) {
-      toast.error((error as Error).message || t("sp.failTOUpdateWishlist"));
+      toast.error((error as Error).message || t("failTOUpdateWishlist"));
     }
   };
   const fetchReviews = async () => {
@@ -572,32 +613,73 @@ const SingleProduct: FC = () => {
       {loading && <div>{t("loading")}</div>}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 px-4 font-karla">
         <div className="space-y-4 mt-6">
-          {selectedImg && (
+          {/* {selectedImg && (
             <img
-              src={typeof selectedImg === "string" ? selectedImg : URL.createObjectURL(selectedImg)}
+              src={
+                typeof selectedImg === "string"
+                  ? selectedImg
+                  : URL.createObjectURL(selectedImg)
+              }
               alt={t("selected")}
               className="h-80 w-full object-cover rounded border cursor-zoom-in"
               onClick={() => setIsZoomOpen(true)}
             />
+            
+            
+          )} */}
+          {selectedImg && (
+            <div className="relative">
+              <img
+                src={
+                  typeof selectedImg === "string"
+                    ? selectedImg
+                    : URL.createObjectURL(selectedImg)
+                }
+                alt={t("selected")}
+                className="h-80 w-full object-cover rounded border cursor-zoom-in"
+                onClick={() => setIsZoomOpen(true)}
+              />
+
+              {/* Wishlist Button */}
+              <button
+                onClick={handleWishlistToggle}
+                className={`absolute top-3 right-3 flex items-center justify-center w-10 h-10 rounded-full shadow-md transition transform hover:scale-110 ${
+                  isInWishlist
+                    ? "bg-red-500 text-white animate-pulse"
+                    : "bg-white text-gray-700 hover:bg-gray-100"
+                }`}
+              >
+                {isInWishlist ? (
+                  <MdFavorite size={20} />
+                ) : (
+                  <MdFavoriteBorder size={20} />
+                )}
+              </button>
+            </div>
           )}
+
           <div className="flex flex-wrap gap-4">
             {/* Image Thumbnails visible to all */}
             {product?.images?.map((img, index) => {
               const imgUrl = img.startsWith("/") ? `${BASE_URL}${img}` : img;
 
               return (
-                <div key={index} className="relative w-12 h-12 border rounded overflow-hidden group">
-                  <img
+                <div
+                  key={index}
+                  // className="relative w-12 h-12 border rounded overflow-hidden group"
+                >
+                  {/* <img
                     src={imgUrl}
                     alt={`Image ${index}`}
                     onClick={() => setSelectedImg(imgUrl)}
                     className={`w-full h-full object-cover cursor-pointer transition ${
                       selectedImg === imgUrl ? "ring-2 ring-blue-500" : ""
                     }`}
-                  />
+                  /> */}
 
                   {/* Show Delete and Replace only to Admin or Product Owner Seller */}
-                  {(Role === "admin" || (Role === "seller" && product?.seller === userId)) && (
+                  {(Role === "admin" ||
+                    (Role === "seller" && product?.seller === userId)) && (
                     <>
                       <button
                         type="button"
@@ -613,7 +695,11 @@ const SingleProduct: FC = () => {
 
                       <button
                         type="button"
-                        onClick={() => document.getElementById(`replace-input-${index}`)?.click()}
+                        onClick={() =>
+                          document
+                            .getElementById(`replace-input-${index}`)
+                            ?.click()
+                        }
                         className="absolute bottom-1 left-1 bg-yellow-500 text-white text-xs px-1 rounded"
                       >
                         {t("replace")}
@@ -635,10 +721,13 @@ const SingleProduct: FC = () => {
               );
             })}
 
-            {(Role === "admin" || (Role === "seller" && product?.seller === userId)) && (
+            {(Role === "admin" ||
+              (Role === "seller" && product?.seller === userId)) && (
               <div
                 className={`flex flex-col items-center justify-center w-24 h-24 border border-dashed rounded cursor-pointer hover:bg-gray-100 ${
-                  (product?.images?.length ?? 0) >= 5 ? "opacity-50 cursor-not-allowed" : ""
+                  (product?.images?.length ?? 0) >= 5
+                    ? "opacity-50 cursor-not-allowed"
+                    : ""
                 }`}
                 onClick={() => {
                   if ((product?.images?.length ?? 0) >= 5) {
@@ -649,7 +738,9 @@ const SingleProduct: FC = () => {
                 <label
                   htmlFor="add-images"
                   className={`text-center text-sm ${
-                    (product?.images?.length ?? 0) >= 5 ? "text-gray-300" : "text-gray-700"
+                    (product?.images?.length ?? 0) >= 5
+                      ? "text-gray-300"
+                      : "text-gray-700"
                   }`}
                 >
                   + Add
@@ -674,8 +765,12 @@ const SingleProduct: FC = () => {
           {showDeleteConfirm && (
             <div className="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center">
               <div className="bg-white p-5 rounded-lg shadow-lg max-w-sm w-full">
-                <h2 className="text-lg font-semibold mb-2">{t("delete_image")}</h2>
-                <p className="text-sm text-gray-600 mb-4">{t("delete_image_confirmation")}</p>
+                <h2 className="text-lg font-semibold mb-2">
+                  {t("delete_image")}
+                </h2>
+                <p className="text-sm text-gray-600 mb-4">
+                  {t("delete_image_confirmation")}
+                </p>
                 <div className="flex justify-end gap-3">
                   <button
                     onClick={() => {
@@ -706,9 +801,14 @@ const SingleProduct: FC = () => {
 
         <div className="px-2 max-h-[80vh] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-400">
           <h2 className="text-2xl">{product?.title}</h2>
-          {product?.rating !== undefined && <RatingStar rating={averageRating} />}
+          {product?.rating !== undefined && (
+            <RatingStar rating={averageRating} />
+          )}
           {product?.price !== undefined && (
-            <PriceSection discountPercentage={product.discountPercentage ?? 0} price={product.price} />
+            <PriceSection
+              discountPercentage={product.discountPercentage ?? 0}
+              price={product.price}
+            />
           )}
 
           {product && (
@@ -720,12 +820,13 @@ const SingleProduct: FC = () => {
                     <td>{product.brand}</td>
                   </tr>
                 )}
-                {typeof product.category === "object" && product.category?.name && (
-                  <tr>
-                    <td className="pr-2 font-bold">{t("category")}</td>
-                    <td>{product.category.name}</td>
-                  </tr>
-                )}
+                {typeof product.category === "object" &&
+                  product.category?.name && (
+                    <tr>
+                      <td className="pr-2 font-bold">{t("category")}</td>
+                      <td>{product.category.name}</td>
+                    </tr>
+                  )}
                 {product.description && (
                   <tr>
                     <td className="pr-2 font-bold">{t("description")}</td>
@@ -735,50 +836,52 @@ const SingleProduct: FC = () => {
               </tbody>
             </table>
           )}
-          {product?.stock === 0 && <p className="text-red-600 mt-4 font-semibold">{t("out_of_stock")}</p>}
+          {product?.stock === 0 && (
+            <p className="text-red-600 mt-4 font-semibold">
+              {t("out_of_stock")}
+            </p>
+          )}
 
           <div className="flex flex-col sm:flex-row gap-4 mt-8">
             <button
               onClick={buyNow}
-              className="flex items-center justify-center gap-2 px-5 py-3 bg-black text-white rounded-xl font-semibold shadow-md hover:bg-gray-900 transform hover:scale-105 transition"
+              className="flex items-center justify-center gap-2 px-8 py-4 rounded-xl bg-gradient-to-r from-yellow-400 to-orange-500 text-white font-semibold shadow-lg hover:from-yellow-500 hover:to-orange-600 transform hover:scale-105 transition"
             >
               <FaHandHoldingDollar className="text-lg" />
-              {t("buy_now")}
+              {t("buy now")}
             </button>
 
             {/* Add to Cart */}
             <button
               onClick={addCart}
-              className="flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-yellow-400 to-orange-500 text-white font-semibold shadow-lg hover:from-yellow-500 hover:to-orange-600 transform hover:scale-105 transition"
+              className="flex items-center justify-center gap-2 px-8 py-4 rounded-xl bg-gradient-to-r from-yellow-400 to-orange-500 text-white font-semibold shadow-lg hover:from-yellow-500 hover:to-orange-600 transform hover:scale-105 transition"
             >
               <AiOutlineShoppingCart className="text-lg" />
-              {t("add_to_cart")}
+              {t("add to cart")}
             </button>
 
             <a
-              href={`https://wa.me/917874501471?text=Hi, I'm interested in ${product?.title} (Price: ₹${product?.price}). Here is the product link: ${window.location.href}`}
+              href={`https://wa.me/919033094705?text=Hi, I'm interested in ${product?.title} (Price: ₹${product?.price}). Here is the product link: ${window.location.href}`}
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center justify-center gap-2 bg-gradient-to-r from-green-500 to-green-700 text-white font-semibold p-2 px-4 rounded-2xl shadow-lg hover:scale-105 transition-transform duration-300"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="currentColor" className="w-5 h-5">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 32 32"
+                fill="currentColor"
+                className="w-5 h-5"
+              >
                 <path d="M16 .5C7.44.5.5 7.44.5 16c0 2.83.74 5.58 2.15 8.01L.5 31.5l7.68-2.07A15.45 15.45 0 0016 31.5C24.56 31.5 31.5 24.56 31.5 16S24.56.5 16 .5zm0 28.45c-2.6 0-5.13-.69-7.35-1.99l-.53-.31-4.56 1.23 1.23-4.56-.31-.53A12.43 12.43 0 013.55 16C3.55 9.14 9.14 3.55 16 3.55S28.45 9.14 28.45 16 22.86 28.95 16 28.95zm7.02-8.4c-.39-.2-2.31-1.14-2.67-1.27-.36-.13-.62-.2-.88.2-.26.39-1.01 1.27-1.24 1.53-.23.26-.46.29-.85.1-.39-.2-1.65-.61-3.14-1.94-1.16-1.04-1.94-2.31-2.17-2.7-.23-.39-.02-.6.17-.79.17-.17.39-.46.59-.69.2-.23.26-.39.39-.65.13-.26.07-.49-.03-.69-.1-.2-.88-2.12-1.21-2.91-.32-.78-.65-.68-.88-.68-.23 0-.49-.03-.75-.03s-.69.1-1.05.49c-.36.39-1.38 1.35-1.38 3.3 0 1.94 1.42 3.81 1.62 4.07.2.26 2.8 4.28 6.77 6 .95.41 1.69.65 2.27.84.95.3 1.81.26 2.49.16.76-.11 2.31-.95 2.64-1.87.33-.91.33-1.7.23-1.87-.1-.16-.36-.26-.75-.46z" />
               </svg>
               Inquiry Now
             </a>
             <div className="flex items-center">
-              <button
-                onClick={handleWishlistToggle}
-                className={`flex items-center justify-center w-11 h-11 rounded-full shadow-md transition transform hover:scale-110 ${
-                  isInWishlist ? "bg-red-500 text-white animate-pulse" : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                }`}
-              >
-                {isInWishlist ? <MdFavorite size={22} /> : <MdFavoriteBorder size={22} />}
-              </button>
             </div>
           </div>
 
-          {(Role === "admin" || (Role === "seller" && product?.seller === userId)) && (
+          {(Role === "admin" ||
+            (Role === "seller" && product?.seller === userId)) && (
             <div className="mt-6 space-x-3">
               <button
                 onClick={() => {
@@ -791,7 +894,10 @@ const SingleProduct: FC = () => {
                     stock: product?.stock,
                     brand: product?.brand,
                     rating: product?.rating,
-                    category: typeof product?.category === "object" ? product.category.name : product?.category,
+                    category:
+                      typeof product?.category === "object"
+                        ? product.category.name
+                        : product?.category,
                     images: product?.images || [],
                   });
                   setIsModalOpen(true);
@@ -801,14 +907,19 @@ const SingleProduct: FC = () => {
                 {t("edit_product")}
               </button>
 
-              <button onClick={() => setIsDeleteModalOpen(true)} className="bg-red-600 text-white px-4 py-2 rounded">
+              <button
+                onClick={() => setIsDeleteModalOpen(true)}
+                className="bg-red-600 text-white px-4 py-2 rounded"
+              >
                 {t("delete_product")}
               </button>
             </div>
           )}
         </div>
       </div>
-      {similar.length > 0 && <ProductList title={t("similar_products")} products={similar} />}
+      {similar.length > 0 && (
+        <ProductList title={t("similar_products")} products={similar} />
+      )}
       <Modal
         isOpen={isModalOpen}
         onRequestClose={() => {
@@ -822,7 +933,10 @@ const SingleProduct: FC = () => {
         <div className="overflow-y-auto h-[calc(100%-2rem)] pr-2 space-y-3">
           <form className="space-y-3">
             <div className="space-y-1">
-              <label htmlFor="title" className="text-sm font-medium text-gray-700">
+              <label
+                htmlFor="title"
+                className="text-sm font-medium text-gray-700"
+              >
                 {t("titleLabel")}
               </label>
               <input
@@ -834,12 +948,17 @@ const SingleProduct: FC = () => {
                 className="w-full p-2 border"
                 placeholder="Title"
               />
-              {formErrors.title && <p className="text-red-500 text-sm">{formErrors.title}</p>}
+              {formErrors.title && (
+                <p className="text-red-500 text-sm">{formErrors.title}</p>
+              )}
             </div>
 
             {/* Description Field */}
             <div className="space-y-1">
-              <label htmlFor="description" className="text-sm font-medium text-gray-700">
+              <label
+                htmlFor="description"
+                className="text-sm font-medium text-gray-700"
+              >
                 {t("descriptionLabel")}
               </label>
               <input
@@ -851,12 +970,17 @@ const SingleProduct: FC = () => {
                 className="w-full p-2 border"
                 placeholder="Description"
               />
-              {formErrors.description && <p className="text-red-500 text-sm">{formErrors.description}</p>}
+              {formErrors.description && (
+                <p className="text-red-500 text-sm">{formErrors.description}</p>
+              )}
             </div>
 
             {/* Price Field */}
             <div className="space-y-1">
-              <label htmlFor="price" className="text-sm font-medium text-gray-700">
+              <label
+                htmlFor="price"
+                className="text-sm font-medium text-gray-700"
+              >
                 {t("priceLabel")}
               </label>
               <input
@@ -868,19 +992,29 @@ const SingleProduct: FC = () => {
                 className="w-full p-2 border"
                 placeholder="Price"
               />
-              {formErrors.price && <p className="text-red-500 text-sm">{formErrors.price}</p>}
+              {formErrors.price && (
+                <p className="text-red-500 text-sm">{formErrors.price}</p>
+              )}
             </div>
 
             {/* Sale Price Field */}
             <div className="space-y-1">
-              <label htmlFor="salePrice" className="text-sm font-medium text-gray-700">
+              <label
+                htmlFor="salePrice"
+                className="text-sm font-medium text-gray-700"
+              >
                 {t("salePriceLabel")}
               </label>
               <input
                 type="number"
                 name="salePrice"
                 id="salePrice"
-                value={formData.salePrice !== undefined && formData.salePrice !== null ? formData.salePrice : ""}
+                value={
+                  formData.salePrice !== undefined &&
+                  formData.salePrice !== null
+                    ? formData.salePrice
+                    : ""
+                }
                 className="w-full p-2 border"
                 placeholder="Sale Price"
                 disabled // This disables the field
@@ -889,7 +1023,10 @@ const SingleProduct: FC = () => {
 
             {/* Discount Percentage Field */}
             <div className="space-y-1">
-              <label htmlFor="discountPercentage" className="text-sm font-medium text-gray-700">
+              <label
+                htmlFor="discountPercentage"
+                className="text-sm font-medium text-gray-700"
+              >
                 {t("discountLabel")}
               </label>
               <input
@@ -903,7 +1040,11 @@ const SingleProduct: FC = () => {
                 min="0"
                 max="100"
               />
-              {formErrors.discountPercentage && <p className="text-red-500 text-sm">{formErrors.discountPercentage}</p>}
+              {formErrors.discountPercentage && (
+                <p className="text-red-500 text-sm">
+                  {formErrors.discountPercentage}
+                </p>
+              )}
             </div>
 
             {/* Stock Quantity Field */}
@@ -924,7 +1065,10 @@ const SingleProduct: FC = () => {
             </div> */}
 
             <div className="space-y-1 mb-4">
-              <label htmlFor="rating" className="text-sm font-medium text-gray-700">
+              <label
+                htmlFor="rating"
+                className="text-sm font-medium text-gray-700"
+              >
                 Average Rating
               </label>
               <input
@@ -941,7 +1085,10 @@ const SingleProduct: FC = () => {
 
             {/* Brand Field */}
             <div className="space-y-1">
-              <label htmlFor="brand" className="text-sm font-medium text-gray-700">
+              <label
+                htmlFor="brand"
+                className="text-sm font-medium text-gray-700"
+              >
                 {t("brandLabel")}
               </label>
               <input
@@ -953,12 +1100,18 @@ const SingleProduct: FC = () => {
                 className="w-full p-2 border"
                 placeholder="Brand"
               />
-              {formErrors.brand && <p className="text-red-500 text-sm">{formErrors.brand}</p>}
+              {formErrors.brand && (
+                <p className="text-red-500 text-sm">{formErrors.brand}</p>
+              )}
             </div>
 
             {/* Buttons */}
             <div className="flex justify-between space-x-2">
-              <button type="button" onClick={handleUpdateProduct} className="w-full bg-blue-600 text-white p-2 rounded">
+              <button
+                type="button"
+                onClick={handleUpdateProduct}
+                className="w-full bg-blue-600 text-white p-2 rounded"
+              >
                 {t("update")}
               </button>
               <button
@@ -979,12 +1132,20 @@ const SingleProduct: FC = () => {
         onRequestClose={() => setIsDeleteModalOpen(false)}
         className="bg-white p-6 rounded-md shadow-md max-w-md mx-auto mt-20"
       >
-        <h2 className="text-xl font-bold mb-4">{t("confirm_delete_product")}</h2>
+        <h2 className="text-xl font-bold mb-4">
+          {t("confirm_delete_product")}
+        </h2>
         <div className="flex justify-between space-x-2">
-          <button onClick={handleDeleteProduct} className="w-full bg-red-600 text-white p-2 rounded">
+          <button
+            onClick={handleDeleteProduct}
+            className="w-full bg-red-600 text-white p-2 rounded"
+          >
             {t("yes_delete")}
           </button>
-          <button onClick={() => setIsDeleteModalOpen(false)} className="w-full bg-gray-600 text-white p-2 rounded">
+          <button
+            onClick={() => setIsDeleteModalOpen(false)}
+            className="w-full bg-gray-600 text-white p-2 rounded"
+          >
             {t("cancel")}
           </button>
         </div>
@@ -999,7 +1160,9 @@ const SingleProduct: FC = () => {
               <li key={index} className="border p-2 rounded">
                 <div className="flex items-center">
                   <RatingStar rating={review.rating} />
-                  <span className="ml-2 font-medium">{review.user?.userName}</span>
+                  <span className="ml-2 font-medium">
+                    {review.user?.userName}
+                  </span>
                 </div>
                 <p>{review.comment}</p>
               </li>
@@ -1016,10 +1179,14 @@ const SingleProduct: FC = () => {
             <Rating.default
               fractions={10}
               initialRating={newReview.rating}
-              onChange={(value: number) => setNewReview({ ...newReview, rating: value })}
+              onChange={(value: number) =>
+                setNewReview({ ...newReview, rating: value })
+              }
               emptySymbol={<FaRegStar size={30} className="text-gray-400" />}
               fullSymbol={<FaStar size={30} className="text-yellow-400" />}
-              placeholderSymbol={<FaStarHalfAlt size={30} className="text-yellow-300" />}
+              placeholderSymbol={
+                <FaStarHalfAlt size={30} className="text-yellow-300" />
+              }
             />
           </div>
 
@@ -1028,9 +1195,14 @@ const SingleProduct: FC = () => {
             className="w-full border p-2 mt-2"
             placeholder={t("Writeyourcomment")}
             value={newReview.comment}
-            onChange={(e) => setNewReview({ ...newReview, comment: e.target.value })}
+            onChange={(e) =>
+              setNewReview({ ...newReview, comment: e.target.value })
+            }
           />
-          <button onClick={handleReviewSubmit} className="bg-blue-600 text-white px-4 py-2 mt-2 rounded w-full">
+          <button
+            onClick={handleReviewSubmit}
+            className="bg-blue-600 text-white px-4 py-2 mt-2 rounded w-full"
+          >
             {t("SubmitReview")}
           </button>
         </div>
@@ -1051,7 +1223,11 @@ const SingleProduct: FC = () => {
               </button>
               <img
                 src={
-                  typeof selectedImg === "string" ? selectedImg : selectedImg ? URL.createObjectURL(selectedImg) : ""
+                  typeof selectedImg === "string"
+                    ? selectedImg
+                    : selectedImg
+                    ? URL.createObjectURL(selectedImg)
+                    : ""
                 }
                 alt="Zoomed"
                 className="w-full h-auto object-contain max-h-[80vh] mx-auto"

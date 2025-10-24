@@ -1,4 +1,4 @@
-import { useState, FormEvent,useEffect } from "react";
+import { useState, FormEvent, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import BASE_URL from "../config/apiconfig";
@@ -9,19 +9,30 @@ const ResetPassword = () => {
   const { token } = useParams<{ token: string }>();
   const navigate = useNavigate();
   const language = localStorage.getItem("language") || "en";
-useEffect(() => {
-  i18n.changeLanguage(language);
-// eslint-disable-next-line react-hooks/exhaustive-deps
-}, [language]);
+  useEffect(() => {
+    i18n.changeLanguage(language);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [language]);
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
+
+  const passwordRegex =
+    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#^()\-_=+{}[\]|;:'",.<>\/]).{8,}$/;
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
 
     if (!newPassword || !confirmPassword) {
       toast.error(t("reset.fillFields"));
+      return;
+    }
+
+    // Password strength validation
+    if (!passwordRegex.test(newPassword)) {
+      toast.error(
+          "Password must be at least 8 characters and include uppercase, lowercase, number, and special character."
+      );
       return;
     }
 
@@ -33,14 +44,17 @@ useEffect(() => {
     setLoading(true);
 
     try {
-      const response = await fetch(`${BASE_URL}/users/reset-password/${token}`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Accept-Language": language,
-        },
-        body: JSON.stringify({ newPassword }),
-      });
+      const response = await fetch(
+        `${BASE_URL}/users/reset-password/${token}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Accept-Language": language,
+          },
+          body: JSON.stringify({ newPassword }),
+        }
+      );
 
       const data = await response.json();
 
@@ -50,8 +64,6 @@ useEffect(() => {
       }
 
       toast.success(data.message || t("reset.success"));
-      // window.location.reload();
-      // localStorage.removeItem("token");
       setTimeout(() => navigate("/login"), 3000);
     } catch (error) {
       toast.error(t("reset.serverError"));
@@ -63,7 +75,9 @@ useEffect(() => {
   return (
     <div className="min-h-screen flex justify-center items-center bg-gray-100">
       <div className="bg-white p-6 rounded-lg shadow-md w-full max-w-md">
-        <h2 className="text-2xl font-semibold text-center mb-6">{t("reset.title")}</h2>
+        <h2 className="text-2xl font-semibold text-center mb-6">
+          {t("reset.title")}
+        </h2>
         <form onSubmit={handleSubmit} className="space-y-4">
           <input
             type="password"

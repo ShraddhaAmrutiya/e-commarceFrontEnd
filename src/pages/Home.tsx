@@ -97,12 +97,12 @@ const Home: FC = () => {
               <div className="text-3xl mb-3">📞</div>
               <p className="text-gray-700 font-semibold mb-2">WhatsApp</p>
               <a
-                href="https://wa.me/7874501471"
+                href="https://wa.me/9033094705"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-resin-600 hover:text-resin-500 font-medium transition-colors duration-300"
               >
-                +91 7874501471
+                +91 9033094705
               </a>
             </div>
             
@@ -140,7 +140,7 @@ const Home: FC = () => {
             with ❤️ in India.
           </p>
           <div className="mt-4 flex justify-center space-x-6">
-            <a href="https://wa.me/7874501471" target="_blank" rel="noopener noreferrer" 
+            <a href="https://wa.me/9033094705" target="_blank" rel="noopener noreferrer" 
                className="text-resin-600 hover:text-resin-500 transition-colors duration-300 text-lg">
               📞 WhatsApp
             </a>
