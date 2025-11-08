@@ -1,8 +1,6 @@
 
 import { FC, useEffect } from "react";
-// import HeroSection from "../components/HeroSection";
 import SlidingBannerq from "./SlidingBanner";
-// import Features from "../components/Features";
 import TrendingProducts from "../components/TrendingProducts";
 import { useNavigate } from "react-router-dom";
 
@@ -131,24 +129,11 @@ const Home: FC = () => {
         <div className="absolute bottom-4 left-1/3 w-1.5 h-1.5 bg-ocean-400 rounded-full animate-pulse-slow" style={{animationDelay: '2s'}}></div>
         
         <div className="relative z-10">
-          <p className="text-sm sm:text-base md:text-lg text-gray-700 dark:text-gray-300 italic mb-4 font-playfair">
-            "Art is not what you see, but what you make others see." – Edgar Degas
-          </p>
           <p className="text-xs sm:text-sm md:text-base text-gray-600 dark:text-gray-400">
             © {new Date().getFullYear()}{" "}
             <span className="font-bold resin-text-gradient">Aaraksha Resin Art</span> – Crafted
             with ❤️ in India.
           </p>
-          <div className="mt-4 flex justify-center space-x-6">
-            <a href="https://wa.me/9033094705" target="_blank" rel="noopener noreferrer" 
-               className="text-resin-600 hover:text-resin-500 transition-colors duration-300 text-lg">
-              📞 WhatsApp
-            </a>
-            <a href="https://www.instagram.com/aaraksha_resin__art?igsh=MTl3aHIxN2d2c2U5cg==" target="_blank" rel="noopener noreferrer"
-               className="text-ocean-600 hover:text-ocean-500 transition-colors duration-300 text-lg">
-              📷 Instagram
-            </a>
-          </div>
         </div>
       </footer>
     </div>

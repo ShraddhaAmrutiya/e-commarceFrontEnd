@@ -157,7 +157,7 @@ const ProductCard: FC<Product> = ({
         <p className="text-resin-600 text-xs font-semibold uppercase tracking-wider">
           {typeof category === "string"
             ? category
-            : category?.name ?? t("unknownCategory")}
+            : category?.name ?? " "}
         </p>
 
         {/* Product Title */}

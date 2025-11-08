@@ -90,12 +90,12 @@ const SingleProduct: FC = () => {
 
       const { images, category } = data.product;
 
-      const categoryName =
-        typeof category === "object" && category?.name
-          ? category.name
-          : typeof category === "string"
-          ? category
-          : "Unknown";
+   const categoryName =
+  typeof category === "object" && category?.name
+    ? category.name
+    : typeof category === "string"
+    ? category
+    : "";
 
       const fullImageUrls = Array.isArray(images)
         ? images.map((img) => (img.startsWith("/") ? `${BASE_URL}${img}` : img))
@@ -123,15 +123,25 @@ const SingleProduct: FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [_id]);
 
-  useEffect(() => {
-    if (!Category) return;
+useEffect(() => {
+  if (!Category) return;
 
-    fetch(`${BASE_URL}/products/category/${Category}`)
-      .then((res) => res.json())
-      .then((data) => {
-        setSimilar(data.products.filter((p: Product) => p._id !== _id));
-      });
-  }, [Category, _id]);
+  fetch(`${BASE_URL}/products/category/${Category}`)
+    .then((res) => res.json())
+    .then((data) => {
+      console.log("Fetched similar products:", data);
+
+      const cleaned = data.products
+        .filter((p: Product) => p._id !== _id)
+        .map((p: Product) => {
+          const { category, ...rest } = p;   // ✅ REMOVE category
+          return rest;
+        });
+
+      setSimilar(cleaned);
+    });
+}, [Category, _id]);
+
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -829,7 +839,7 @@ const SingleProduct: FC = () => {
                   )}
                 {product.description && (
                   <tr>
-                    <td className="pr-2 font-bold">{t("description")}</td>
+                    <td className="pr-2 font-bold">{t("size of artical")}</td>
                     <td>{product.description}</td>
                   </tr>
                 )}
@@ -842,43 +852,41 @@ const SingleProduct: FC = () => {
             </p>
           )}
 
-          <div className="flex flex-col sm:flex-row gap-4 mt-8">
-            <button
-              onClick={buyNow}
-              className="flex items-center justify-center gap-2 px-8 py-4 rounded-xl bg-gradient-to-r from-yellow-400 to-orange-500 text-white font-semibold shadow-lg hover:from-yellow-500 hover:to-orange-600 transform hover:scale-105 transition"
-            >
-              <FaHandHoldingDollar className="text-lg" />
-              {t("buy now")}
-            </button>
+         <div className="flex flex-col sm:flex-row gap-4 mt-8">
+  <button
+    onClick={buyNow}
+    className="flex items-center justify-center gap-2 px-8 py-4 rounded-2xl bg-gradient-to-r from-amber-400 to-orange-500 text-white font-semibold shadow-lg hover:from-amber-500 hover:to-orange-600 hover:scale-105 transition duration-300"
+  >
+    <FaHandHoldingDollar className="text-lg" />
+    {t("buy now")}
+  </button>
 
-            {/* Add to Cart */}
-            <button
-              onClick={addCart}
-              className="flex items-center justify-center gap-2 px-8 py-4 rounded-xl bg-gradient-to-r from-yellow-400 to-orange-500 text-white font-semibold shadow-lg hover:from-yellow-500 hover:to-orange-600 transform hover:scale-105 transition"
-            >
-              <AiOutlineShoppingCart className="text-lg" />
-              {t("add to cart")}
-            </button>
+  <button
+    onClick={addCart}
+    className="flex items-center justify-center gap-2 px-8 py-4 rounded-2xl bg-gradient-to-r from-amber-400 to-orange-500 text-white font-semibold shadow-lg hover:from-amber-500 hover:to-orange-600 hover:scale-105 transition duration-300"
+  >
+    <AiOutlineShoppingCart className="text-lg" />
+    {t("add to cart")}
+  </button>
 
-            <a
-              href={`https://wa.me/919033094705?text=Hi, I'm interested in ${product?.title} (Price: ₹${product?.price}). Here is the product link: ${window.location.href}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center justify-center gap-2 bg-gradient-to-r from-green-500 to-green-700 text-white font-semibold p-2 px-4 rounded-2xl shadow-lg hover:scale-105 transition-transform duration-300"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 32 32"
-                fill="currentColor"
-                className="w-5 h-5"
-              >
-                <path d="M16 .5C7.44.5.5 7.44.5 16c0 2.83.74 5.58 2.15 8.01L.5 31.5l7.68-2.07A15.45 15.45 0 0016 31.5C24.56 31.5 31.5 24.56 31.5 16S24.56.5 16 .5zm0 28.45c-2.6 0-5.13-.69-7.35-1.99l-.53-.31-4.56 1.23 1.23-4.56-.31-.53A12.43 12.43 0 013.55 16C3.55 9.14 9.14 3.55 16 3.55S28.45 9.14 28.45 16 22.86 28.95 16 28.95zm7.02-8.4c-.39-.2-2.31-1.14-2.67-1.27-.36-.13-.62-.2-.88.2-.26.39-1.01 1.27-1.24 1.53-.23.26-.46.29-.85.1-.39-.2-1.65-.61-3.14-1.94-1.16-1.04-1.94-2.31-2.17-2.7-.23-.39-.02-.6.17-.79.17-.17.39-.46.59-.69.2-.23.26-.39.39-.65.13-.26.07-.49-.03-.69-.1-.2-.88-2.12-1.21-2.91-.32-.78-.65-.68-.88-.68-.23 0-.49-.03-.75-.03s-.69.1-1.05.49c-.36.39-1.38 1.35-1.38 3.3 0 1.94 1.42 3.81 1.62 4.07.2.26 2.8 4.28 6.77 6 .95.41 1.69.65 2.27.84.95.3 1.81.26 2.49.16.76-.11 2.31-.95 2.64-1.87.33-.91.33-1.7.23-1.87-.1-.16-.36-.26-.75-.46z" />
-              </svg>
-              Inquiry Now
-            </a>
-            <div className="flex items-center">
-            </div>
-          </div>
+  <a
+    href={`https://wa.me/919033094705?text=Hi, I'm interested in ${product?.title} (Price: ₹${product?.price}). Here is the product link: ${window.location.href}`}
+    target="_blank"
+    rel="noopener noreferrer"
+    className="flex items-center justify-center gap-2 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-semibold px-6 py-4 rounded-2xl shadow-lg hover:scale-105 transition-transform duration-300"
+  >
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 32 32"
+      fill="currentColor"
+      className="w-5 h-5"
+    >
+      <path d="M16 .5C7.44.5.5 7.44.5 16c0 2.83.74 5.58 2.15 8.01L.5 31.5l7.68-2.07A15.45 15.45 0 0016 31.5C24.56 31.5 31.5 24.56 31.5 16S24.56.5 16 .5zm0 28.45c-2.6 0-5.13-.69-7.35-1.99l-.53-.31-4.56 1.23 1.23-4.56-.31-.53A12.43 12.43 0 013.55 16C3.55 9.14 9.14 3.55 16 3.55S28.45 9.14 28.45 16 22.86 28.95 16 28.95zm7.02-8.4c-.39-.2-2.31-1.14-2.67-1.27-.36-.13-.62-.2-.88.2-.26.39-1.01 1.27-1.24 1.53-.23.26-.46.29-.85.1-.39-.2-1.65-.61-3.14-1.94-1.16-1.04-1.94-2.31-2.17-2.7-.23-.39-.02-.6.17-.79.17-.17.39-.46.59-.69.2-.23.26-.39.39-.65.13-.26.07-.49-.03-.69-.1-.2-.88-2.12-1.21-2.91-.32-.78-.65-.68-.88-.68-.23 0-.49-.03-.75-.03s-.69.1-1.05.49c-.36.39-1.38 1.35-1.38 3.3 0 1.94 1.42 3.81 1.62 4.07.2.26 2.8 4.28 6.77 6 .95.41 1.69.65 2.27.84.95.3 1.81.26 2.49.16.76-.11 2.31-.95 2.64-1.87.33-.91.33-1.7.23-1.87-.1-.16-.36-.26-.75-.46z" />
+    </svg>
+    Inquiry Now
+  </a>
+</div>
+
 
           {(Role === "admin" ||
             (Role === "seller" && product?.seller === userId)) && (
@@ -1047,23 +1055,7 @@ const SingleProduct: FC = () => {
               )}
             </div>
 
-            {/* Stock Quantity Field */}
-            {/* <div className="space-y-1">
-              <label htmlFor="stock" className="text-sm font-medium text-gray-700">
-                {t("stockLabel")}
-              </label>
-              <input
-                type="number"
-                name="stock"
-                id="stock"
-                value={formData.stock || ""}
-                onChange={handleInputChange}
-                className="w-full p-2 border"
-                placeholder="Stock Quantity"
-              />
-              {formErrors.stock && <p className="text-red-500 text-sm">{formErrors.stock}</p>}
-            </div> */}
-
+            
             <div className="space-y-1 mb-4">
               <label
                 htmlFor="rating"
