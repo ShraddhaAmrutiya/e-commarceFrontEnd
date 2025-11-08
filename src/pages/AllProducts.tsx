@@ -352,7 +352,7 @@ const AllProducts: FC = () => {
                   value={selectedCategory}
                   onChange={(e) => setSelectedCategory(e.target.value)}
                 >
-                  <option value="all">{t("allCategories")}</option>
+                  <option value="all">{t("All Categories")}</option>
                   {categories.map((cat) => (
                     <option key={cat} value={cat}>
                       {cat}
