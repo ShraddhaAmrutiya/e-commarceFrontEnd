@@ -8,7 +8,7 @@ import { useTranslation } from "react-i18next";
 interface Product {
   productId: string;
   title: string;
-  images: string[];
+  // images: string[];
   price: number;
   salePrice?: number;
   stock?: number;
@@ -39,9 +39,9 @@ const CheckoutDirectPage = () => {
       const parsed: Product = JSON.parse(storedItem);
 
       // Ensure images is an array
-      if (parsed && parsed.images && !Array.isArray(parsed.images)) {
-        parsed.images = [parsed.images];
-      }
+      // if (parsed && parsed.images && !Array.isArray(parsed.images)) {
+      //   parsed.images = [parsed.images];
+      // }
 
       setProduct(parsed);
     } catch {
@@ -94,7 +94,7 @@ const CheckoutDirectPage = () => {
   const price = product.salePrice ?? product.price;
 
   return (
-    <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8">
+    <div className="min-h-screen max-w-3xl mx-auto px-4 sm:px-6 py-8">
       {/* Back Button */}
       <div className="flex justify-end mb-4">
         <button
@@ -107,12 +107,12 @@ const CheckoutDirectPage = () => {
 
       {/* Heading */}
       <h2 className="text-2xl font-bold mb-6 text-center">
-        {t("confirmOrder") || "Confirm Your Order"}
+        {t("Confirm Your Order") || "Confirm Your Order"}
       </h2>
 
       {/* Product Card */}
       <div className="bg-white rounded-xl shadow-md p-4 sm:p-6 flex flex-col sm:flex-row items-center sm:items-start gap-6">
-        <img
+        {/* <img
           src={
             product.images?.[0]
               ? product.images[0].startsWith("/")
@@ -122,7 +122,7 @@ const CheckoutDirectPage = () => {
           }
           alt={product.title}
           className="w-28 h-28 sm:w-32 sm:h-32 object-cover rounded-md"
-        />
+        /> */}
 
         <div className="flex-1 w-full">
           <h3 className="text-lg sm:text-xl font-semibold">{product.title}</h3>

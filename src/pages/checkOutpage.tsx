@@ -244,77 +244,77 @@ const CheckoutPage = () => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-4 sm:p-6">
-      {/* Back to Cart Button */}
-      <button
-        onClick={handleBackToCart}
-        className="mb-4 px-4 sm:px-6 py-2 sm:py-3 bg-gray-300 text-gray-800 text-base sm:text-lg rounded-xl hover:bg-gray-400 transition w-full sm:w-auto"
-      >
-        {t("checkout.backToCart")}
-      </button>
-
-      <h2 className="text-2xl sm:text-3xl font-bold mb-6 text-center">
-        {t("checkout.titlecheckout")}
-      </h2>
-
-      {message && (
-        <div
-          className={`text-center mb-4 text-base sm:text-lg ${
-            message.includes(t("checkout.orderSuccess")) ? "text-green-600" : "text-red-500"
-          }`}
-        >
-          {message}
-        </div>
-      )}
-
-      <div className="grid gap-4 sm:gap-6">
-        {cartItems.map((item: CartItem) => (
-          <div
-            key={item._id}
-            className="flex flex-col sm:flex-row items-center gap-4 bg-white shadow-md rounded-2xl p-4"
-          >
-            <img
-              src={
-                item.productId.images?.[0]
-                  ? item.productId.images[0].startsWith("/")
-                    ? `${BASE_URL}${item.productId.images[0]}`
-                    : item.productId.images[0]
-                  : "/placeholder.jpg"
-              }
-              alt={item.productId.title}
-              className="w-28 h-28 sm:w-24 sm:h-24 object-cover rounded-lg"
-            />
-
-            <div className="flex-1 text-center sm:text-left">
-              <h3 className="text-lg sm:text-xl font-semibold">{item.productId.title}</h3>
-              <p className="text-gray-600 text-sm sm:text-base">
-                {t("checkout.quantity")}: {item.quantity}
-              </p>
-              <p className="text-gray-600 text-sm sm:text-base">
-                {t("checkout.price")}: ₹{item.productId.salePrice ?? item.productId.price}
-              </p>
-              <p className="text-gray-800 font-medium text-sm sm:text-base">
-                {t("checkout.total")}: ₹
-                {(item.productId.salePrice ?? item.productId.price) * item.quantity}
-              </p>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      <div className="mt-8 flex flex-col items-center sm:items-end">
-        <div className="text-lg sm:text-xl font-bold mb-4">
-          {t("checkout.totalAmount")}: ₹{totalAmount.toFixed(2)}
-        </div>
+        <div className="min-h-screen w-full bg-gray-100 flex flex-col justify-start max-w-3xl mx-auto px-4 sm:px-6 py-8">
+        {/* Back to Cart Button */}
         <button
-          onClick={handlePlaceOrder}
-          className="w-full sm:w-auto px-4 sm:px-6 py-2 sm:py-3 bg-blue-600 hover:bg-blue-700 text-white text-base sm:text-lg rounded-xl shadow-md transition duration-200"
-          disabled={loading}
+          onClick={handleBackToCart}
+          className="mb-4 px-4 sm:px-6 py-2 sm:py-3 bg-gray-300 text-gray-800 text-base sm:text-lg rounded-xl hover:bg-gray-400 transition w-full sm:w-auto"
         >
-          {loading ? t("checkout.placingOrder") : t("checkout.placeOrder")}
+          {t("checkout.backToCart")}
         </button>
+
+        <h2 className="text-2xl sm:text-3xl font-bold mb-6 text-center">
+          {t("checkout.titlecheckout")}
+        </h2>
+
+        {message && (
+          <div
+            className={`text-center mb-4 text-base sm:text-lg ${
+              message.includes(t("checkout.orderSuccess")) ? "text-green-600" : "text-red-500"
+            }`}
+          >
+            {message}
+          </div>
+        )}
+
+        <div className="grid gap-4 sm:gap-6">
+          {cartItems.map((item: CartItem) => (
+            <div
+              key={item._id}
+              className="flex flex-col sm:flex-row items-center gap-4 bg-white shadow-md rounded-2xl p-4"
+            >
+              <img
+                src={
+                  item.productId.images?.[0]
+                    ? item.productId.images[0].startsWith("/")
+                      ? `${BASE_URL}${item.productId.images[0]}`
+                      : item.productId.images[0]
+                    : "/placeholder.jpg"
+                }
+                alt={item.productId.title}
+                className="w-28 h-28 sm:w-24 sm:h-24 object-cover rounded-lg"
+              />
+
+              <div className="flex-1 text-center sm:text-left">
+                <h3 className="text-lg sm:text-xl font-semibold">{item.productId.title}</h3>
+                <p className="text-gray-600 text-sm sm:text-base">
+                  {t("checkout.quantity")}: {item.quantity}
+                </p>
+                <p className="text-gray-600 text-sm sm:text-base">
+                  {t("checkout.price")}: ₹{item.productId.salePrice ?? item.productId.price}
+                </p>
+                <p className="text-gray-800 font-medium text-sm sm:text-base">
+                  {t("checkout.total")}: ₹
+                  {(item.productId.salePrice ?? item.productId.price) * item.quantity}
+                </p>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div className="mt-8 flex flex-col items-center sm:items-end">
+          <div className="text-lg sm:text-xl font-bold mb-4">
+            {t("checkout.totalAmount")}: ₹{totalAmount.toFixed(2)}
+          </div>
+          <button
+            onClick={handlePlaceOrder}
+            className="w-full sm:w-auto px-4 sm:px-6 py-2 sm:py-3 bg-blue-600 hover:bg-blue-700 text-white text-base sm:text-lg rounded-xl shadow-md transition duration-200"
+            disabled={loading}
+          >
+            {loading ? t("checkout.placingOrder") : t("checkout.placeOrder")}
+          </button>
+        </div>
       </div>
-    </div>
   );
 };
 
