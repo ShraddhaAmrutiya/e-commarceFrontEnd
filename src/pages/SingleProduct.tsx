@@ -12,10 +12,7 @@ import ProductList from "../components/ProductList";
 import useAuth from "../hooks/useAuth";
 import { MdFavoriteBorder, MdFavorite } from "react-icons/md";
 import { useAppDispatch, useAppSelector } from "../redux/hooks";
-import {
-  fetchWishlistItems,
-  removeWishlistItem,
-} from "../redux/features/WishlistSlice";
+import { fetchWishlistItems, removeWishlistItem } from "../redux/features/WishlistSlice";
 import { RootState } from "../redux/store";
 import Modal from "react-modal";
 import BASE_URL from "../config/apiconfig";
@@ -57,9 +54,7 @@ const SingleProduct: FC = () => {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [imageToDelete, setImageToDelete] = useState<number | null>(null);
   const language = localStorage.getItem("language") || "en";
-  const userId =
-    useAppSelector((state) => state.authReducer.userId) ||
-    localStorage.getItem("userId");
+  const userId = useAppSelector((state) => state.authReducer.userId) || localStorage.getItem("userId");
   const [reviews, setReviews] = useState<Review[]>([]);
   const [newReview, setNewReview] = useState<Review>({
     rating: 0,
@@ -90,12 +85,8 @@ const SingleProduct: FC = () => {
 
       const { images, category } = data.product;
 
-   const categoryName =
-  typeof category === "object" && category?.name
-    ? category.name
-    : typeof category === "string"
-    ? category
-    : "";
+      const categoryName =
+        typeof category === "object" && category?.name ? category.name : typeof category === "string" ? category : "";
 
       const fullImageUrls = Array.isArray(images)
         ? images.map((img) => (img.startsWith("/") ? `${BASE_URL}${img}` : img))
@@ -123,29 +114,27 @@ const SingleProduct: FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [_id]);
 
-useEffect(() => {
-  if (!Category) return;
+  useEffect(() => {
+    if (!Category) return;
 
-  fetch(`${BASE_URL}/products/category/${Category}`)
-    .then((res) => res.json())
-    .then((data) => {
-      console.log("Fetched similar products:", data);
+    fetch(`${BASE_URL}/products/category/${Category}`)
+      .then((res) => res.json())
+      .then((data) => {
+        console.log("Fetched similar products:", data);
 
-      const cleaned = data.products
-        .filter((p: Product) => p._id !== _id)
-        .map((p: Product) => {
-          const { category, ...rest } = p;   // ✅ REMOVE category
-          return rest;
-        });
+        const cleaned = data.products
+          .filter((p: Product) => p._id !== _id)
+          .map((p: Product) => {
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            const { category, ...rest } = p; // 
+            return rest;
+          });
 
-      setSimilar(cleaned);
-    });
-}, [Category, _id]);
+        setSimilar(cleaned);
+      });
+  }, [Category, _id]);
 
-
-  const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
 
     if (name === "discountPercentage") {
@@ -168,9 +157,7 @@ useEffect(() => {
       }
     } else if (name === "price") {
       const price = parseFloat(value);
-      const discount = parseFloat(
-        formData.discountPercentage?.toString() || "0"
-      );
+      const discount = parseFloat(formData.discountPercentage?.toString() || "0");
 
       if (!isNaN(price) && !isNaN(discount)) {
         const salePrice = price - (price * discount) / 100;
@@ -197,25 +184,18 @@ useEffect(() => {
   const validateForm = () => {
     const errors: { [key: string]: string } = {};
 
-    if (!formData.title || formData.title.trim() === "")
-      errors.title = t("validation.titleRequired");
-    if (formData.price === undefined || formData.price <= 0)
-      errors.price = t("validation.pricePositive");
+    if (!formData.title || formData.title.trim() === "") errors.title = t("validation.titleRequired");
+    if (formData.price === undefined || formData.price <= 0) errors.price = t("validation.pricePositive");
     if (
       formData.discountPercentage !== undefined &&
       (formData.discountPercentage < 0 || formData.discountPercentage > 100)
     ) {
       errors.discountPercentage = t("validation.discountRange");
     }
-    if (formData.stock === undefined || formData.stock < 0)
-      errors.stock = t("validation.stockPositive");
-    if (
-      formData.rating !== undefined &&
-      (formData.rating < 0 || formData.rating > 5)
-    )
+    if (formData.stock === undefined || formData.stock < 0) errors.stock = t("validation.stockPositive");
+    if (formData.rating !== undefined && (formData.rating < 0 || formData.rating > 5))
       errors.rating = t("validation.ratingRange");
-    if (!formData.brand || formData.brand.trim() === "")
-      errors.brand = t("validation.brandRequired");
+    if (!formData.brand || formData.brand.trim() === "") errors.brand = t("validation.brandRequired");
 
     return errors;
   };
@@ -232,25 +212,16 @@ useEffect(() => {
       const formDataToSend = new FormData();
 
       if (formData.title) formDataToSend.append("title", formData.title);
-      if (formData.price !== undefined)
-        formDataToSend.append("price", String(formData.price));
+      if (formData.price !== undefined) formDataToSend.append("price", String(formData.price));
       if (formData.category) {
-        const categoryValue =
-          typeof formData.category === "string"
-            ? formData.category
-            : formData.category.name;
+        const categoryValue = typeof formData.category === "string" ? formData.category : formData.category.name;
 
         formDataToSend.append("category", categoryValue);
       }
-      if (formData.description)
-        formDataToSend.append("description", formData.description);
+      if (formData.description) formDataToSend.append("description", formData.description);
       if (formData.discountPercentage !== undefined)
-        formDataToSend.append(
-          "discountPercentage",
-          String(formData.discountPercentage)
-        );
-      if (formData.stock !== undefined)
-        formDataToSend.append("stock", String(formData.stock));
+        formDataToSend.append("discountPercentage", String(formData.discountPercentage));
+      if (formData.stock !== undefined) formDataToSend.append("stock", String(formData.stock));
       if (formData.brand) formDataToSend.append("brand", formData.brand);
 
       const res = await fetch(`${BASE_URL}/products/update/${_id}`, {
@@ -289,8 +260,7 @@ useEffect(() => {
       });
 
       const data = await res.json();
-      if (!res.ok)
-        throw new Error(data.message || t("validation.Deletefailed"));
+      if (!res.ok) throw new Error(data.message || t("validation.Deletefailed"));
 
       const userId = localStorage.getItem("userId");
       if (userId) {
@@ -318,9 +288,7 @@ useEffect(() => {
           toast.success(t("validation.removedWwishlist"));
         })
         .catch((error) => {
-          toast.error(
-            t("validation.failedRemoveItemWishlist", ` ${error.message}`)
-          );
+          toast.error(t("validation.failedRemoveItemWishlist", ` ${error.message}`));
         });
 
       toast.success(t("validation.productDelete"));
@@ -330,9 +298,7 @@ useEffect(() => {
     }
   };
 
-  const cartItems = useSelector(
-    (state: RootState) => state.cartReducer.cartItems
-  );
+  const cartItems = useSelector((state: RootState) => state.cartReducer.cartItems);
 
   const addCart = async () => {
     requireAuth(async () => {
@@ -341,15 +307,11 @@ useEffect(() => {
         return;
       }
 
-      const existingProductIndex = cartItems.findIndex(
-        (item) => item.productId._id === product._id
-      );
+      const existingProductIndex = cartItems.findIndex((item) => item.productId._id === product._id);
 
       const existingCartItem = cartItems[existingProductIndex];
       const maxQuantity = product.stock || 10; //
-      const newQuantity = existingCartItem
-        ? Math.min(existingCartItem.quantity + 1, maxQuantity)
-        : 1;
+      const newQuantity = existingCartItem ? Math.min(existingCartItem.quantity + 1, maxQuantity) : 1;
 
       if (existingCartItem && existingCartItem.quantity >= maxQuantity) {
         toast(t("maxQuantityReached"));
@@ -500,16 +462,12 @@ useEffect(() => {
     return Number((sum / reviews.length).toFixed(1));
   }, [reviews]);
 
-  const wishlistItems = useAppSelector(
-    (state) => state.wishlistReducer.wishlistItems
-  );
+  const wishlistItems = useAppSelector((state) => state.wishlistReducer.wishlistItems);
 
   useEffect(() => {
     if (product) {
       const isProductInWishlist = wishlistItems.some((wishlistItem) =>
-        wishlistItem.products.some(
-          (item) => item.productId && item.productId._id === product._id
-        )
+        wishlistItem.products.some((item) => item.productId && item.productId._id === product._id)
       );
       setIsInWishlist(isProductInWishlist);
     }
@@ -640,11 +598,7 @@ useEffect(() => {
           {selectedImg && (
             <div className="relative">
               <img
-                src={
-                  typeof selectedImg === "string"
-                    ? selectedImg
-                    : URL.createObjectURL(selectedImg)
-                }
+                src={typeof selectedImg === "string" ? selectedImg : URL.createObjectURL(selectedImg)}
                 alt={t("selected")}
                 className="h-80 w-full object-cover rounded border cursor-zoom-in"
                 onClick={() => setIsZoomOpen(true)}
@@ -654,16 +608,10 @@ useEffect(() => {
               <button
                 onClick={handleWishlistToggle}
                 className={`absolute top-3 right-3 flex items-center justify-center w-10 h-10 rounded-full shadow-md transition transform hover:scale-110 ${
-                  isInWishlist
-                    ? "bg-red-500 text-white animate-pulse"
-                    : "bg-white text-gray-700 hover:bg-gray-100"
+                  isInWishlist ? "bg-red-500 text-white animate-pulse" : "bg-white text-gray-700 hover:bg-gray-100"
                 }`}
               >
-                {isInWishlist ? (
-                  <MdFavorite size={20} />
-                ) : (
-                  <MdFavoriteBorder size={20} />
-                )}
+                {isInWishlist ? <MdFavorite size={20} /> : <MdFavoriteBorder size={20} />}
               </button>
             </div>
           )}
@@ -688,8 +636,7 @@ useEffect(() => {
                   /> */}
 
                   {/* Show Delete and Replace only to Admin or Product Owner Seller */}
-                  {(Role === "admin" ||
-                    (Role === "seller" && product?.seller === userId)) && (
+                  {(Role === "admin" || (Role === "seller" && product?.seller === userId)) && (
                     <>
                       <button
                         type="button"
@@ -705,11 +652,7 @@ useEffect(() => {
 
                       <button
                         type="button"
-                        onClick={() =>
-                          document
-                            .getElementById(`replace-input-${index}`)
-                            ?.click()
-                        }
+                        onClick={() => document.getElementById(`replace-input-${index}`)?.click()}
                         className="absolute bottom-1 left-1 bg-yellow-500 text-white text-xs px-1 rounded"
                       >
                         {t("replace")}
@@ -731,13 +674,10 @@ useEffect(() => {
               );
             })}
 
-            {(Role === "admin" ||
-              (Role === "seller" && product?.seller === userId)) && (
+            {(Role === "admin" || (Role === "seller" && product?.seller === userId)) && (
               <div
                 className={`flex flex-col items-center justify-center w-24 h-24 border border-dashed rounded cursor-pointer hover:bg-gray-100 ${
-                  (product?.images?.length ?? 0) >= 5
-                    ? "opacity-50 cursor-not-allowed"
-                    : ""
+                  (product?.images?.length ?? 0) >= 5 ? "opacity-50 cursor-not-allowed" : ""
                 }`}
                 onClick={() => {
                   if ((product?.images?.length ?? 0) >= 5) {
@@ -748,9 +688,7 @@ useEffect(() => {
                 <label
                   htmlFor="add-images"
                   className={`text-center text-sm ${
-                    (product?.images?.length ?? 0) >= 5
-                      ? "text-gray-300"
-                      : "text-gray-700"
+                    (product?.images?.length ?? 0) >= 5 ? "text-gray-300" : "text-gray-700"
                   }`}
                 >
                   + Add
@@ -775,12 +713,8 @@ useEffect(() => {
           {showDeleteConfirm && (
             <div className="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center">
               <div className="bg-white p-5 rounded-lg shadow-lg max-w-sm w-full">
-                <h2 className="text-lg font-semibold mb-2">
-                  {t("delete_image")}
-                </h2>
-                <p className="text-sm text-gray-600 mb-4">
-                  {t("delete_image_confirmation")}
-                </p>
+                <h2 className="text-lg font-semibold mb-2">{t("delete_image")}</h2>
+                <p className="text-sm text-gray-600 mb-4">{t("delete_image_confirmation")}</p>
                 <div className="flex justify-end gap-3">
                   <button
                     onClick={() => {
@@ -811,14 +745,9 @@ useEffect(() => {
 
         <div className="px-2 max-h-[80vh] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-400">
           <h2 className="text-2xl">{product?.title}</h2>
-          {product?.rating !== undefined && (
-            <RatingStar rating={averageRating} />
-          )}
+          {product?.rating !== undefined && <RatingStar rating={averageRating} />}
           {product?.price !== undefined && (
-            <PriceSection
-              discountPercentage={product.discountPercentage ?? 0}
-              price={product.price}
-            />
+            <PriceSection discountPercentage={product.discountPercentage ?? 0} price={product.price} />
           )}
 
           {product && (
@@ -830,13 +759,12 @@ useEffect(() => {
                     <td>{product.brand}</td>
                   </tr>
                 )}
-                {typeof product.category === "object" &&
-                  product.category?.name && (
-                    <tr>
-                      <td className="pr-2 font-bold">{t("category")}</td>
-                      <td>{product.category.name}</td>
-                    </tr>
-                  )}
+                {typeof product.category === "object" && product.category?.name && (
+                  <tr>
+                    <td className="pr-2 font-bold">{t("category")}</td>
+                    <td>{product.category.name}</td>
+                  </tr>
+                )}
                 {product.description && (
                   <tr>
                     <td className="pr-2 font-bold">{t("size of artical")}</td>
@@ -846,50 +774,39 @@ useEffect(() => {
               </tbody>
             </table>
           )}
-          {product?.stock === 0 && (
-            <p className="text-red-600 mt-4 font-semibold">
-              {t("out_of_stock")}
-            </p>
-          )}
+          {product?.stock === 0 && <p className="text-red-600 mt-4 font-semibold">{t("out_of_stock")}</p>}
 
-         <div className="flex flex-col sm:flex-row gap-4 mt-8">
-  <button
-    onClick={buyNow}
-    className="flex items-center justify-center gap-2 px-8 py-4 rounded-2xl bg-gradient-to-r from-amber-400 to-orange-500 text-white font-semibold shadow-lg hover:from-amber-500 hover:to-orange-600 hover:scale-105 transition duration-300"
-  >
-    <FaHandHoldingDollar className="text-lg" />
-    {t("buy now")}
-  </button>
+          <div className="flex flex-col sm:flex-row gap-3 mt-4">
+            <button
+              onClick={buyNow}
+              className="flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-amber-400 to-orange-500 text-white font-semibold shadow hover:from-amber-500 hover:to-orange-600 hover:scale-105 transition duration-300"
+            >
+              <FaHandHoldingDollar className="text-base" />
+              {t("buy now")}
+            </button>
 
-  <button
-    onClick={addCart}
-    className="flex items-center justify-center gap-2 px-8 py-4 rounded-2xl bg-gradient-to-r from-amber-400 to-orange-500 text-white font-semibold shadow-lg hover:from-amber-500 hover:to-orange-600 hover:scale-105 transition duration-300"
-  >
-    <AiOutlineShoppingCart className="text-lg" />
-    {t("add to cart")}
-  </button>
+            <button
+              onClick={addCart}
+              className="flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-amber-400 to-orange-500 text-white font-semibold shadow hover:from-amber-500 hover:to-orange-600 hover:scale-105 transition duration-300"
+            >
+              <AiOutlineShoppingCart className="text-base" />
+              {t("add to cart")}
+            </button>
 
-  <a
-    href={`https://wa.me/919033094705?text=Hi, I'm interested in ${product?.title} (Price: ₹${product?.price}). Here is the product link: ${window.location.href}`}
-    target="_blank"
-    rel="noopener noreferrer"
-    className="flex items-center justify-center gap-2 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-semibold px-6 py-4 rounded-2xl shadow-lg hover:scale-105 transition-transform duration-300"
-  >
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      viewBox="0 0 32 32"
-      fill="currentColor"
-      className="w-5 h-5"
-    >
-      <path d="M16 .5C7.44.5.5 7.44.5 16c0 2.83.74 5.58 2.15 8.01L.5 31.5l7.68-2.07A15.45 15.45 0 0016 31.5C24.56 31.5 31.5 24.56 31.5 16S24.56.5 16 .5zm0 28.45c-2.6 0-5.13-.69-7.35-1.99l-.53-.31-4.56 1.23 1.23-4.56-.31-.53A12.43 12.43 0 013.55 16C3.55 9.14 9.14 3.55 16 3.55S28.45 9.14 28.45 16 22.86 28.95 16 28.95zm7.02-8.4c-.39-.2-2.31-1.14-2.67-1.27-.36-.13-.62-.2-.88.2-.26.39-1.01 1.27-1.24 1.53-.23.26-.46.29-.85.1-.39-.2-1.65-.61-3.14-1.94-1.16-1.04-1.94-2.31-2.17-2.7-.23-.39-.02-.6.17-.79.17-.17.39-.46.59-.69.2-.23.26-.39.39-.65.13-.26.07-.49-.03-.69-.1-.2-.88-2.12-1.21-2.91-.32-.78-.65-.68-.88-.68-.23 0-.49-.03-.75-.03s-.69.1-1.05.49c-.36.39-1.38 1.35-1.38 3.3 0 1.94 1.42 3.81 1.62 4.07.2.26 2.8 4.28 6.77 6 .95.41 1.69.65 2.27.84.95.3 1.81.26 2.49.16.76-.11 2.31-.95 2.64-1.87.33-.91.33-1.7.23-1.87-.1-.16-.36-.26-.75-.46z" />
-    </svg>
-    Inquiry Now
-  </a>
-</div>
+            <a
+              href={`https://wa.me/919033094705?text=Hi, I'm interested in ${product?.title} (Price: ₹${product?.price}). Here is the product link: ${window.location.href}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-green-500 to-emerald-600 text-white font-semibold shadow hover:scale-105 transition-transform duration-300"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="currentColor" className="w-4 h-4">
+                <path d="M16 .5C7.44.5.5 7.44.5 16c0 2.83.74 5.58 2.15 8.01L.5 31.5l7.68-2.07A15.45 15.45 0 0016 31.5C24.56 31.5 31.5 24.56 31.5 16S24.56.5 16 .5zm0 28.45c-2.6 0-5.13-.69-7.35-1.99l-.53-.31-4.56 1.23 1.23-4.56-.31-.53A12.43 12.43 0 013.55 16C3.55 9.14 9.14 3.55 16 3.55S28.45 9.14 28.45 16 22.86 28.95 16 28.95zm7.02-8.4c-.39-.2-2.31-1.14-2.67-1.27-.36-.13-.62-.2-.88.2-.26.39-1.01 1.27-1.24 1.53-.23.26-.46.29-.85.1-.39-.2-1.65-.61-3.14-1.94-1.16-1.04-1.94-2.31-2.17-2.7-.23-.39-.02-.6.17-.79.17-.17.39-.46.59-.69.2-.23.26-.39.39-.65.13-.26.07-.49-.03-.69-.1-.2-.88-2.12-1.21-2.91-.32-.78-.65-.68-.88-.68-.23 0-.49-.03-.75-.03s-.69.1-1.05.49c-.36.39-1.38 1.35-1.38 3.3 0 1.94 1.42 3.81 1.62 4.07.2.26 2.8 4.28 6.77 6 .95.41 1.69.65 2.27.84.95.3 1.81.26 2.49.16.76-.11 2.31-.95 2.64-1.87.33-.91.33-1.7.23-1.87-.1-.16-.36-.26-.75-.46z" />
+              </svg>
+              Inquiry Now
+            </a>
+          </div>
 
-
-          {(Role === "admin" ||
-            (Role === "seller" && product?.seller === userId)) && (
+          {(Role === "admin" || (Role === "seller" && product?.seller === userId)) && (
             <div className="mt-6 space-x-3">
               <button
                 onClick={() => {
@@ -902,10 +819,7 @@ useEffect(() => {
                     stock: product?.stock,
                     brand: product?.brand,
                     rating: product?.rating,
-                    category:
-                      typeof product?.category === "object"
-                        ? product.category.name
-                        : product?.category,
+                    category: typeof product?.category === "object" ? product.category.name : product?.category,
                     images: product?.images || [],
                   });
                   setIsModalOpen(true);
@@ -915,19 +829,59 @@ useEffect(() => {
                 {t("edit_product")}
               </button>
 
-              <button
-                onClick={() => setIsDeleteModalOpen(true)}
-                className="bg-red-600 text-white px-4 py-2 rounded"
-              >
+              <button onClick={() => setIsDeleteModalOpen(true)} className="bg-red-600 text-white px-4 py-2 rounded">
                 {t("delete_product")}
               </button>
             </div>
           )}
         </div>
+        <div className="border p- rounded shadow bg-white h-fit max-h-[80vh] overflow-y-auto">
+          <h3 className="text-lg font-semibold mb-2">{t("Customer Reviews")}</h3>
+          {reviews.length === 0 ? (
+            <p className="text-sm text-gray-600">No reviews yet.</p>
+          ) : (
+            <ul className="space-y-2 max-h-64 overflow-y-auto">
+              {reviews.map((review: Review, index: number) => (
+                <li key={index} className="border p-2 rounded">
+                  <div className="flex items-center">
+                    <RatingStar rating={review.rating} />
+                    <span className="ml-2 font-medium">{review.user?.userName}</span>
+                  </div>
+                  <p>{review.comment}</p>
+                </li>
+              ))}
+            </ul>
+          )}
+
+          {/* Add Review Form */}
+          <div className="mt-4">
+            <h4 className="font-semibold">{t("Add Your Review")}</h4>
+            <div className="flex items-center space-x-2">
+              <label className="mr-2">{t("Rating")}:</label>
+              <Rating.default
+                fractions={10}
+                initialRating={newReview.rating}
+                onChange={(value: number) => setNewReview({ ...newReview, rating: value })}
+                emptySymbol={<FaRegStar size={30} className="text-gray-400" />}
+                fullSymbol={<FaStar size={30} className="text-yellow-400" />}
+                placeholderSymbol={<FaStarHalfAlt size={30} className="text-yellow-300" />}
+              />
+            </div>
+
+            <textarea
+              rows={3}
+              className="w-full border p-2 mt-2"
+              placeholder={t("Writeyourcomment")}
+              value={newReview.comment}
+              onChange={(e) => setNewReview({ ...newReview, comment: e.target.value })}
+            />
+            <button onClick={handleReviewSubmit} className="bg-blue-600 text-white px-4 py-2 mt-2 rounded w-full">
+              {t("SubmitReview")}
+            </button>
+          </div>
+        </div>
       </div>
-      {similar.length > 0 && (
-        <ProductList title={t("similar_products")} products={similar} />
-      )}
+      {similar.length > 0 && <ProductList title={t("similar_products")} products={similar} />}
       <Modal
         isOpen={isModalOpen}
         onRequestClose={() => {
@@ -941,10 +895,7 @@ useEffect(() => {
         <div className="overflow-y-auto h-[calc(100%-2rem)] pr-2 space-y-3">
           <form className="space-y-3">
             <div className="space-y-1">
-              <label
-                htmlFor="title"
-                className="text-sm font-medium text-gray-700"
-              >
+              <label htmlFor="title" className="text-sm font-medium text-gray-700">
                 {t("titleLabel")}
               </label>
               <input
@@ -956,17 +907,12 @@ useEffect(() => {
                 className="w-full p-2 border"
                 placeholder="Title"
               />
-              {formErrors.title && (
-                <p className="text-red-500 text-sm">{formErrors.title}</p>
-              )}
+              {formErrors.title && <p className="text-red-500 text-sm">{formErrors.title}</p>}
             </div>
 
             {/* Description Field */}
             <div className="space-y-1">
-              <label
-                htmlFor="description"
-                className="text-sm font-medium text-gray-700"
-              >
+              <label htmlFor="description" className="text-sm font-medium text-gray-700">
                 {t("descriptionLabel")}
               </label>
               <input
@@ -978,17 +924,12 @@ useEffect(() => {
                 className="w-full p-2 border"
                 placeholder="Description"
               />
-              {formErrors.description && (
-                <p className="text-red-500 text-sm">{formErrors.description}</p>
-              )}
+              {formErrors.description && <p className="text-red-500 text-sm">{formErrors.description}</p>}
             </div>
 
             {/* Price Field */}
             <div className="space-y-1">
-              <label
-                htmlFor="price"
-                className="text-sm font-medium text-gray-700"
-              >
+              <label htmlFor="price" className="text-sm font-medium text-gray-700">
                 {t("priceLabel")}
               </label>
               <input
@@ -1000,29 +941,19 @@ useEffect(() => {
                 className="w-full p-2 border"
                 placeholder="Price"
               />
-              {formErrors.price && (
-                <p className="text-red-500 text-sm">{formErrors.price}</p>
-              )}
+              {formErrors.price && <p className="text-red-500 text-sm">{formErrors.price}</p>}
             </div>
 
             {/* Sale Price Field */}
             <div className="space-y-1">
-              <label
-                htmlFor="salePrice"
-                className="text-sm font-medium text-gray-700"
-              >
+              <label htmlFor="salePrice" className="text-sm font-medium text-gray-700">
                 {t("salePriceLabel")}
               </label>
               <input
                 type="number"
                 name="salePrice"
                 id="salePrice"
-                value={
-                  formData.salePrice !== undefined &&
-                  formData.salePrice !== null
-                    ? formData.salePrice
-                    : ""
-                }
+                value={formData.salePrice !== undefined && formData.salePrice !== null ? formData.salePrice : ""}
                 className="w-full p-2 border"
                 placeholder="Sale Price"
                 disabled // This disables the field
@@ -1031,10 +962,7 @@ useEffect(() => {
 
             {/* Discount Percentage Field */}
             <div className="space-y-1">
-              <label
-                htmlFor="discountPercentage"
-                className="text-sm font-medium text-gray-700"
-              >
+              <label htmlFor="discountPercentage" className="text-sm font-medium text-gray-700">
                 {t("discountLabel")}
               </label>
               <input
@@ -1048,19 +976,11 @@ useEffect(() => {
                 min="0"
                 max="100"
               />
-              {formErrors.discountPercentage && (
-                <p className="text-red-500 text-sm">
-                  {formErrors.discountPercentage}
-                </p>
-              )}
+              {formErrors.discountPercentage && <p className="text-red-500 text-sm">{formErrors.discountPercentage}</p>}
             </div>
 
-            
             <div className="space-y-1 mb-4">
-              <label
-                htmlFor="rating"
-                className="text-sm font-medium text-gray-700"
-              >
+              <label htmlFor="rating" className="text-sm font-medium text-gray-700">
                 Average Rating
               </label>
               <input
@@ -1077,10 +997,7 @@ useEffect(() => {
 
             {/* Brand Field */}
             <div className="space-y-1">
-              <label
-                htmlFor="brand"
-                className="text-sm font-medium text-gray-700"
-              >
+              <label htmlFor="brand" className="text-sm font-medium text-gray-700">
                 {t("brandLabel")}
               </label>
               <input
@@ -1092,18 +1009,12 @@ useEffect(() => {
                 className="w-full p-2 border"
                 placeholder="Brand"
               />
-              {formErrors.brand && (
-                <p className="text-red-500 text-sm">{formErrors.brand}</p>
-              )}
+              {formErrors.brand && <p className="text-red-500 text-sm">{formErrors.brand}</p>}
             </div>
 
             {/* Buttons */}
             <div className="flex justify-between space-x-2">
-              <button
-                type="button"
-                onClick={handleUpdateProduct}
-                className="w-full bg-blue-600 text-white p-2 rounded"
-              >
+              <button type="button" onClick={handleUpdateProduct} className="w-full bg-blue-600 text-white p-2 rounded">
                 {t("update")}
               </button>
               <button
@@ -1124,20 +1035,12 @@ useEffect(() => {
         onRequestClose={() => setIsDeleteModalOpen(false)}
         className="bg-white p-6 rounded-md shadow-md max-w-md mx-auto mt-20"
       >
-        <h2 className="text-xl font-bold mb-4">
-          {t("confirm_delete_product")}
-        </h2>
+        <h2 className="text-xl font-bold mb-4">{t("confirm_delete_product")}</h2>
         <div className="flex justify-between space-x-2">
-          <button
-            onClick={handleDeleteProduct}
-            className="w-full bg-red-600 text-white p-2 rounded"
-          >
+          <button onClick={handleDeleteProduct} className="w-full bg-red-600 text-white p-2 rounded">
             {t("yes_delete")}
           </button>
-          <button
-            onClick={() => setIsDeleteModalOpen(false)}
-            className="w-full bg-gray-600 text-white p-2 rounded"
-          >
+          <button onClick={() => setIsDeleteModalOpen(false)} className="w-full bg-gray-600 text-white p-2 rounded">
             {t("cancel")}
           </button>
         </div>
@@ -1152,9 +1055,7 @@ useEffect(() => {
               <li key={index} className="border p-2 rounded">
                 <div className="flex items-center">
                   <RatingStar rating={review.rating} />
-                  <span className="ml-2 font-medium">
-                    {review.user?.userName}
-                  </span>
+                  <span className="ml-2 font-medium">{review.user?.userName}</span>
                 </div>
                 <p>{review.comment}</p>
               </li>
@@ -1164,21 +1065,17 @@ useEffect(() => {
 
         {/* Add Review Form */}
 
-        <div className="mt-4">
+        {/* <div className="mt-4">
           <h4 className="font-semibold">Add Your Review</h4>
           <div className="flex items-center space-x-2">
             <label className="mr-2">{t("Rating")}:</label>
             <Rating.default
               fractions={10}
               initialRating={newReview.rating}
-              onChange={(value: number) =>
-                setNewReview({ ...newReview, rating: value })
-              }
+              onChange={(value: number) => setNewReview({ ...newReview, rating: value })}
               emptySymbol={<FaRegStar size={30} className="text-gray-400" />}
               fullSymbol={<FaStar size={30} className="text-yellow-400" />}
-              placeholderSymbol={
-                <FaStarHalfAlt size={30} className="text-yellow-300" />
-              }
+              placeholderSymbol={<FaStarHalfAlt size={30} className="text-yellow-300" />}
             />
           </div>
 
@@ -1187,17 +1084,12 @@ useEffect(() => {
             className="w-full border p-2 mt-2"
             placeholder={t("Writeyourcomment")}
             value={newReview.comment}
-            onChange={(e) =>
-              setNewReview({ ...newReview, comment: e.target.value })
-            }
+            onChange={(e) => setNewReview({ ...newReview, comment: e.target.value })}
           />
-          <button
-            onClick={handleReviewSubmit}
-            className="bg-blue-600 text-white px-4 py-2 mt-2 rounded w-full"
-          >
+          <button onClick={handleReviewSubmit} className="bg-blue-600 text-white px-4 py-2 mt-2 rounded w-full">
             {t("SubmitReview")}
           </button>
-        </div>
+        </div> */}
         {isZoomOpen && selectedImg && (
           <div
             className="fixed inset-0 z-50 bg-black bg-opacity-80 flex items-center justify-center"
@@ -1215,11 +1107,7 @@ useEffect(() => {
               </button>
               <img
                 src={
-                  typeof selectedImg === "string"
-                    ? selectedImg
-                    : selectedImg
-                    ? URL.createObjectURL(selectedImg)
-                    : ""
+                  typeof selectedImg === "string" ? selectedImg : selectedImg ? URL.createObjectURL(selectedImg) : ""
                 }
                 alt="Zoomed"
                 className="w-full h-auto object-contain max-h-[80vh] mx-auto"

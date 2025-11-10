@@ -12,16 +12,7 @@ import { CartItem } from "../models/CartItem";
 import BASE_URL from "../config/apiconfig";
 import { useTranslation } from "react-i18next";
 
-const ProductCard: FC<Product> = ({
-  _id,
-  price,
-  images,
-  title,
-  category,
-  rating,
-  discountPercentage,
-  stock,
-}) => {
+const ProductCard: FC<Product> = ({ _id, price, images, title, category, rating, discountPercentage, stock }) => {
   const { t } = useTranslation();
   const cartItems = useAppSelector((state) => state.cartReducer.cartItems);
   const dispatch = useAppDispatch();
@@ -52,9 +43,7 @@ const ProductCard: FC<Product> = ({
         stock,
       };
 
-      const existingCartItem = cartItems.find(
-        (item) => item.productId._id === _id
-      );
+      const existingCartItem = cartItems.find((item) => item.productId._id === _id);
 
       if (product.stock === undefined) {
         toast.error(t("productStockUnavailable"));
@@ -62,9 +51,7 @@ const ProductCard: FC<Product> = ({
       }
 
       const maxQuantity = Math.min(10, product.stock);
-      const newQuantity = existingCartItem
-        ? Math.min(existingCartItem.quantity + 1, maxQuantity)
-        : 1;
+      const newQuantity = existingCartItem ? Math.min(existingCartItem.quantity + 1, maxQuantity) : 1;
 
       if (existingCartItem && existingCartItem.quantity >= maxQuantity) {
         toast(t("maxQuantityReached"));
@@ -104,11 +91,7 @@ const ProductCard: FC<Product> = ({
 
           dispatch(addToCart(cartItem));
 
-          toast.success(
-            existingCartItem
-              ? t("quantityIncreasedInCart")
-              : t("addedToCart")
-          );
+          toast.success(existingCartItem ? t("quantityIncreasedInCart") : t("addedToCart"));
         } else {
           toast.error(data.message || t("failedToAddToCart"));
         }
@@ -119,89 +102,85 @@ const ProductCard: FC<Product> = ({
   };
 
   const imageUrl =
-    Array.isArray(images) && images[0]
-      ? images[0].startsWith("http")
-        ? images[0]
-        : `${BASE_URL}${images[0]}`
-      : null;
+    Array.isArray(images) && images[0] ? (images[0].startsWith("http") ? images[0] : `${BASE_URL}${images[0]}`) : null;
 
   return (
     <Link to={`/products/${_id}`} className="block">
       <div className="group relative bg-white dark:bg-zinc-800 rounded-2xl overflow-hidden shadow-pearl hover:shadow-resin transition-all duration-500 hover:-translate-y-2 border border-resin-100/50 font-poppins cursor-pointer">
-      {/* Product Image Container */}
-      <div className="relative overflow-hidden bg-gradient-to-br from-pearl-50 to-resin-50">
-        {imageUrl ? (
-          <img
-            src={imageUrl}
-            alt={title}
-            loading="lazy"
-            className="w-full h-48 sm:h-56 md:h-60 object-cover transition-all duration-700 group-hover:scale-110 group-hover:rotate-2"
-          />
-        ) : (
-          <div className="w-full h-48 sm:h-56 md:h-60 flex items-center justify-center bg-gradient-to-br from-resin-100 to-gold-100">
-            <p className="text-resin-500 font-medium">{t("noImageAvailable")}</p>
-          </div>
-        )}
-        
-        {/* Overlay gradient on hover */}
-        <div className="absolute inset-0 bg-gradient-to-t from-resin-500/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-        
-        {/* Floating particles */}
-        <div className="absolute top-2 right-2 w-2 h-2 bg-gold-300 rounded-full opacity-0 group-hover:opacity-100 animate-bounce-slow transition-opacity duration-500"></div>
-        <div className="absolute bottom-2 left-2 w-1.5 h-1.5 bg-resin-300 rounded-full opacity-0 group-hover:opacity-100 animate-bounce-slow transition-opacity duration-500" style={{animationDelay: '0.5s'}}></div>
-      </div>
+        {/* Product Image Container */}
+        <div className="relative overflow-hidden bg-gradient-to-br from-pearl-50 to-resin-50">
+          {imageUrl ? (
+            <img
+              src={imageUrl}
+              alt={title}
+              loading="lazy"
+              className="w-full h-64 sm:h-72 md:h-80 object-contain bg-white transition-all duration-700 group-hover:scale-105"
+            />
+          ) : (
+            <div className="w-full h-48 sm:h-56 md:h-60 flex items-center justify-center bg-gradient-to-br from-resin-100 to-gold-100">
+              <p className="text-resin-500 font-medium">{t("noImageAvailable")}</p>
+            </div>
+          )}
 
-      {/* Product Details */}
-      <div className="p-4 sm:p-5 space-y-3">
-        {/* Category */}
-        <p className="text-resin-600 text-xs font-semibold uppercase tracking-wider">
-          {typeof category === "string"
-            ? category
-            : category?.name ?? " "}
-        </p>
+          {/* Overlay gradient on hover */}
+          <div className="absolute inset-0 bg-gradient-to-t from-resin-500/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
 
-        {/* Product Title */}
-        <div
-          className="font-semibold text-sm sm:text-base hover:text-resin-600 dark:text-white line-clamp-2 block transition-colors duration-300"
-          title={title}
-        >
-          {title}
+          {/* Floating particles */}
+          <div className="absolute top-2 right-2 w-2 h-2 bg-gold-300 rounded-full opacity-0 group-hover:opacity-100 animate-bounce-slow transition-opacity duration-500"></div>
+          <div
+            className="absolute bottom-2 left-2 w-1.5 h-1.5 bg-resin-300 rounded-full opacity-0 group-hover:opacity-100 animate-bounce-slow transition-opacity duration-500"
+            style={{ animationDelay: "0.5s" }}
+          ></div>
         </div>
 
-        {/* Rating */}
-        <div className="flex items-center">
-          <RatingStar rating={rating} />
-        </div>
+        {/* Product Details */}
+        <div className="p-2 sm:p-3 space-y-2">
+          {/* Category */}
+          <p className="text-resin-600 text-xs font-semibold uppercase tracking-wider">
+            {typeof category === "string" ? category : category?.name ?? " "}
+          </p>
 
-        {/* Price and Add to Cart */}
-        <div className="flex items-center justify-between gap-3">
-          <PriceSection
-            discountPercentage={discountPercentage ?? 0}
-            price={price}
-          />
-
-          <button
-            type="button"
-            className="group relative flex items-center justify-center w-10 h-10 bg-resin-gradient text-white rounded-full shadow-resin hover:shadow-gold transition-all duration-300 hover:scale-110"
-            onClick={(e) => {
-              e.stopPropagation();
-              addCart();
-            }}
-            title={t("addToCart")}
+          {/* Product Title */}
+          <div
+            className="font-semibold text-sm sm:text-base hover:text-resin-600 dark:text-white line-clamp-2 block transition-colors duration-300"
+            title={title}
           >
-            {/* Cart Icon (default) */}
-            <AiOutlineShoppingCart className="text-lg transition-all duration-300 group-hover:scale-0 group-hover:rotate-180" />
+            {title}
+          </div>
 
-            {/* Plus Icon (on hover) */}
-            <span className="absolute inset-0 flex items-center justify-center">
-              <span className="text-xl font-bold opacity-0 group-hover:opacity-100 transition-all duration-300 transform scale-0 group-hover:scale-100">+</span>
-            </span>
-          </button>
+          {/* Rating */}
+          <div className="flex items-center">
+            <RatingStar rating={rating} />
+          </div>
+
+          {/* Price and Add to Cart */}
+          <div className="flex items-center justify-between gap-3">
+            <PriceSection discountPercentage={discountPercentage ?? 0} price={price} />
+
+            <button
+              type="button"
+              className="group relative flex items-center justify-center w-10 h-10 bg-resin-gradient text-white rounded-full shadow-resin hover:shadow-gold transition-all duration-300 hover:scale-110"
+              onClick={(e) => {
+                e.stopPropagation();
+                addCart();
+              }}
+              title={t("addToCart")}
+            >
+              {/* Cart Icon (default) */}
+              <AiOutlineShoppingCart className="text-lg transition-all duration-300 group-hover:scale-0 group-hover:rotate-180" />
+
+              {/* Plus Icon (on hover) */}
+              <span className="absolute inset-0 flex items-center justify-center">
+                <span className="text-xl font-bold opacity-0 group-hover:opacity-100 transition-all duration-300 transform scale-0 group-hover:scale-100">
+                  +
+                </span>
+              </span>
+            </button>
+          </div>
         </div>
-      </div>
 
-      {/* Gradient border effect */}
-      <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-resin-400/20 via-gold-400/20 to-ocean-400/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
+        {/* Gradient border effect */}
+        <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-resin-400/20 via-gold-400/20 to-ocean-400/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
       </div>
     </Link>
   );
