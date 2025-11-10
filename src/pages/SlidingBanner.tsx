@@ -17,7 +17,7 @@ const slides = [
   {
     id: 2,
     image: "/banner.png",
-    title: "Handcrafted Resin Art Pieces - Custom, Timeless & Stunning",
+    title: "Customized Handcrafted Resin Art Pieces 🖌️ ",
     subtitle: "From photo frames to keychains – starting at ₹149. Preserve your memories in beautiful art.",
     gradient: "from-ocean-500 via-resin-400 to-gold-500",
   },
