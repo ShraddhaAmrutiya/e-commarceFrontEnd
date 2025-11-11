@@ -136,13 +136,13 @@ const ProductCard: FC<Product> = ({ _id, price, images, title, category, rating,
         {/* Product Details */}
         <div className="p-2 sm:p-3 space-y-2">
           {/* Category */}
-          <p className="text-resin-600 text-xs font-semibold uppercase tracking-wider">
+          {/* <p className="text-resin-600 text-xs font-semibold uppercase tracking-wider">
             {typeof category === "string" ? category : category?.name ?? " "}
-          </p>
+          </p> */}
 
           {/* Product Title */}
           <div
-            className="font-semibold text-sm sm:text-base hover:text-resin-600 dark:text-white line-clamp-2 block transition-colors duration-300"
+            className="text-resin-600 text-s font-semibold tracking-wider"
             title={title}
           >
             {title}

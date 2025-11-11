@@ -31,29 +31,19 @@ const Navbar: FC = () => {
 
   const dispatch = useAppDispatch();
 
-  const userId: string =
-    useAppSelector((state) => state.authReducer.userId) ||
-    localStorage.getItem("userId") ||
-    "";
+  const userId: string = useAppSelector((state) => state.authReducer.userId) || localStorage.getItem("userId") || "";
   const userName = useAppSelector((state) => state.authReducer.userName);
-  const Role =
-    useAppSelector((state) => state.authReducer.Role) ||
-    localStorage.getItem("role");
+  const Role = useAppSelector((state) => state.authReducer.Role) || localStorage.getItem("role");
 
   const cartCount = useAppSelector((state) => {
     const cartItems = state.cartReducer?.cartItems;
-    return Array.isArray(cartItems) && cartItems.length > 0
-      ? cartItems.length
-      : 0;
+    return Array.isArray(cartItems) && cartItems.length > 0 ? cartItems.length : 0;
   });
 
   const wishlistCount = useAppSelector((state) => {
     const wishlistItems = state.wishlistReducer?.wishlistItems;
     return Array.isArray(wishlistItems)
-      ? wishlistItems.reduce(
-          (total, item) => total + (item.products?.length || 0),
-          0
-        )
+      ? wishlistItems.reduce((total, item) => total + (item.products?.length || 0), 0)
       : 0;
   });
 
@@ -61,7 +51,7 @@ const Navbar: FC = () => {
   const navigate = useNavigate();
   const [showNotification, setShowNotification] = useState(false);
 
-  // ✅ Always set language to English
+  //  Always set language to English
   useEffect(() => {
     localStorage.setItem("language", "en");
     axiosInstance.defaults.headers.common["Accept-Language"] = "en";
@@ -75,9 +65,7 @@ const Navbar: FC = () => {
     if (finalUserId) {
       dispatch(fetchCartItems(finalUserId)).then((response) => {
         if (response.meta.requestStatus === "fulfilled") {
-          dispatch(
-            setCartItems((response.payload as CartApiResponse).cartItems)
-          );
+          dispatch(setCartItems((response.payload as CartApiResponse).cartItems));
         }
       });
     }
@@ -89,13 +77,10 @@ const Navbar: FC = () => {
     }
   }, [dispatch, userId]);
 
-  // 👇 Close mobile menu on outside click
+  //  Close mobile menu on outside click
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent | TouchEvent) => {
-      if (
-        mobileMenuRef.current &&
-        !mobileMenuRef.current.contains(e.target as Node)
-      ) {
+      if (mobileMenuRef.current && !mobileMenuRef.current.contains(e.target as Node)) {
         setIsMobileMenuOpen(false);
       }
     };
@@ -151,11 +136,11 @@ const Navbar: FC = () => {
           className="flex items-center gap-3 sm:gap-5 text-2xl font-extrabold tracking-tight whitespace-nowrap group"
         >
           <div className="relative">
-           <img
-  src="/logo1.jpg"
-  alt="Aaraksha Resin Art Logo"
-  className="w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 object-cover rounded-full shadow-resin hover:shadow-gold transition-all duration-500 group-hover:scale-110 group-hover:rotate-12"
-/>
+            <img
+              src="/logo1.jpg"
+              alt="Aaraksha Resin Art Logo"
+              className="w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 object-cover rounded-full shadow-resin hover:shadow-gold transition-all duration-500 group-hover:scale-110 group-hover:rotate-12"
+            />
 
             <div className="absolute inset-0 rounded-full bg-gradient-to-r from-resin-400/20 to-gold-400/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
           </div>
@@ -201,16 +186,10 @@ const Navbar: FC = () => {
 
           {(Role === "admin" || Role === "seller") && (
             <div className="flex gap-2">
-              <Link
-                to="/addcategory"
-                className="btn-ocean text-sm px-3 py-1.5 rounded-xl"
-              >
+              <Link to="/addcategory" className="btn-ocean text-sm px-3 py-1.5 rounded-xl">
                 Add Category
               </Link>
-              <Link
-                to="/Addproduct"
-                className="btn-gold text-sm px-3 py-1.5 rounded-xl"
-              >
+              <Link to="/Addproduct" className="btn-gold text-sm px-3 py-1.5 rounded-xl">
                 + {t("addProduct")}
               </Link>
             </div>
@@ -375,8 +354,8 @@ const Navbar: FC = () => {
                 <>
                   <div
                     onClick={() => {
-                      setAuthMenuOpen(true);
-                      setIsMobileMenuOpen(false);
+                      dispatch(updateModal(true)); 
+                      setIsMobileMenuOpen(false); 
                     }}
                     className="cursor-pointer hover:text-resin-500 flex items-center gap-3 px-4 py-2 rounded-xl hover:bg-resin-50 transition-all duration-300 font-medium"
                   >

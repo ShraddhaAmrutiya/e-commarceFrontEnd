@@ -32,7 +32,7 @@ const slides = [
   {
     id: 4,
     image: "/gbkeychains.jpg",
-    title: "🔑 250 GB Keychains – Bulk Order!",
+    title: "🔑 250 Keychains for Corporate Gifting – Bulk Order",
     subtitle:
       "We handle large-scale resin keychain orders for corporate gifts, branding, and events. Custom logos, designs, and packaging available for bulk quantities.",
     gradient: "from-blue-600 via-sky-500 to-cyan-400",
