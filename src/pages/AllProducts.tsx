@@ -16,6 +16,7 @@ const AllProducts: FC = () => {
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [loading, setLoading] = useState(true);
   const [hasFetched, setHasFetched] = useState(false);
+  const [showLoadingPopup, setShowLoadingPopup] = useState(true);
 
   const allProducts = useAppSelector((state) => state.productReducer.allProducts || []);
 
@@ -65,7 +66,6 @@ const AllProducts: FC = () => {
           return dateB - dateA;
         });
 
-        // Extract unique categories
         const uniqueCategories: string[] = Array.from(
           new Set(allProducts.map((p: Product) => String(p.category)))
         ).filter((c) => c !== "") as string[];
@@ -75,6 +75,11 @@ const AllProducts: FC = () => {
         console.error("Error fetching products:", error);
       } finally {
         setLoading(false);
+
+        // Auto close popup with fade animation
+        setTimeout(() => {
+          setShowLoadingPopup(false);
+        }, 800);
       }
     };
 
@@ -126,8 +131,89 @@ const AllProducts: FC = () => {
   return (
     <div className="min-h-screen pt-24 px-4 sm:px-6 py-10 bg-gradient-to-br from-pink-50 via-yellow-50 to-purple-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 font-karla">
       <div className="max-w-screen-xl mx-auto">
+        {/* ------------ LOADING POPUP ------------- */}
+        {showLoadingPopup && (
+          <div
+            className={`fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 transition-opacity duration-500 ${
+              !loading ? "opacity-0 pointer-events-none" : "opacity-100"
+            }`}
+          >
+            <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-xl w-80 animate-fade-in">
+              <h2 className="text-lg font-semibold text-center mb-4 text-gray-700 dark:text-gray-200">
+                Loading Products...
+              </h2>
+
+              {/* 🔥 3D Cube Loader */}
+              <div className="loader-cube mb-6">
+                <div className="front">
+                  <img src="/mahakumbh.jpg" className="w-full h-full object-cover" />
+                </div>
+                <div className="back">
+                  <img src="/banner.jpg" className="w-full h-full object-cover" />
+                </div>
+                <div className="right">
+                  <img src="/gbkeychains.jpg" className="w-full h-full object-cover" />
+                </div>
+                <div className="left">
+                  <img src="/mahakumbh.jpg" className="w-full h-full object-cover" />
+                </div>
+                <div className="top">
+                  <img src="/banner.jpg" className="w-full h-full object-cover" />
+                </div>
+                <div className="bottom">
+                  <img src="/gbkeychains.jpg" className="w-full h-full object-cover" />
+                </div>
+              </div>
+
+              {/* Three bouncing dots */}
+              <div className="flex justify-center mt-2 space-x-2">
+                <div className="w-3 h-3 bg-purple-500 rounded-full animate-bounce"></div>
+                <div className="w-3 h-3 bg-pink-500 rounded-full animate-bounce delay-150"></div>
+                <div className="w-3 h-3 bg-yellow-500 rounded-full animate-bounce delay-300"></div>
+              </div>
+
+              <p className="text-center mt-3 text-sm text-gray-500 dark:text-gray-300">
+                Please wait, products are loading...
+              </p>
+            </div>
+          </div>
+        )}
+        {/* ------------ END POPUP ------------- */}
+
         {loading ? (
-          <div className="text-center text-lg text-gray-700 dark:text-white">{t("loadingProducts")}</div>
+          <div>
+            <div className="flex flex-col items-center justify-center py-10">
+              <p className="text-xl font-semibold text-gray-700 dark:text-white mb-4">
+                Please wait, products are loading...
+              </p>
+
+              <div className="flex space-x-3">
+                <div className="w-3 h-3 bg-purple-500 rounded-full animate-bounce"></div>
+                <div
+                  className="w-3 h-3 bg-pink-500 rounded-full animate-bounce"
+                  style={{ animationDelay: ".2s" }}
+                ></div>
+                <div
+                  className="w-3 h-3 bg-yellow-500 rounded-full animate-bounce"
+                  style={{ animationDelay: ".4s" }}
+                ></div>
+              </div>
+            </div>
+
+            <div className="grid gap-6 xl:grid-cols-4 lg:grid-cols-3 md:grid-cols-2 sm:grid-cols-1 animate-pulse px-2">
+              {Array.from({ length: 8 }).map((_, i) => (
+                <div key={i} className="bg-white dark:bg-slate-800 rounded-2xl p-4 shadow-md space-y-4">
+                  <div className="w-full h-48 bg-gray-300 dark:bg-gray-600 rounded-xl"></div>
+                  <div className="h-4 bg-gray-300 dark:bg-gray-600 rounded-md w-3/4"></div>
+                  <div className="h-3 bg-gray-300 dark:bg-gray-600 rounded-md w-1/2"></div>
+                  <div className="flex justify-between items-center">
+                    <div className="h-4 bg-gray-300 dark:bg-gray-600 rounded-md w-16"></div>
+                    <div className="h-10 w-10 rounded-full bg-gray-300 dark:bg-gray-600"></div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
         ) : (
           <>
             <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
@@ -136,7 +222,6 @@ const AllProducts: FC = () => {
               </h1>
 
               <div className="flex gap-3">
-                {/* Category Filter */}
                 <select
                   className="border border-gray-400 dark:border-gray-600 bg-white dark:bg-slate-700 dark:text-white px-4 py-2 rounded-md shadow-sm focus:outline-none"
                   value={selectedCategory}
@@ -150,7 +235,6 @@ const AllProducts: FC = () => {
                   ))}
                 </select>
 
-                {/* Price Sort */}
                 <select
                   ref={sortRef}
                   className="border border-gray-400 dark:border-gray-600 bg-white dark:bg-slate-700 dark:text-white px-4 py-2 rounded-md shadow-sm focus:outline-none"

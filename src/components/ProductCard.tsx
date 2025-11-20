@@ -161,6 +161,7 @@ const ProductCard: FC<Product> = ({ _id, price, images, title, category, rating,
               type="button"
               className="group relative flex items-center justify-center w-10 h-10 bg-resin-gradient text-white rounded-full shadow-resin hover:shadow-gold transition-all duration-300 hover:scale-110"
               onClick={(e) => {
+                e.preventDefault(); 
                 e.stopPropagation();
                 addCart();
               }}
