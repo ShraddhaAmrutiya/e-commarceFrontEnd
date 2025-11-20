@@ -126,7 +126,7 @@ const SingleProduct: FC = () => {
           .filter((p: Product) => p._id !== _id)
           .map((p: Product) => {
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            const { category, ...rest } = p; // 
+            const { category, ...rest } = p; //
             return rest;
           });
 
@@ -835,47 +835,57 @@ const SingleProduct: FC = () => {
             </div>
           )}
         </div>
-        <div className="border p- rounded shadow bg-white h-fit max-h-[80vh] overflow-y-auto">
-          <h3 className="text-lg font-semibold mb-2">{t("Customer Reviews")}</h3>
+        <div className="border p-4 rounded-2xl shadow-xl bg-white dark:bg-slate-800 h-fit max-h-[80vh] overflow-y-auto">
+          <h3 className="text-xl font-semibold mb-4 text-gray-800 dark:text-gray-200">{t("Customer Reviews")}</h3>
+
           {reviews.length === 0 ? (
-            <p className="text-sm text-gray-600">No reviews yet.</p>
+            <p className="text-sm text-gray-600 dark:text-gray-300 italic py-4">No reviews yet.</p>
           ) : (
-            <ul className="space-y-2 max-h-64 overflow-y-auto">
+            <ul className="space-y-3 max-h-64 overflow-y-auto pr-1 custom-scroll">
               {reviews.map((review: Review, index: number) => (
-                <li key={index} className="border p-2 rounded">
-                  <div className="flex items-center">
+                <li
+                  key={index}
+                  className="border rounded-xl p-3 bg-gray-50 dark:bg-slate-700 shadow-sm transition hover:shadow-md"
+                >
+                  <div className="flex items-center mb-1">
                     <RatingStar rating={review.rating} />
-                    <span className="ml-2 font-medium">{review.user?.userName}</span>
+                    <span className="ml-3 font-medium text-gray-800 dark:text-gray-100">{review.user?.userName}</span>
                   </div>
-                  <p>{review.comment}</p>
+
+                  <p className="text-gray-700 dark:text-gray-300 text-sm leading-relaxed">{review.comment}</p>
                 </li>
               ))}
             </ul>
           )}
 
-          {/* Add Review Form */}
-          <div className="mt-4">
-            <h4 className="font-semibold">{t("Add Your Review")}</h4>
-            <div className="flex items-center space-x-2">
-              <label className="mr-2">{t("Rating")}:</label>
+          <div className="mt-6 border-t pt-4">
+            <h4 className="font-semibold text-lg text-gray-800 dark:text-gray-200 mb-2">{t("Add Your Review")}</h4>
+
+            <div className="flex items-center space-x-3 mb-3">
+              <label className="text-gray-700 dark:text-gray-300 text-sm">{t("Rating")}:</label>
+
               <Rating.default
                 fractions={10}
                 initialRating={newReview.rating}
                 onChange={(value: number) => setNewReview({ ...newReview, rating: value })}
-                emptySymbol={<FaRegStar size={30} className="text-gray-400" />}
-                fullSymbol={<FaStar size={30} className="text-yellow-400" />}
-                placeholderSymbol={<FaStarHalfAlt size={30} className="text-yellow-300" />}
+                emptySymbol={<FaRegStar size={26} className="text-gray-400" />}
+                fullSymbol={<FaStar size={26} className="text-yellow-400" />}
+                placeholderSymbol={<FaStarHalfAlt size={26} className="text-yellow-300" />}
               />
             </div>
 
             <textarea
               rows={3}
-              className="w-full border p-2 mt-2"
+              className="w-full border rounded-xl p-3 text-sm bg-gray-50 dark:bg-slate-700 dark:border-slate-600 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-400"
               placeholder={t("Writeyourcomment")}
               value={newReview.comment}
               onChange={(e) => setNewReview({ ...newReview, comment: e.target.value })}
             />
-            <button onClick={handleReviewSubmit} className="bg-blue-600 text-white px-4 py-2 mt-2 rounded w-full">
+
+            <button
+              onClick={handleReviewSubmit}
+              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 mt-3 rounded-xl w-full transition shadow-md"
+            >
               {t("SubmitReview")}
             </button>
           </div>
@@ -1045,78 +1055,31 @@ const SingleProduct: FC = () => {
           </button>
         </div>
       </Modal>
-      <div className="border p-6 rounded shadow bg-white h-fit">
-        <h3 className="text-lg font-semibold mb-2">Customer Reviews</h3>
-        {reviews.length === 0 ? (
-          <p className="text-sm text-gray-600">No reviews yet.</p>
-        ) : (
-          <ul className="space-y-2 max-h-64 overflow-y-auto">
-            {reviews.map((review: Review, index: number) => (
-              <li key={index} className="border p-2 rounded">
-                <div className="flex items-center">
-                  <RatingStar rating={review.rating} />
-                  <span className="ml-2 font-medium">{review.user?.userName}</span>
-                </div>
-                <p>{review.comment}</p>
-              </li>
-            ))}
-          </ul>
-        )}
 
-        {/* Add Review Form */}
-
-        {/* <div className="mt-4">
-          <h4 className="font-semibold">Add Your Review</h4>
-          <div className="flex items-center space-x-2">
-            <label className="mr-2">{t("Rating")}:</label>
-            <Rating.default
-              fractions={10}
-              initialRating={newReview.rating}
-              onChange={(value: number) => setNewReview({ ...newReview, rating: value })}
-              emptySymbol={<FaRegStar size={30} className="text-gray-400" />}
-              fullSymbol={<FaStar size={30} className="text-yellow-400" />}
-              placeholderSymbol={<FaStarHalfAlt size={30} className="text-yellow-300" />}
+      {isZoomOpen && selectedImg && (
+        <div
+          className="fixed inset-0 z-50 bg-black bg-opacity-80 flex items-center justify-center"
+          onClick={() => setIsZoomOpen(false)}
+        >
+          <div className="relative max-w-4xl w-full max-h-[90vh]">
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsZoomOpen(false);
+              }}
+              className="absolute top-4 right-4 text-white text-2xl bg-black bg-opacity-70 rounded-full px-3 py-1 hover:bg-opacity-90"
+            >
+              ✕
+            </button>
+            <img
+              src={typeof selectedImg === "string" ? selectedImg : selectedImg ? URL.createObjectURL(selectedImg) : ""}
+              alt="Zoomed"
+              className="w-full h-auto object-contain max-h-[80vh] mx-auto"
+              onClick={(e) => e.stopPropagation()}
             />
           </div>
-
-          <textarea
-            rows={3}
-            className="w-full border p-2 mt-2"
-            placeholder={t("Writeyourcomment")}
-            value={newReview.comment}
-            onChange={(e) => setNewReview({ ...newReview, comment: e.target.value })}
-          />
-          <button onClick={handleReviewSubmit} className="bg-blue-600 text-white px-4 py-2 mt-2 rounded w-full">
-            {t("SubmitReview")}
-          </button>
-        </div> */}
-        {isZoomOpen && selectedImg && (
-          <div
-            className="fixed inset-0 z-50 bg-black bg-opacity-80 flex items-center justify-center"
-            onClick={() => setIsZoomOpen(false)}
-          >
-            <div className="relative max-w-4xl w-full max-h-[90vh]">
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setIsZoomOpen(false);
-                }}
-                className="absolute top-4 right-4 text-white text-2xl bg-black bg-opacity-70 rounded-full px-3 py-1 hover:bg-opacity-90"
-              >
-                ✕
-              </button>
-              <img
-                src={
-                  typeof selectedImg === "string" ? selectedImg : selectedImg ? URL.createObjectURL(selectedImg) : ""
-                }
-                alt="Zoomed"
-                className="w-full h-auto object-contain max-h-[80vh] mx-auto"
-                onClick={(e) => e.stopPropagation()}
-              />
-            </div>
-          </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 };
