@@ -177,12 +177,12 @@ const Navbar: FC = () => {
           >
             {t("products")}
           </Link>
-          <Link
+          {/* <Link
             to="/categories"
             className="text-ocean-600 hover:text-ocean-500 transition-all duration-300 hover:scale-105 font-semibold"
           >
             Categories
-          </Link>
+          </Link> */}
 
           {(Role === "admin" || Role === "seller") && (
             <div className="flex gap-2">
@@ -302,22 +302,28 @@ const Navbar: FC = () => {
               {t("products")}
             </Link>
 
-            <Link
+            {/* <Link
               to="/categories"
               onClick={() => setIsMobileMenuOpen(false)}
               className="px-4 py-2 rounded-xl hover:bg-ocean-50 transition-all duration-300 font-medium text-ocean-600"
             >
               Categories
-            </Link>
+            </Link> */}
 
             {(Role === "admin" || Role === "seller") && (
-              <Link
-                to="/Addproduct"
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="btn-gold text-sm px-4 py-2 rounded-xl text-center"
-              >
-                + {t("addProduct")}
-              </Link>
+              <div className="flex items-center gap-3">
+                <Link to="/addcategory" className="btn-ocean text-sm px-3 py-1.5 rounded-xl">
+                  Add Category
+                </Link>
+
+                <Link
+                  to="/Addproduct"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="btn-gold text-sm px-4 py-2 rounded-xl text-center"
+                >
+                   {t("addProduct")}
+                </Link>
+              </div>
             )}
 
             <button
@@ -354,8 +360,8 @@ const Navbar: FC = () => {
                 <>
                   <div
                     onClick={() => {
-                      dispatch(updateModal(true)); 
-                      setIsMobileMenuOpen(false); 
+                      dispatch(updateModal(true));
+                      setIsMobileMenuOpen(false);
                     }}
                     className="cursor-pointer hover:text-resin-500 flex items-center gap-3 px-4 py-2 rounded-xl hover:bg-resin-50 transition-all duration-300 font-medium"
                   >
