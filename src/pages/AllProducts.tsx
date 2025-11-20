@@ -17,12 +17,23 @@ const AllProducts: FC = () => {
   const [loading, setLoading] = useState(true);
   const [hasFetched, setHasFetched] = useState(false);
   const [showLoadingPopup, setShowLoadingPopup] = useState(true);
+  const [zoomImage, setZoomImage] = useState<string | null>(null);
+  const [slideIndex, setSlideIndex] = useState(0);
 
   const allProducts = useAppSelector((state) => state.productReducer.allProducts || []);
 
   const getCreationTimeFromId = (id: string) => {
     return new Date(parseInt(id.substring(0, 8), 16) * 1000);
   };
+  useEffect(() => {
+    const images = ["/mahakumbh.jpg", "/banner.jpg", "/gbkeychains.jpg"];
+
+    const interval = setInterval(() => {
+      setSlideIndex((prev) => (prev + 1) % images.length);
+    }, 1000); // Change every 1.8 seconds
+
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -136,48 +147,58 @@ const AllProducts: FC = () => {
           <div
             className={`fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 transition-opacity duration-500 ${
               !loading ? "opacity-0 pointer-events-none" : "opacity-100"
+              // "opacity-100"
             }`}
           >
-            <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-xl w-80 animate-fade-in">
-              <h2 className="text-lg font-semibold text-center mb-4 text-gray-700 dark:text-gray-200">
+            <div className="bg-white dark:bg-slate-800 p-8 sm:p-10 rounded-3xl shadow-2xl w-[90%] max-w-[420px] animate-fade-in">
+              <h2 className="text-xl sm:text-2xl font-semibold text-center mb-6 text-gray-700 dark:text-gray-200">
                 Loading Products...
               </h2>
 
-              {/* 🔥 3D Cube Loader */}
-              <div className="loader-cube mb-6">
-                <div className="front">
-                  <img src="/mahakumbh.jpg" className="w-full h-full object-cover" />
-                </div>
-                <div className="back">
-                  <img src="/banner.jpg" className="w-full h-full object-cover" />
-                </div>
-                <div className="right">
-                  <img src="/gbkeychains.jpg" className="w-full h-full object-cover" />
-                </div>
-                <div className="left">
-                  <img src="/mahakumbh.jpg" className="w-full h-full object-cover" />
-                </div>
-                <div className="top">
-                  <img src="/banner.jpg" className="w-full h-full object-cover" />
-                </div>
-                <div className="bottom">
-                  <img src="/gbkeychains.jpg" className="w-full h-full object-cover" />
-                </div>
+              {/* 🌟 Auto-Sliding Image Loader */}
+              <div className="flex justify-center mb-10">
+                <img
+                  src={["/mahakumbh.jpg", "/banner.jpg", "/gbkeychains.jpg"][slideIndex]}
+                  onClick={() => setZoomImage(["/mahakumbh.jpg", "/banner.jpg", "/gbkeychains.jpg"][slideIndex])}
+                  className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl shadow-lg cursor-pointer animate-fade transition-all duration-500"
+                />
               </div>
+
+              {/* 🔍 Fullscreen Zoom Modal */}
+              {zoomImage && (
+                <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-[999]">
+                  <div className="relative">
+                    {/* Close button */}
+                    <button
+                      onClick={() => setZoomImage(null)}
+                      className="absolute -top-6 -right-6 bg-white text-black rounded-full w-10 h-10 text-xl shadow-lg hover:bg-gray-200"
+                    >
+                      ✕
+                    </button>
+
+                    {/* Zoomed Image */}
+                    <img
+                      src={zoomImage}
+                      className="max-w-[90vw] max-h-[80vh] rounded-2xl shadow-2xl transform transition-all duration-300 scale-100"
+                    />
+                  </div>
+                </div>
+              )}
 
               {/* Three bouncing dots */}
-              <div className="flex justify-center mt-2 space-x-2">
-                <div className="w-3 h-3 bg-purple-500 rounded-full animate-bounce"></div>
-                <div className="w-3 h-3 bg-pink-500 rounded-full animate-bounce delay-150"></div>
-                <div className="w-3 h-3 bg-yellow-500 rounded-full animate-bounce delay-300"></div>
+              <div className="flex justify-center mt-2 space-x-3">
+                <div className="w-3 h-3 sm:w-4 sm:h-4 bg-purple-500 rounded-full animate-bounce"></div>
+                <div className="w-3 h-3 sm:w-4 sm:h-4 bg-pink-500 rounded-full animate-bounce delay-150"></div>
+                <div className="w-3 h-3 sm:w-4 sm:h-4 bg-yellow-500 rounded-full animate-bounce delay-300"></div>
               </div>
 
-              <p className="text-center mt-3 text-sm text-gray-500 dark:text-gray-300">
+              <p className="text-center mt-5 text-sm sm:text-base text-gray-600 dark:text-gray-300">
                 Please wait, products are loading...
               </p>
             </div>
           </div>
         )}
+
         {/* ------------ END POPUP ------------- */}
 
         {loading ? (
