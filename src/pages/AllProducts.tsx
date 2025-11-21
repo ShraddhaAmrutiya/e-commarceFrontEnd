@@ -15,7 +15,9 @@ const AllProducts: FC = () => {
   const [categories, setCategories] = useState<string[]>([]);
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [loading, setLoading] = useState(true);
-  const [hasFetched, setHasFetched] = useState(false);
+  // const [hasFetched, setHasFetched] = useState(false);
+  const hasFetchedRef = useRef(false);
+
   const [showLoadingPopup, setShowLoadingPopup] = useState(true);
   const [zoomImage, setZoomImage] = useState<string | null>(null);
   const [slideIndex, setSlideIndex] = useState(0);
@@ -94,11 +96,11 @@ const AllProducts: FC = () => {
       }
     };
 
-    if (!hasFetched) {
+    if (!hasFetchedRef.current) {
+      hasFetchedRef.current = true;
       fetchProducts();
-      setHasFetched(true);
     }
-  }, [dispatch, hasFetched]);
+  }, [dispatch]);
 
   useEffect(() => {
     let filteredProducts = [...allProducts];

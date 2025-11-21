@@ -70,6 +70,13 @@ const SingleProduct: FC = () => {
     // Scroll to top every time product id changes
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, [dispatch, _id]);
+  useEffect(() => {
+    if (!_id) return;
+
+    fetchProductDetails();
+    fetchReviews();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, [_id]);
 
   const fetchProductDetails = async () => {
     if (!_id) return;
@@ -104,23 +111,11 @@ const SingleProduct: FC = () => {
   };
 
   useEffect(() => {
-    if (!_id) {
-      toast.error(t("invalidpId"));
-
-      return;
-    }
-
-    fetchProductDetails();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [_id]);
-
-  useEffect(() => {
     if (!Category) return;
 
     fetch(`${BASE_URL}/products/category/${Category}`)
       .then((res) => res.json())
       .then((data) => {
-        console.log("Fetched similar products:", data);
 
         const cleaned = data.products
           .filter((p: Product) => p._id !== _id)
@@ -570,11 +565,6 @@ const SingleProduct: FC = () => {
     }
   };
 
-  useEffect(() => {
-    fetchProductDetails();
-    fetchReviews();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [_id]);
 
   return (
     <div className="container mx-auto pt-8 dark:text-white">

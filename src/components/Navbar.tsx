@@ -57,19 +57,20 @@ const Navbar: FC = () => {
     axiosInstance.defaults.headers.common["Accept-Language"] = "en";
     i18n.changeLanguage("en");
   }, []);
+  const cartItems = useAppSelector((s) => s.cartReducer.cartItems);
 
   useEffect(() => {
     const storedUserId = localStorage.getItem("userId");
     const finalUserId = userId || storedUserId;
 
-    if (finalUserId) {
-      dispatch(fetchCartItems(finalUserId)).then((response) => {
-        if (response.meta.requestStatus === "fulfilled") {
-          dispatch(setCartItems((response.payload as CartApiResponse).cartItems));
-        }
-      });
+    // If no user → do nothing
+    if (!finalUserId) return;
+
+    // Run only if cart is empty (first load)
+    if (cartItems.length === 0) {
+      dispatch(fetchCartItems(finalUserId));
     }
-  }, [dispatch, location.pathname, userId]);
+  }, [userId, cartItems.length]);
 
   useEffect(() => {
     if (userId) {
@@ -321,7 +322,7 @@ const Navbar: FC = () => {
                   onClick={() => setIsMobileMenuOpen(false)}
                   className="btn-gold text-sm px-4 py-2 rounded-xl text-center"
                 >
-                   {t("addProduct")}
+                  {t("addProduct")}
                 </Link>
               </div>
             )}

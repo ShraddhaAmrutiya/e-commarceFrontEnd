@@ -8,7 +8,7 @@ import { useTranslation } from "react-i18next";
 interface Product {
   productId: string;
   title: string;
-  // images: string[];
+  image: string[];
   price: number;
   salePrice?: number;
   stock?: number;
@@ -25,7 +25,6 @@ const CheckoutDirectPage = () => {
   const token = localStorage.getItem("accessToken");
   const language = localStorage.getItem("language") || "en";
 
-  // ✅ Load product from sessionStorage safely
   useEffect(() => {
     const storedItem = sessionStorage.getItem("checkoutItem");
 
@@ -38,10 +37,10 @@ const CheckoutDirectPage = () => {
     try {
       const parsed: Product = JSON.parse(storedItem);
 
-      // Ensure images is an array
-      // if (parsed && parsed.images && !Array.isArray(parsed.images)) {
-      //   parsed.images = [parsed.images];
-      // }
+      // Ensure image is an array
+      if (parsed && parsed.image && !Array.isArray(parsed.image)) {
+        parsed.image = [parsed.image];
+      }
 
       setProduct(parsed);
     } catch {
@@ -74,12 +73,9 @@ const CheckoutDirectPage = () => {
       toast.success(t("orderSuccess") || "Order placed successfully!");
       sessionStorage.removeItem("checkoutItem");
       navigate("/orders", { replace: true });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
-      toast.error(
-        error?.response?.data?.message ||
-          t("orderFailed") ||
-          "Order failed."
-      );
+      toast.error(error?.response?.data?.message || t("orderFailed") || "Order failed.");
     } finally {
       setLoading(false);
     }
@@ -106,29 +102,25 @@ const CheckoutDirectPage = () => {
       </div>
 
       {/* Heading */}
-      <h2 className="text-2xl font-bold mb-6 text-center">
-        {t("Confirm Your Order") || "Confirm Your Order"}
-      </h2>
+      <h2 className="text-2xl font-bold mb-6 text-center">{t("Confirm Your Order") || "Confirm Your Order"}</h2>
 
       {/* Product Card */}
       <div className="bg-white rounded-xl shadow-md p-4 sm:p-6 flex flex-col sm:flex-row items-center sm:items-start gap-6">
-        {/* <img
-          src={
-            product.images?.[0]
-              ? product.images[0].startsWith("/")
-                ? `${BASE_URL}${product.images[0]}`
-                : product.images[0]
-              : "/placeholder.jpg"
-          }
+        <img
+          src={product.image?.[0]?.startsWith("http") ? product.image[0] : `${BASE_URL}${product.image?.[0]}`}
           alt={product.title}
           className="w-28 h-28 sm:w-32 sm:h-32 object-cover rounded-md"
-        /> */}
+        />
 
         <div className="flex-1 w-full">
           <h3 className="text-lg sm:text-xl font-semibold">{product.title}</h3>
-          <p className="text-gray-600 mt-1">{t("price") || "Price"}: ₹{price}</p>
+          <p className="text-gray-600 mt-1">
+            {t("price") || "Price"}: ₹{price}
+          </p>
           <p className="text-gray-700">{t("quantity") || "Quantity"}: 1</p>
-          <p className="text-gray-800 font-bold mt-2">{t("total") || "Total"}: ₹{price}</p>
+          <p className="text-gray-800 font-bold mt-2">
+            {t("total") || "Total"}: ₹{price}
+          </p>
         </div>
       </div>
 
