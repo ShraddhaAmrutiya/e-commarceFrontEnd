@@ -28,7 +28,7 @@ const AllProducts: FC = () => {
     return new Date(parseInt(id.substring(0, 8), 16) * 1000);
   };
   useEffect(() => {
-    const images = ["/mahakumbh.jpg", "/banner.jpg", "/gbkeychains.jpg"];
+    const images = ["/mahakumbh1.jpg", "/clock.jpg", "/ganesh.jpg","/resinframe1.jpg","/frame.jpg"];
 
     const interval = setInterval(() => {
       setSlideIndex((prev) => (prev + 1) % images.length);
@@ -160,7 +160,7 @@ const AllProducts: FC = () => {
               {/* 🌟 Auto-Sliding Image Loader */}
               <div className="flex justify-center mb-10">
                 <img
-                  src={["/mahakumbh.jpg", "/banner.jpg", "/gbkeychains.jpg"][slideIndex]}
+                  src={["/mahakumbh1.jpg", "/clock.jpg", "/ganesh.jpg","/resinframe1.jpg","/frame.jpg"][slideIndex]}
                   onClick={() => setZoomImage(["/mahakumbh.jpg", "/banner.jpg", "/gbkeychains.jpg"][slideIndex])}
                   className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl shadow-lg cursor-pointer animate-fade transition-all duration-500"
                 />
