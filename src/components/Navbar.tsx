@@ -70,6 +70,7 @@ const Navbar: FC = () => {
     if (cartItems.length === 0) {
       dispatch(fetchCartItems(finalUserId));
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId, cartItems.length]);
 
   useEffect(() => {
@@ -281,6 +282,38 @@ const Navbar: FC = () => {
 
         {/* Mobile Menu Icon */}
         <div className="flex md:hidden items-center">
+          <Link
+            to="/products"
+            className="text-resin-700 hover:text-resin-500 transition-all duration-300 hover:scale-105 font-semibold"
+          >
+            {t("products")}
+          </Link>
+          <button
+            onClick={() => {
+              if (!userId) {
+                setShowNotification(true);
+                setTimeout(() => setShowNotification(false), 3000);
+                return;
+              }
+              navigate("/wishlist");
+            }}
+            className="relative p-2 rounded-full hover:bg-resin-100 transition"
+          >
+            <AiOutlineHeart size={24} className="text-resin-700" />
+            {wishlistCount > 0 && (
+              <span className="absolute -top-1 -right-1 bg-resin-500 text-white text-xs w-4 h-4 rounded-full flex items-center justify-center">
+                {wishlistCount}
+              </span>
+            )}
+          </button>
+          <button onClick={showCart} className="relative p-2 rounded-full hover:bg-gold-100 transition">
+            <AiOutlineShoppingCart size={24} className="text-gold-700" />
+            {cartCount > 0 && (
+              <span className="absolute -top-1 -right-1 bg-gold-500 text-white text-xs w-4 h-4 rounded-full flex items-center justify-center">
+                {cartCount}
+              </span>
+            )}
+          </button>
           <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             className="text-2xl text-resin-700 hover:text-resin-500 p-2 rounded-full hover:bg-resin-100 transition-all duration-300"
@@ -295,14 +328,6 @@ const Navbar: FC = () => {
             ref={mobileMenuRef}
             className="absolute top-full right-4 mt-2 w-64 md:hidden flex flex-col gap-2 text-resin-700 bg-white/95 backdrop-blur-lg p-6 rounded-2xl shadow-resin z-50 border border-resin-200/50 animate-fadeInDown"
           >
-            <Link
-              to="/products"
-              onClick={() => setIsMobileMenuOpen(false)}
-              className="px-4 py-2 rounded-xl hover:bg-resin-50 transition-all duration-300 font-medium"
-            >
-              {t("products")}
-            </Link>
-
             {/* <Link
               to="/categories"
               onClick={() => setIsMobileMenuOpen(false)}
@@ -326,33 +351,6 @@ const Navbar: FC = () => {
                 </Link>
               </div>
             )}
-
-            <button
-              onClick={() => {
-                showCart();
-                setIsMobileMenuOpen(false);
-              }}
-              className="flex items-center gap-3 px-4 py-2 rounded-xl hover:bg-gold-50 transition-all duration-300 font-medium text-gold-600"
-            >
-              <AiOutlineShoppingCart size={20} />
-              Cart ({cartCount})
-            </button>
-
-            <button
-              onClick={() => {
-                if (!userId) {
-                  setShowNotification(true);
-                  setTimeout(() => setShowNotification(false), 3000);
-                  return;
-                }
-                navigate("/wishlist");
-                setIsMobileMenuOpen(false);
-              }}
-              className="flex items-center gap-3 px-4 py-2 rounded-xl hover:bg-resin-50 transition-all duration-300 font-medium text-resin-600"
-            >
-              <AiOutlineHeart size={20} />
-              Wishlist ({wishlistCount})
-            </button>
 
             <div className="border-t border-resin-200 pt-2 mt-2">
               {userName ? (
