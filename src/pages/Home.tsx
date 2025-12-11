@@ -41,7 +41,7 @@ const Home: FC = () => {
             });
           });
 
-          dispatch(updateFeaturedList(productList.slice(0, 4)));
+          dispatch(updateFeaturedList(productList));
           dispatch(updateNewList(productList.slice(8, 16)));
         })
         .catch((error) => console.error("Error fetching products:", error));
