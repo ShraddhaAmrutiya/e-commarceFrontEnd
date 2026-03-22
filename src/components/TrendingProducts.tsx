@@ -124,11 +124,7 @@ const TrendingProducts = () => {
         spaceBetween={24}
         loop={featuredProducts.length > 3}
         autoplay={{ delay: 3000, disableOnInteraction: false }}
-        pagination={{ 
-          clickable: true,
-          bulletClass: 'swiper-pagination-bullet !bg-resin-400 !opacity-50',
-          bulletActiveClass: 'swiper-pagination-bullet-active !bg-resin-600 !opacity-100'
-        }}
+        pagination={false}
         navigation={{
           nextEl: ".swiper-button-next",
           prevEl: ".swiper-button-prev",
