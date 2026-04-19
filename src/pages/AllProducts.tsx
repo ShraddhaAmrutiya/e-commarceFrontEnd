@@ -109,7 +109,7 @@ const AllProducts: FC = () => {
       filteredProducts = filteredProducts.filter((p) => p.category === selectedCategory);
     }
 
-    const sortedByDate = filteredProducts.sort((a, b) => {
+    const sortedByDate = [...filteredProducts].sort((a, b) => {
       const dateA = a.createdAt ? new Date(a.createdAt).getTime() : getCreationTimeFromId(a._id).getTime();
       const dateB = b.createdAt ? new Date(b.createdAt).getTime() : getCreationTimeFromId(b._id).getTime();
       return dateB - dateA;

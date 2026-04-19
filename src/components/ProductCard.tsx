@@ -149,9 +149,9 @@ const ProductCard: FC<Product> = ({ _id, price, images, title, category, rating,
           </div>
 
           {/* Rating */}
-          <div className="flex items-center">
+          {/* <div className="flex items-center">
             <RatingStar rating={rating} />
-          </div>
+          </div> */}
 
           {/* Price and Add to Cart */}
           <div className="flex items-center justify-between gap-3">

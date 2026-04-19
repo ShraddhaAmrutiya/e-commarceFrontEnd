@@ -735,7 +735,7 @@ const SingleProduct: FC = () => {
 
         <div className="px-2 max-h-[80vh] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-400">
           <h2 className="text-2xl">{product?.title}</h2>
-          {product?.rating !== undefined && <RatingStar rating={averageRating} />}
+          {/* {product?.rating !== undefined && <RatingStar rating={averageRating} />} */}
           {product?.price !== undefined && (
             <PriceSection discountPercentage={product.discountPercentage ?? 0} price={product.price} />
           )}
@@ -825,7 +825,7 @@ const SingleProduct: FC = () => {
             </div>
           )}
         </div>
-        <div className="border p-4 rounded-2xl shadow-xl bg-white dark:bg-slate-800 h-fit max-h-[80vh] overflow-y-auto">
+        {/* <div className="border p-4 rounded-2xl shadow-xl bg-white dark:bg-slate-800 h-fit max-h-[80vh] overflow-y-auto">
           <h3 className="text-xl font-semibold mb-4 text-gray-800 dark:text-gray-200">{t("Customer Reviews")}</h3>
 
           {reviews.length === 0 ? (
@@ -879,7 +879,7 @@ const SingleProduct: FC = () => {
               {t("SubmitReview")}
             </button>
           </div>
-        </div>
+        </div> */}
       </div>
       {similar.length > 0 && <ProductList title={t("similar_products")} products={similar} />}
       <Modal
