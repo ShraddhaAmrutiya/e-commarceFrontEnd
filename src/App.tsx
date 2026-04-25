@@ -9,6 +9,7 @@ import { Provider } from "react-redux";
 import { store } from "./redux/store";
 import { useAppDispatch } from "./redux/hooks";
 import { updateModal, checkAuthStatus } from "./redux/features/authSlice";
+import { setTheme } from "./redux/features/themeSlice";
 import Navbar from "./components/Navbar";
 import { Route, Routes } from "react-router-dom";
 import Home from "./pages/Home";
@@ -22,16 +23,11 @@ import AllProducts from "./pages/AllProducts";
 import ScrollToTopButton from "./components/ScrollToTopButton";
 import AllCategories from "./pages/AllCategories";
 import SingleCategory from "./pages/SingleCategory";
-import Cart from "./pages/cartPage";
 import SearchPage from "./pages/searchpage";
-import Register from "./components/Register";
 import Login from "./pages/login";
 import AddCategory from "./components/AddCategory";
 import AddProduct from "./components/Addproduct";
-import CheckoutPage from "./pages/checkOutpage";
-import OrdersPage from "./pages/orderPge";
 import ResetPassword from "./pages/Resetpassword";
-import CheckoutDirectPage from "./pages/checkoutDirect";
 import axiosInstance from "./utils/axiosInstance";
 import LoadingScreen from "./components/LoadingScreen";
 import ParticleBackground from "./components/ParticleBackground";
@@ -41,6 +37,12 @@ Modal.setAppElement("#root");
 function AppContent() {
   const dispatch = useAppDispatch();
   const [isLoading, setIsLoading] = useState(true);
+
+  // Initialize theme on mount
+  useEffect(() => {
+    const isDarkMode = localStorage.getItem("theme") === "dark";
+    dispatch(setTheme(isDarkMode));
+  }, [dispatch]);
 
   // always set language header
   const language = localStorage.getItem("language") || "en";
@@ -85,22 +87,21 @@ function AppContent() {
       <Routes>
         <Route path="*" element={<h1>Page Not Found</h1>} />
         <Route path="/" element={<Home />} />
-        <Route path="/login" element={<Login />} />
         <Route path="/products" element={<AllProducts />} />
         <Route path="/categories" element={<AllCategories />} />
         <Route path="/products/:_id" element={<SingleProduct />} />
         <Route path="category/:id" element={<SingleCategory />} />
         <Route path="/search" element={<SearchPage />} />
-        <Route path="/register" element={<Register />} />
         <Route path="/reset-password/:token" element={<ResetPassword />} />
+
+        {/* Admin-only login route */}
+        <Route element={<ProtectedRoute allowedRoles={["admin"]} />}>
+          <Route path="/admin/login" element={<Login />} />
+        </Route>
 
         <Route element={<ProtectedRoute allowedRoles={["admin", "seller", "customer"]} />}>
           <Route path="/wishlist" element={<Wishlist />} />
           <Route path="/account" element={<Profile />} />
-          <Route path="/orders" element={<OrdersPage />} />
-          <Route path="/checkoutDirect" element={<CheckoutDirectPage />} />
-          <Route path="/checkout" element={<CheckoutPage />} />
-          <Route path="/cart/:_userId" element={<Cart />} />
         </Route>
 
         <Route element={<ProtectedRoute allowedRoles={["admin", "seller"]} />}>

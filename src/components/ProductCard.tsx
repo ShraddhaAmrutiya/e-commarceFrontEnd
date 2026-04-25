@@ -1,190 +1,91 @@
-import { FC } from "react";
+import { FC, useState } from "react";
+import { motion } from "framer-motion";
 import { Product } from "../models/Product";
-import RatingStar from "./RatingStar";
-import { addToCart } from "../redux/features/cartSlice";
-import { useAppDispatch, useAppSelector } from "../redux/hooks";
-import toast from "react-hot-toast";
-import { AiOutlineShoppingCart } from "react-icons/ai";
 import { Link } from "react-router-dom";
-import PriceSection from "./PriceSection";
-import useAuth from "../hooks/useAuth";
-import { CartItem } from "../models/CartItem";
 import BASE_URL from "../config/apiconfig";
 import { useTranslation } from "react-i18next";
+import { MdMailOutline } from "react-icons/md";
+import { formatProductName } from "../utils/formatters";
+import EnquiryModal from "./EnquiryModal";
 
-const ProductCard: FC<Product> = ({ _id, price, images, title, category, rating, discountPercentage, stock }) => {
+const ProductCard: FC<Product> = (product) => {
+  const { _id, images, title } = product;
   const { t } = useTranslation();
-  const cartItems = useAppSelector((state) => state.cartReducer.cartItems);
-  const dispatch = useAppDispatch();
-  const { requireAuth } = useAuth();
-  const language = localStorage.getItem("language") || "en";
-
-  const addCart = async () => {
-    requireAuth(async () => {
-      const userId = localStorage.getItem("userId");
-      if (!userId) {
-        toast.error(t("userNotFoundPleaseLogin"));
-        return;
-      }
-
-      if (!_id) {
-        toast.error(t("productIdRequired"));
-        return;
-      }
-
-      const product: Product = {
-        _id,
-        price,
-        images,
-        title,
-        category,
-        rating,
-        discountPercentage,
-        stock,
-      };
-
-      const existingCartItem = cartItems.find((item) => item.productId._id === _id);
-
-      if (product.stock === undefined) {
-        toast.error(t("productStockUnavailable"));
-        return;
-      }
-
-      const maxQuantity = Math.min(10, product.stock);
-      const newQuantity = existingCartItem ? Math.min(existingCartItem.quantity + 1, maxQuantity) : 1;
-
-      if (existingCartItem && existingCartItem.quantity >= maxQuantity) {
-        toast(t("maxQuantityReached"));
-        return;
-      }
-
-      try {
-        const res = await fetch(`${BASE_URL}/cart`, {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
-            "Accept-Language": language,
-          },
-          body: JSON.stringify({
-            userId,
-            productId: _id,
-            quantity: newQuantity,
-          }),
-        });
-
-        const data = await res.json();
-
-        if (res.ok && data.cartItems) {
-          const cartItem: CartItem = {
-            _id: existingCartItem?._id || "unique-cart-id",
-            productId: product,
-            quantity: newQuantity,
-            title,
-            price,
-            images,
-            category,
-            rating,
-            discountPercentage,
-            stock,
-          };
-
-          dispatch(addToCart(cartItem));
-
-          toast.success(existingCartItem ? t("quantityIncreasedInCart") : t("addedToCart"));
-        } else {
-          toast.error(data.message || t("failedToAddToCart"));
-        }
-      } catch (error) {
-        toast.error(t("errorAddingToCart"));
-      }
-    });
-  };
+  const [isEnquiryOpen, setIsEnquiryOpen] = useState(false);
 
   const imageUrl =
     Array.isArray(images) && images[0] ? (images[0].startsWith("http") ? images[0] : `${BASE_URL}${images[0]}`) : null;
 
+  const handleEnquiry = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsEnquiryOpen(true);
+  };
+
   return (
-    <Link to={`/products/${_id}`} className="block">
-      <div className="group relative bg-white dark:bg-zinc-800 rounded-2xl overflow-hidden shadow-pearl hover:shadow-resin transition-all duration-500 hover:-translate-y-2 border border-resin-100/50 font-poppins cursor-pointer">
-        {/* Product Image Container */}
-        <div className="relative overflow-hidden bg-gradient-to-br from-pearl-50 to-resin-50">
-          {imageUrl ? (
-            <img
-              src={imageUrl}
-              alt={title}
-              loading="lazy"
-              className="w-full h-64 sm:h-72 md:h-80 object-contain bg-white transition-all duration-700 group-hover:scale-105"
-            />
-          ) : (
-            <div className="w-full h-48 sm:h-56 md:h-60 flex items-center justify-center bg-gradient-to-br from-resin-100 to-gold-100">
-              <p className="text-resin-500 font-medium">{t("noImageAvailable")}</p>
-            </div>
-          )}
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-50px" }}
+      transition={{ duration: 0.5, ease: "easeOut" }}
+      className="h-full"
+    >
+      <Link to={`/products/${_id}`} className="block h-full group">
+        <div className="relative bg-white dark:bg-zinc-800 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl hover:shadow-zinc-200 dark:hover:shadow-black/50 transition-all duration-500 border border-zinc-100 dark:border-zinc-700 font-inter cursor-pointer h-full flex flex-col">
+          {/* Product Image Container */}
+          <div className="relative overflow-hidden bg-zinc-50 dark:bg-zinc-900 aspect-[4/5] sm:aspect-square flex-shrink-0">
+            {imageUrl ? (
+              <img
+                src={imageUrl}
+                alt={title}
+                loading="lazy"
+                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center bg-zinc-100 dark:bg-zinc-800">
+                <p className="text-zinc-400 font-medium">{t("noImageAvailable")}</p>
+              </div>
+            )}
 
-          {/* Overlay gradient on hover */}
-          <div className="absolute inset-0 bg-gradient-to-t from-resin-500/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-
-          {/* Floating particles */}
-          <div className="absolute top-2 right-2 w-2 h-2 bg-gold-300 rounded-full opacity-0 group-hover:opacity-100 animate-bounce-slow transition-opacity duration-500"></div>
-          <div
-            className="absolute bottom-2 left-2 w-1.5 h-1.5 bg-resin-300 rounded-full opacity-0 group-hover:opacity-100 animate-bounce-slow transition-opacity duration-500"
-            style={{ animationDelay: "0.5s" }}
-          ></div>
-        </div>
-
-        {/* Product Details */}
-        <div className="p-2 sm:p-3 space-y-2">
-          {/* Category */}
-          {/* <p className="text-resin-600 text-xs font-semibold uppercase tracking-wider">
-            {typeof category === "string" ? category : category?.name ?? " "}
-          </p> */}
-
-          {/* Product Title */}
-          <div
-            className="text-resin-600 text-s font-semibold tracking-wider"
-            title={title}
-          >
-            {title}
+            {/* Hover Overlay */}
+            <div className="absolute inset-0 bg-black/5 dark:bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
           </div>
 
-          {/* Rating */}
-          {/* <div className="flex items-center">
-            <RatingStar rating={rating} />
-          </div> */}
-
-          {/* Price and Add to Cart */}
-          <div className="flex items-center justify-between gap-3">
-            <PriceSection discountPercentage={discountPercentage ?? 0} price={price} />
-
-            <button
-              type="button"
-              className="group relative flex items-center justify-center w-10 h-10 bg-resin-gradient text-white rounded-full shadow-resin hover:shadow-gold transition-all duration-300 hover:scale-110"
-              onClick={(e) => {
-                e.preventDefault(); 
-                e.stopPropagation();
-                addCart();
-              }}
-              title={t("addToCart")}
+          {/* Product Details */}
+          <div className="p-4 sm:p-5 flex flex-col flex-grow justify-between gap-4">
+            {/* Title */}
+            <h3
+              className="text-zinc-900 dark:text-zinc-100 font-semibold text-lg line-clamp-2 leading-tight tracking-tight group-hover:text-resin-600 dark:group-hover:text-resin-400 transition-colors duration-300"
+              title={title}
             >
-              {/* Cart Icon (default) */}
-              <AiOutlineShoppingCart className="text-lg transition-all duration-300 group-hover:scale-0 group-hover:rotate-180" />
+              {formatProductName(title)}
+            </h3>
 
-              {/* Plus Icon (on hover) */}
-              <span className="absolute inset-0 flex items-center justify-center">
-                <span className="text-xl font-bold opacity-0 group-hover:opacity-100 transition-all duration-300 transform scale-0 group-hover:scale-100">
-                  +
-                </span>
-              </span>
-            </button>
+            {/* Bottom Section (Action) */}
+            <div className="flex items-end justify-end gap-3 mt-auto">
+              {/* Get Enquiry Button */}
+              <button
+                onClick={handleEnquiry}
+                className="relative z-10 flex items-center justify-center w-10 h-10 rounded-full bg-zinc-100 dark:bg-zinc-700 text-zinc-900 dark:text-zinc-100 hover:bg-amber-600 hover:text-white dark:hover:bg-amber-500 transition-all duration-300 active:scale-90 shadow-sm"
+                aria-label="Get enquiry"
+              >
+                <MdMailOutline size={18} />
+              </button>
+            </div>
           </div>
         </div>
+      </Link>
 
-        {/* Gradient border effect */}
-        <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-resin-400/20 via-gold-400/20 to-ocean-400/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
-      </div>
-    </Link>
+      {/* Enquiry Modal */}
+      <EnquiryModal
+        isOpen={isEnquiryOpen}
+        onClose={() => setIsEnquiryOpen(false)}
+        productName={title}
+        productImage={imageUrl || undefined}
+      />
+    </motion.div>
   );
 };
 
 export default ProductCard;
+

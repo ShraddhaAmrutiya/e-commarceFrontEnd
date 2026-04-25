@@ -1,5 +1,5 @@
 /* 🌐 Font Imports */
-@import url("https://fonts.googleapis.com/css2?family=Karla&family=Lato&family=Lora:wght@700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap");
 
 /* 🌀 Swiper Styles */
 @import "swiper/css";
@@ -15,13 +15,13 @@
 🎨 Global Design Tokens / Styling
 ----------------------------- */
 body {
-  @apply font-karla text-gray-800 dark:text-gray-200 bg-gradient-to-br from-white to-purple-50 dark:from-gray-900 dark:to-gray-800;
+  @apply font-inter text-zinc-900 dark:text-zinc-100 bg-zinc-50 dark:bg-zinc-900 antialiased selection:bg-resin-500 selection:text-white;
 }
 
 h1,
 h2,
 h3 {
-  @apply font-lora;
+  @apply font-poppins tracking-tight;
 }
 
 h1 {

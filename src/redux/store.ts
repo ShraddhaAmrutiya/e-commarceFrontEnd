@@ -5,6 +5,8 @@ import productReducer from "./features/productSlice";
 import homeReducer from "./features/homeSlice";
 import wishlistReducer from "./features/WishlistSlice";
 import orderReducer from "./features/OrderSlice";
+import themeReducer from "./features/themeSlice";
+import enquiryReducer from "./features/enquirySlice";
 
 export const store = configureStore({
   reducer: {
@@ -12,8 +14,10 @@ export const store = configureStore({
     productReducer,
     authReducer,
     homeReducer,
-     wishlistReducer,
-      orderReducer,
+    wishlistReducer,
+    orderReducer,
+    themeReducer,
+    enquiryReducer,
   },
 });
 

@@ -5,7 +5,7 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        karla: ["Karla", "sans-serif"],
+        inter: ["Inter", "sans-serif"],
         lato: ["Lato", "sans-serif"],
         lora: ["Lora", "sans-serif"],
         playfair: ["Playfair Display", "serif"],

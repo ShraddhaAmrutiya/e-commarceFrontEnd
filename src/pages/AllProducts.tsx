@@ -2,40 +2,27 @@ import { FC, useEffect, useRef, useState } from "react";
 import { useAppSelector, useAppDispatch } from "../redux/hooks";
 import { addProducts } from "../redux/features/productSlice";
 import ProductCard from "../components/ProductCard";
+import ProductCardSkeleton from "../components/ProductCardSkeleton";
 import { Product } from "../models/Product";
 import BASE_URL from "../config/apiconfig";
 import { useTranslation } from "react-i18next";
+import { motion } from "framer-motion";
 
 const AllProducts: FC = () => {
   const { t } = useTranslation();
   const dispatch = useAppDispatch();
-  const sortRef = useRef<HTMLSelectElement>(null);
 
   const [currentProducts, setCurrentProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<string[]>([]);
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [loading, setLoading] = useState(true);
-  // const [hasFetched, setHasFetched] = useState(false);
   const hasFetchedRef = useRef(false);
-
-  const [showLoadingPopup, setShowLoadingPopup] = useState(true);
-  const [zoomImage, setZoomImage] = useState<string | null>(null);
-  const [slideIndex, setSlideIndex] = useState(0);
 
   const allProducts = useAppSelector((state) => state.productReducer.allProducts || []);
 
   const getCreationTimeFromId = (id: string) => {
     return new Date(parseInt(id.substring(0, 8), 16) * 1000);
   };
-  useEffect(() => {
-    const images = ["/mahakumbh1.jpg", "/clock.jpg", "/ganesh.jpg","/resinframe1.jpg","/frame.jpg"];
-
-    const interval = setInterval(() => {
-      setSlideIndex((prev) => (prev + 1) % images.length);
-    }, 1000); // Change every 1.8 seconds
-
-    return () => clearInterval(interval);
-  }, []);
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -58,7 +45,7 @@ const AllProducts: FC = () => {
           throw new Error("Invalid API response format");
         }
 
-        const allProducts = data.categories.flatMap((cat: { category: string; products: Product[] }) =>
+        const fetchedProducts = data.categories.flatMap((cat: { category: string; products: Product[] }) =>
           (cat.products || []).map((product) => {
             const imageUrl =
               Array.isArray(product.images) && product.images.length > 0
@@ -73,26 +60,22 @@ const AllProducts: FC = () => {
           })
         );
 
-        allProducts.sort((a: Product, b: Product) => {
+        fetchedProducts.sort((a: Product, b: Product) => {
           const dateA = a.createdAt ? new Date(a.createdAt).getTime() : getCreationTimeFromId(a._id).getTime();
           const dateB = b.createdAt ? new Date(b.createdAt).getTime() : getCreationTimeFromId(b._id).getTime();
           return dateB - dateA;
         });
 
         const uniqueCategories: string[] = Array.from(
-          new Set(allProducts.map((p: Product) => String(p.category)))
+          new Set(fetchedProducts.map((p: Product) => String(p.category)))
         ).filter((c) => c !== "") as string[];
+        
         setCategories(uniqueCategories);
-        dispatch(addProducts(allProducts));
+        dispatch(addProducts(fetchedProducts));
       } catch (error) {
         console.error("Error fetching products:", error);
       } finally {
         setLoading(false);
-
-        // Auto close popup with fade animation
-        setTimeout(() => {
-          setShowLoadingPopup(false);
-        }, 800);
       }
     };
 
@@ -141,143 +124,77 @@ const AllProducts: FC = () => {
     setCurrentProducts(filteredProducts);
   };
 
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: { staggerChildren: 0.1 }
+    }
+  };
+
   return (
-    <div className="min-h-screen pt-24 px-4 sm:px-6 py-10 bg-gradient-to-br from-pink-50 via-yellow-50 to-purple-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 font-karla">
-      <div className="max-w-screen-xl mx-auto">
-        {/* ------------ LOADING POPUP ------------- */}
-        {showLoadingPopup && (
-          <div
-            className={`fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 transition-opacity duration-500 ${
-              !loading ? "opacity-0 pointer-events-none" : "opacity-100"
-              // "opacity-100"
-            }`}
-          >
-            <div className="bg-white dark:bg-slate-800 p-8 sm:p-10 rounded-3xl shadow-2xl w-[90%] max-w-[420px] animate-fade-in">
-              <h2 className="text-xl sm:text-2xl font-semibold text-center mb-6 text-gray-700 dark:text-gray-200">
-                Loading Products...
-              </h2>
-
-              {/* 🌟 Auto-Sliding Image Loader */}
-              <div className="flex justify-center mb-10">
-                <img
-                  src={["/mahakumbh1.jpg", "/clock.jpg", "/ganesh.jpg","/resinframe1.jpg","/frame.jpg"][slideIndex]}
-                  onClick={() => setZoomImage(["/mahakumbh.jpg", "/banner.jpg", "/gbkeychains.jpg"][slideIndex])}
-                  className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl shadow-lg cursor-pointer animate-fade transition-all duration-500"
-                />
-              </div>
-
-              {/* 🔍 Fullscreen Zoom Modal */}
-              {zoomImage && (
-                <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-[999]">
-                  <div className="relative">
-                    {/* Close button */}
-                    <button
-                      onClick={() => setZoomImage(null)}
-                      className="absolute -top-6 -right-6 bg-white text-black rounded-full w-10 h-10 text-xl shadow-lg hover:bg-gray-200"
-                    >
-                      ✕
-                    </button>
-
-                    {/* Zoomed Image */}
-                    <img
-                      src={zoomImage}
-                      className="max-w-[90vw] max-h-[80vh] rounded-2xl shadow-2xl transform transition-all duration-300 scale-100"
-                    />
-                  </div>
-                </div>
-              )}
-
-              {/* Three bouncing dots */}
-              <div className="flex justify-center mt-2 space-x-3">
-                <div className="w-3 h-3 sm:w-4 sm:h-4 bg-purple-500 rounded-full animate-bounce"></div>
-                <div className="w-3 h-3 sm:w-4 sm:h-4 bg-pink-500 rounded-full animate-bounce delay-150"></div>
-                <div className="w-3 h-3 sm:w-4 sm:h-4 bg-yellow-500 rounded-full animate-bounce delay-300"></div>
-              </div>
-
-              <p className="text-center mt-5 text-sm sm:text-base text-gray-600 dark:text-gray-300">
-                Please wait, products are loading...
-              </p>
-            </div>
-          </div>
-        )}
-
-        {/* ------------ END POPUP ------------- */}
-
-        {loading ? (
+    <div className="min-h-screen pt-28 pb-20 px-4 sm:px-6 lg:px-8 bg-zinc-50 dark:bg-zinc-900 font-inter">
+      <div className="max-w-7xl mx-auto">
+        
+        {/* Header Section */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-10 gap-6">
           <div>
-            <div className="flex flex-col items-center justify-center py-10">
-              <p className="text-xl font-semibold text-gray-700 dark:text-white mb-4">
-                Please wait, products are loading...
-              </p>
+            <h1 className="text-3xl sm:text-4xl font-bold text-zinc-900 dark:text-zinc-100 tracking-tight font-poppins">
+              Our Collection
+            </h1>
+            <p className="text-zinc-500 dark:text-zinc-400 mt-2 text-sm sm:text-base">
+              Discover premium quality and modern designs.
+            </p>
+          </div>
 
-              <div className="flex space-x-3">
-                <div className="w-3 h-3 bg-purple-500 rounded-full animate-bounce"></div>
-                <div
-                  className="w-3 h-3 bg-pink-500 rounded-full animate-bounce"
-                  style={{ animationDelay: ".2s" }}
-                ></div>
-                <div
-                  className="w-3 h-3 bg-yellow-500 rounded-full animate-bounce"
-                  style={{ animationDelay: ".4s" }}
-                ></div>
-              </div>
-            </div>
-
-            <div className="grid gap-6 xl:grid-cols-4 lg:grid-cols-3 md:grid-cols-2 sm:grid-cols-1 animate-pulse px-2">
-              {Array.from({ length: 8 }).map((_, i) => (
-                <div key={i} className="bg-white dark:bg-slate-800 rounded-2xl p-4 shadow-md space-y-4">
-                  <div className="w-full h-48 bg-gray-300 dark:bg-gray-600 rounded-xl"></div>
-                  <div className="h-4 bg-gray-300 dark:bg-gray-600 rounded-md w-3/4"></div>
-                  <div className="h-3 bg-gray-300 dark:bg-gray-600 rounded-md w-1/2"></div>
-                  <div className="flex justify-between items-center">
-                    <div className="h-4 bg-gray-300 dark:bg-gray-600 rounded-md w-16"></div>
-                    <div className="h-10 w-10 rounded-full bg-gray-300 dark:bg-gray-600"></div>
-                  </div>
-                </div>
+          {/* Filters */}
+          <div className="flex flex-wrap gap-3 w-full sm:w-auto">
+            <select
+              className="flex-1 sm:flex-none border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 px-4 py-2.5 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-zinc-200 dark:focus:ring-zinc-600 transition-all text-sm font-medium cursor-pointer"
+              value={selectedCategory}
+              onChange={(e) => setSelectedCategory(e.target.value)}
+            >
+              <option value="all">{t("All Categories")}</option>
+              {categories.map((cat) => (
+                <option key={cat} value={cat}>
+                  {cat}
+                </option>
               ))}
-            </div>
+            </select>
+
+            <select
+              className="flex-1 sm:flex-none border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 px-4 py-2.5 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-zinc-200 dark:focus:ring-zinc-600 transition-all text-sm font-medium cursor-pointer"
+              onChange={(e) => sortProducts(e.target.value)}
+            >
+              <option value="default">{t("defaultSort")}</option>
+              <option value="asc">{t("priceLowToHigh")}</option>
+              <option value="desc">{t("priceHighToLow")}</option>
+            </select>
+          </div>
+        </div>
+
+        {/* Product Grid */}
+        {loading ? (
+          <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <ProductCardSkeleton key={i} />
+            ))}
+          </div>
+        ) : currentProducts.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-20 bg-white dark:bg-zinc-800 rounded-2xl border border-zinc-100 dark:border-zinc-700">
+            <p className="text-xl font-medium text-zinc-500 dark:text-zinc-400">No products found.</p>
           </div>
         ) : (
-          <>
-            <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
-              <h1 className="text-3xl font-bold text-gray-800 dark:text-white tracking-wide shadow-sm">
-                🛍️ {t("products")}
-              </h1>
-
-              <div className="flex gap-3">
-                <select
-                  className="border border-gray-400 dark:border-gray-600 bg-white dark:bg-slate-700 dark:text-white px-4 py-2 rounded-md shadow-sm focus:outline-none"
-                  value={selectedCategory}
-                  onChange={(e) => setSelectedCategory(e.target.value)}
-                >
-                  <option value="all">{t("All Categories")}</option>
-                  {categories.map((cat) => (
-                    <option key={cat} value={cat}>
-                      {cat}
-                    </option>
-                  ))}
-                </select>
-
-                <select
-                  ref={sortRef}
-                  className="border border-gray-400 dark:border-gray-600 bg-white dark:bg-slate-700 dark:text-white px-4 py-2 rounded-md shadow-sm focus:outline-none"
-                  onChange={(e) => sortProducts(e.target.value)}
-                >
-                  <option value="default">{t("defaultSort")}</option>
-                  <option value="asc">{t("priceLowToHigh")}</option>
-                  <option value="desc">{t("priceHighToLow")}</option>
-                </select>
-              </div>
-            </div>
-
-            <div className="grid gap-6 xl:grid-cols-4 lg:grid-cols-3 md:grid-cols-2 sm:grid-cols-1">
-              {currentProducts.map((product) => (
-                <div key={product._id} className="transform hover:-translate-y-1 transition duration-300">
-                  <ProductCard {...product} rating={product.rating ?? 0} images={product.images} />
-                </div>
-              ))}
-            </div>
-          </>
+          <motion.div 
+            variants={containerVariants}
+            initial="hidden"
+            animate="show"
+            className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+          >
+            {currentProducts.map((product) => (
+              <ProductCard key={product._id} {...product} rating={product.rating ?? 0} images={product.images} />
+            ))}
+          </motion.div>
         )}
       </div>
     </div>

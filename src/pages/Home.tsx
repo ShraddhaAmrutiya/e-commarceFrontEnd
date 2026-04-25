@@ -1,16 +1,17 @@
 import { FC, useEffect } from "react";
-import SlidingBannerq from "./SlidingBanner";
+import { motion } from "framer-motion";
+import SlidingBanner from "./SlidingBanner";
 import TrendingProducts from "../components/TrendingProducts";
 import { useNavigate } from "react-router-dom";
-
 import { useAppDispatch } from "../redux/hooks";
 import BASE_URL from "../config/apiconfig";
+import { updateNewList, updateFeaturedList } from "../redux/features/productSlice";
+import { Product } from "../models/Product";
+
 interface Category {
   category: string;
   products: Product[];
 }
-import { updateNewList, updateFeaturedList } from "../redux/features/productSlice";
-import { Product } from "../models/Product";
 
 const Home: FC = () => {
   const navigate = useNavigate();
@@ -51,111 +52,206 @@ const Home: FC = () => {
   }, [dispatch]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-pearl-50 via-white to-resin-50 dark:bg-slate-800">
-      <SlidingBannerq />
-      {/* <Features /> */}
-      <TrendingProducts />
+    <motion.div 
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.5 }}
+      className="min-h-screen bg-gradient-to-b from-zinc-50 via-white to-zinc-50 dark:from-zinc-950 dark:via-zinc-900 dark:to-zinc-950 font-inter selection:bg-resin-500 selection:text-white"
+    >
+      {/* Premium Hero Section */}
+      <SlidingBanner />
+      
+      {/* Premium Features Section */}
+      <motion.section 
+        initial={{ opacity: 0, y: 40 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, margin: "-100px" }}
+        transition={{ duration: 0.8 }}
+        className="py-16 sm:py-24 px-4 border-b border-zinc-200 dark:border-zinc-800"
+      >
+        <div className="max-w-7xl mx-auto">
+          <h2 className="text-center text-3xl sm:text-4xl md:text-5xl font-poppins font-bold text-zinc-900 dark:text-zinc-100 mb-16 tracking-tight">
+            Why Choose <span className="bg-gradient-to-r from-resin-600 to-gold-500 bg-clip-text text-transparent">Aaraksha</span>
+          </h2>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {/* Feature 1 */}
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6, delay: 0.1 }}
+              className="group p-8 rounded-2xl bg-white dark:bg-zinc-800/50 border border-zinc-100 dark:border-zinc-700/50 hover:border-resin-200 dark:hover:border-resin-900/50 hover:shadow-lg hover:shadow-resin-200/20 dark:hover:shadow-resin-900/20 transition-all duration-300"
+            >
+              <div className="text-5xl mb-4 group-hover:scale-110 transition-transform">✨</div>
+              <h3 className="text-xl font-bold text-zinc-900 dark:text-white mb-3">Handcrafted Excellence</h3>
+              <p className="text-zinc-600 dark:text-zinc-400 leading-relaxed">Every piece is meticulously crafted with premium resin, attention to detail, and pure artisanal skill.</p>
+            </motion.div>
 
-      {/* CTA Button */}
-      <div className="flex justify-center my-12 sm:my-16 px-4">
-        <button
-          onClick={() => navigate("/products")}
-          className="px-8 py-4 sm:px-12 sm:py-5 text-lg sm:text-xl font-bold rounded-full
-          bg-gradient-to-r from-gold-400 via-yellow-300 to-gold-500
-          text-black shadow-[0_0_25px_rgba(255,215,0,0.7)]
-          transition-all duration-500 hover:scale-110 hover:shadow-[0_0_35px_rgba(255,215,0,1)]
-          animate-pulse"
-        >
-          ✨ Explore All Products ✨
-        </button>
+            {/* Feature 2 */}
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+              className="group p-8 rounded-2xl bg-white dark:bg-zinc-800/50 border border-zinc-100 dark:border-zinc-700/50 hover:border-gold-200 dark:hover:border-gold-900/50 hover:shadow-lg hover:shadow-gold-200/20 dark:hover:shadow-gold-900/20 transition-all duration-300"
+            >
+              <div className="text-5xl mb-4 group-hover:scale-110 transition-transform">🎁</div>
+              <h3 className="text-xl font-bold text-zinc-900 dark:text-white mb-3">Custom Creations</h3>
+              <p className="text-zinc-600 dark:text-zinc-400 leading-relaxed">Personalize your moments with custom designs, colors, and themes that reflect your unique story.</p>
+            </motion.div>
+
+            {/* Feature 3 */}
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6, delay: 0.3 }}
+              className="group p-8 rounded-2xl bg-white dark:bg-zinc-800/50 border border-zinc-100 dark:border-zinc-700/50 hover:border-emerald-200 dark:hover:border-emerald-900/50 hover:shadow-lg hover:shadow-emerald-200/20 dark:hover:shadow-emerald-900/20 transition-all duration-300"
+            >
+              <div className="text-5xl mb-4 group-hover:scale-110 transition-transform">❤️</div>
+              <h3 className="text-xl font-bold text-zinc-900 dark:text-white mb-3">Premium Quality</h3>
+              <p className="text-zinc-600 dark:text-zinc-400 leading-relaxed">UV-resistant, durable, and long-lasting creations that preserve your memories for years to come.</p>
+            </motion.div>
+          </div>
+        </div>
+      </motion.section>
+
+      {/* Featured Products */}
+      <div className="py-16 sm:py-24">
+        <TrendingProducts />
       </div>
 
-      {/* About Section */}
-      <section className="relative py-16 sm:py-20 px-4 text-center overflow-hidden">
-        {/* Background decorative elements */}
-        <div className="absolute inset-0 bg-gradient-to-br from-white via-pearl-50 to-resin-50"></div>
-        <div className="absolute top-20 left-10 w-32 h-32 bg-resin-100/50 rounded-full animate-float"></div>
-        <div
-          className="absolute bottom-20 right-10 w-24 h-24 bg-gold-100/50 rounded-full animate-float"
-          style={{ animationDelay: "3s" }}
-        ></div>
-        <div
-          className="absolute top-1/2 right-1/4 w-16 h-16 bg-ocean-100/50 rounded-full animate-float"
-          style={{ animationDelay: "1.5s" }}
-        ></div>
+      {/* Premium CTA Section */}
+      <motion.div 
+        initial={{ y: 40, opacity: 0 }}
+        whileInView={{ y: 0, opacity: 1 }}
+        viewport={{ once: true, margin: "-100px" }}
+        transition={{ duration: 0.8 }}
+        className="flex justify-center my-12 sm:my-20 px-4"
+      >
+        <div className="relative group">
+          <div className="absolute -inset-1 bg-gradient-to-r from-resin-500 to-gold-500 rounded-full blur opacity-30 group-hover:opacity-60 transition duration-500"></div>
+          <button
+            onClick={() => navigate("/products")}
+            className="relative px-12 py-6 bg-gradient-to-r from-resin-600 to-resin-700 hover:from-resin-700 hover:to-resin-800 dark:from-resin-600 dark:to-resin-700 text-white text-lg font-semibold rounded-full shadow-xl transition-all duration-300 hover:scale-105 active:scale-95 flex items-center gap-3 border border-resin-500/50"
+          >
+            Explore Handcrafted Collection
+            <svg className="w-5 h-5 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
+          </button>
+        </div>
+      </motion.div>
 
-        <div className="relative z-10 max-w-4xl mx-auto">
-          <h2 className="text-3xl sm:text-4xl md:text-5xl font-playfair font-bold resin-text-gradient mb-6 animate-fadeInUp">
-            About Aaraksha Resin Art
+      {/* Premium About Section */}
+      <motion.section 
+        initial={{ opacity: 0, y: 40 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, margin: "-100px" }}
+        transition={{ duration: 0.8 }}
+        className="py-20 sm:py-28 px-4 border-y border-zinc-200 dark:border-zinc-800 bg-gradient-to-r from-resin-50/50 to-gold-50/50 dark:from-zinc-900/50 dark:to-zinc-900/50"
+      >
+        <div className="max-w-4xl mx-auto">
+          <h2 className="text-center text-3xl sm:text-4xl md:text-5xl font-poppins font-bold text-zinc-900 dark:text-zinc-100 mb-12 tracking-tight">
+            The Story Behind <span className="bg-gradient-to-r from-resin-600 to-gold-500 bg-clip-text text-transparent">Aaraksha</span>
           </h2>
-          <div className="glass-bg max-w-3xl mx-auto mb-8 animate-fadeInUp" style={{ animationDelay: "0.2s" }}>
-            <p className="text-gray-700 dark:text-gray-300 text-base sm:text-lg md:text-xl leading-relaxed mb-6">
-              At <span className="font-semibold resin-text-gradient">Aaraksha Resin Art</span>, we specialize in
-              preserving your precious memories with handcrafted, customizable resin creations. From elegant photo
-              frames and unique keychains to flower-preserved clocks and beautiful rakhis — every piece is crafted with
-              love, attention to detail, and artistic excellence.
+          
+          <div className="space-y-8 text-zinc-700 dark:text-zinc-300 text-lg leading-relaxed font-light">
+            <p className="text-center">
+              At <strong className="font-semibold text-zinc-900 dark:text-white">Aaraksha Resin Art</strong>, we believe that memories deserve to be preserved in the most beautiful way possible. Each creation is a labor of love, blending artistry with premium craftsmanship.
             </p>
-            <p className="text-gray-600 dark:text-gray-400 text-sm sm:text-base leading-relaxed">
-              Our mission is to transform your special moments into timeless art pieces that you can treasure forever.
-              Each creation is unique, just like your memories.
-            </p>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 my-10">
+              <div className="space-y-4">
+                <h3 className="text-xl font-bold text-zinc-900 dark:text-white">Our Collections</h3>
+                <ul className="space-y-3 text-sm">
+                  <li className="flex items-center gap-3"><span className="text-resin-600">→</span> Photo Frames & Displays</li>
+                  <li className="flex items-center gap-3"><span className="text-resin-600">→</span> Custom Keychains</li>
+                  <li className="flex items-center gap-3"><span className="text-resin-600">→</span> Flower-Preserved Clocks</li>
+                  <li className="flex items-center gap-3"><span className="text-resin-600">→</span> Festival Rakhis</li>
+                </ul>
+              </div>
+              
+              <div className="space-y-4">
+                <h3 className="text-xl font-bold text-zinc-900 dark:text-white">Why We're Different</h3>
+                <ul className="space-y-3 text-sm">
+                  <li className="flex items-center gap-3"><span className="text-gold-600">✓</span> 100% UV-resistant resin</li>
+                  <li className="flex items-center gap-3"><span className="text-gold-600">✓</span> Personalized customization</li>
+                  <li className="flex items-center gap-3"><span className="text-gold-600">✓</span> Fast & reliable service</li>
+                  <li className="flex items-center gap-3"><span className="text-gold-600">✓</span> Premium packaging</li>
+                </ul>
+              </div>
+            </div>
           </div>
 
-          <div
-            className="grid grid-cols-1 sm:grid-cols-2 gap-6 max-w-2xl mx-auto animate-fadeInUp"
-            style={{ animationDelay: "0.4s" }}
-          >
-            <div className="bg-gradient-to-r from-resin-50 to-gold-50 p-6 rounded-2xl shadow-pearl hover:shadow-resin transition-all duration-300 hover:scale-105">
-              <div className="text-3xl mb-3">📞</div>
-              <p className="text-gray-700 font-semibold mb-2">WhatsApp</p>
-              <a
-                href="https://wa.me/9033094705"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-resin-600 hover:text-resin-500 font-medium transition-colors duration-300"
-              >
-                +91 9033094705
-              </a>
-            </div>
+          {/* Contact Cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 max-w-2xl mx-auto mt-14">
+            <motion.a 
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              href="https://wa.me/9033094705" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="group p-8 rounded-2xl bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 hover:border-resin-300 dark:hover:border-resin-700 hover:shadow-lg hover:shadow-resin-200/30 dark:hover:shadow-resin-900/30 transition-all duration-300"
+            >
+              <div className="text-4xl mb-3 group-hover:scale-110 transition-transform">�</div>
+              <h3 className="text-zinc-900 dark:text-white font-bold mb-1">WhatsApp</h3>
+              <p className="text-zinc-600 dark:text-zinc-400 font-medium">Quick inquiries & orders</p>
+              <p className="text-resin-600 dark:text-resin-400 font-semibold mt-2">+91 9033094705</p>
+            </motion.a>
 
-            <div className="bg-gradient-to-r from-gold-50 to-ocean-50 p-6 rounded-2xl shadow-pearl hover:shadow-gold transition-all duration-300 hover:scale-105">
-              <div className="text-3xl mb-3">📷</div>
-              <p className="text-gray-700 font-semibold mb-2">Instagram</p>
-              <a
-                href="https://www.instagram.com/aaraksha_resin__art?igsh=MTl3aHIxN2d2c2U5cg=="
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-ocean-600 hover:text-ocean-500 font-medium transition-colors duration-300"
-              >
-                @aaraksha_resin__art
-              </a>
-            </div>
+            <motion.a 
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              href="https://www.instagram.com/aaraksha_resin__art" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="group p-8 rounded-2xl bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 hover:border-gold-300 dark:hover:border-gold-700 hover:shadow-lg hover:shadow-gold-200/30 dark:hover:shadow-gold-900/30 transition-all duration-300"
+            >
+              <div className="text-4xl mb-3 group-hover:scale-110 transition-transform">📸</div>
+              <h3 className="text-zinc-900 dark:text-white font-bold mb-1">Instagram</h3>
+              <p className="text-zinc-600 dark:text-zinc-400 font-medium">See our latest creations</p>
+              <p className="text-gold-600 dark:text-gold-400 font-semibold mt-2">@aaraksha_resin__art</p>
+            </motion.a>
           </div>
         </div>
-      </section>
+      </motion.section>
 
-      {/* Footer */}
-      <footer className="relative bg-gradient-to-r from-resin-100 via-pearl-50 to-ocean-100 dark:from-slate-800 dark:to-slate-900 text-center py-12 mt-16 shadow-resin px-4 overflow-hidden">
-        {/* Background decorative elements */}
-        <div className="absolute top-0 left-0 w-full h-1 bg-resin-gradient"></div>
-        <div className="absolute top-4 left-1/4 w-2 h-2 bg-gold-400 rounded-full animate-pulse-slow"></div>
-        <div
-          className="absolute top-8 right-1/3 w-1 h-1 bg-resin-400 rounded-full animate-pulse-slow"
-          style={{ animationDelay: "1s" }}
-        ></div>
-        <div
-          className="absolute bottom-4 left-1/3 w-1.5 h-1.5 bg-ocean-400 rounded-full animate-pulse-slow"
-          style={{ animationDelay: "2s" }}
-        ></div>
-
-        <div className="relative z-10">
-          <p className="text-xs sm:text-sm md:text-base text-gray-600 dark:text-gray-400">
-            © {new Date().getFullYear()} <span className="font-bold resin-text-gradient">Aaraksha Resin Art</span> –
-            Crafted with ❤️ in India.
-          </p>
+      {/* Premium Footer */}
+      <footer className="bg-zinc-900 dark:bg-zinc-950 text-white py-12 sm:py-16 border-t border-zinc-800">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-12 mb-12">
+            <div>
+              <h3 className="text-lg font-bold mb-4">Aaraksha</h3>
+              <p className="text-zinc-400 text-sm leading-relaxed">Handcrafted resin art preserving your precious memories with premium quality and artistic excellence.</p>
+            </div>
+            <div>
+              <h3 className="text-lg font-bold mb-4">Collections</h3>
+              <ul className="space-y-2 text-sm text-zinc-400">
+                <li className="hover:text-white transition cursor-pointer">Photo Frames</li>
+                <li className="hover:text-white transition cursor-pointer">Keychains</li>
+                <li className="hover:text-white transition cursor-pointer">Clocks</li>
+                <li className="hover:text-white transition cursor-pointer">Rakhis</li>
+              </ul>
+            </div>
+            <div>
+              <h3 className="text-lg font-bold mb-4">Contact</h3>
+              <ul className="space-y-2 text-sm text-zinc-400">
+                <li>WhatsApp: +91 9033094705</li>
+                <li>Email: araksharesinart@gmail.com</li>
+                <li>Instagram: @aaraksha_resin__art</li>
+              </ul>
+            </div>
+          </div>
+          
+          <div className="border-t border-zinc-800 pt-8 text-center text-sm text-zinc-400">
+            <p>© {new Date().getFullYear()} <span className="text-white font-semibold">Aaraksha Resin Art</span>. Handcrafted with love in India. 🇮🇳</p>
+          </div>
         </div>
       </footer>
-    </div>
+    </motion.div>
   );
 };
 

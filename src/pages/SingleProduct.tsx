@@ -1,29 +1,17 @@
 import { FC, useEffect, useState, useMemo } from "react";
-import { useSelector } from "react-redux";
+import { motion } from "framer-motion";
 import { useParams, useNavigate } from "react-router-dom";
-import { addToCart } from "../redux/features/cartSlice";
 import { Product } from "../models/Product";
-import RatingStar from "../components/RatingStar";
-import PriceSection from "../components/PriceSection";
 import toast from "react-hot-toast";
-import { AiOutlineShoppingCart } from "react-icons/ai";
-import { FaHandHoldingDollar } from "react-icons/fa6";
 import ProductList from "../components/ProductList";
-import useAuth from "../hooks/useAuth";
-import { MdFavoriteBorder, MdFavorite } from "react-icons/md";
 import { useAppDispatch, useAppSelector } from "../redux/hooks";
 import { fetchWishlistItems, removeWishlistItem } from "../redux/features/WishlistSlice";
-import { RootState } from "../redux/store";
 import Modal from "react-modal";
 import BASE_URL from "../config/apiconfig";
 import { useTranslation } from "react-i18next";
+import { formatProductName } from "../utils/formatters";
+import EnquiryModal from "../components/EnquiryModal";
 
-import * as Rating from "react-rating";
-import { FaStar, FaRegStar, FaStarHalfAlt } from "react-icons/fa";
-export interface CartItem {
-  productId: Product;
-  quantity: number;
-}
 interface ReviewUser {
   userName?: string;
 }
@@ -40,12 +28,10 @@ const SingleProduct: FC = () => {
   const navigate = useNavigate();
   const { _id } = useParams<{ _id?: string }>();
   const [product, setProduct] = useState<Product | null>(null);
-  const [isInWishlist, setIsInWishlist] = useState(false);
   const [, setImgs] = useState<string[]>([]);
   const [selectedImg, setSelectedImg] = useState<File | string | null>(null);
   const [Category, setCategory] = useState<string>("");
   const [similar, setSimilar] = useState<Product[]>([]);
-  const { requireAuth } = useAuth();
   const [formErrors, setFormErrors] = useState<{ [key: string]: string }>({});
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [formData, setFormData] = useState<Partial<Product>>({});
@@ -56,11 +42,8 @@ const SingleProduct: FC = () => {
   const language = localStorage.getItem("language") || "en";
   const userId = useAppSelector((state) => state.authReducer.userId) || localStorage.getItem("userId");
   const [reviews, setReviews] = useState<Review[]>([]);
-  const [newReview, setNewReview] = useState<Review>({
-    rating: 0,
-    comment: "",
-  });
   const [isZoomOpen, setIsZoomOpen] = useState(false);
+  const [isEnquiryOpen, setIsEnquiryOpen] = useState(false);
 
   const token = localStorage.getItem("accessToken");
   const Role = useAppSelector((state) => state.authReducer.Role);
@@ -293,68 +276,6 @@ const SingleProduct: FC = () => {
     }
   };
 
-  const cartItems = useSelector((state: RootState) => state.cartReducer.cartItems);
-
-  const addCart = async () => {
-    requireAuth(async () => {
-      if (!product || !product._id) {
-        toast.error(t("productNotFound"));
-        return;
-      }
-
-      const existingProductIndex = cartItems.findIndex((item) => item.productId._id === product._id);
-
-      const existingCartItem = cartItems[existingProductIndex];
-      const maxQuantity = product.stock || 10; //
-      const newQuantity = existingCartItem ? Math.min(existingCartItem.quantity + 1, maxQuantity) : 1;
-
-      if (existingCartItem && existingCartItem.quantity >= maxQuantity) {
-        toast(t("maxQuantityReached"));
-
-        return;
-      }
-
-      try {
-        const res = await fetch(`${BASE_URL}/cart`, {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-            "Accept-Language": language,
-          },
-          body: JSON.stringify({
-            userId,
-            productId: product._id,
-            quantity: newQuantity,
-          }),
-        });
-
-        const data = await res.json();
-
-        if (res.ok) {
-          dispatch(
-            addToCart({
-              _id: existingCartItem?._id || "unique-cart-id",
-              title: product.title,
-              price: product.price,
-              rating: product.rating,
-              category: product.category,
-              productId: product,
-              quantity: newQuantity,
-              images: product.images,
-              discountPercentage: product.discountPercentage,
-              stock: product.stock,
-            })
-          );
-          toast.success(existingCartItem ? t("quantityIncreased") : t("added"));
-        } else {
-          throw new Error(data.message || t("addToCartFailed"));
-        }
-      } catch (error) {
-        toast.error(t("addToCartFailed"));
-      }
-    });
-  };
   const handleReplaceImage = async (file: File, index: number) => {
     if (!_id || !token) return;
 
@@ -431,89 +352,12 @@ const SingleProduct: FC = () => {
     }
   };
 
-  const buyNow = () => {
-    requireAuth(() => {
-      if (!product || !_id) return;
-
-      const checkoutData = {
-        productId: _id,
-        quantity: 1,
-        title: product.title,
-        price: product.price,
-        salePrice: product.salePrice,
-        rating: product.rating,
-        category: product.category,
-        image: product.images,
-      };
-
-      sessionStorage.setItem("checkoutItem", JSON.stringify(checkoutData));
-
-      navigate("/checkoutDirect");
-    });
-  };
   const averageRating = useMemo(() => {
     if (reviews.length === 0) return 0;
     const sum = reviews.reduce((acc, r) => acc + r.rating, 0);
     return Number((sum / reviews.length).toFixed(1));
   }, [reviews]);
 
-  const wishlistItems = useAppSelector((state) => state.wishlistReducer.wishlistItems);
-
-  useEffect(() => {
-    if (product) {
-      const isProductInWishlist = wishlistItems.some((wishlistItem) =>
-        wishlistItem.products.some((item) => item.productId && item.productId._id === product._id)
-      );
-      setIsInWishlist(isProductInWishlist);
-    }
-  }, [wishlistItems, product]);
-
-  const handleWishlistToggle = async () => {
-    if (!product) return;
-    if (!token) return toast.error(t("Please login."));
-    if (!userId) return toast.error(t("NoUserId"));
-
-    try {
-      if (isInWishlist) {
-        dispatch(removeWishlistItem({ productId: product._id }));
-        toast.success(t("removedWwishlist"));
-      } else {
-        const response = await fetch(`${BASE_URL}/wishlist/add`, {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-            "Accept-Language": language,
-            userId,
-          },
-          body: JSON.stringify({
-            productId: product._id,
-            name: product.title,
-            price: product.price,
-            image: product.images || [],
-          }),
-        });
-
-        if (!response.ok) {
-          const errorDetails = await response.text();
-          const errorObj = JSON.parse(errorDetails);
-
-          if (errorObj.message === "Product already in wishlist") {
-            toast.error(t("already In Wishlist"));
-            setIsInWishlist(true);
-            return;
-          }
-
-          throw new Error(t("failed TO add in Wishlist"));
-        }
-        toast.success(t("added To Wishlist"));
-        setIsInWishlist(true);
-        dispatch(fetchWishlistItems());
-      }
-    } catch (error) {
-      toast.error((error as Error).message || t("failTOUpdateWishlist"));
-    }
-  };
   const fetchReviews = async () => {
     if (!_id) return;
     try {
@@ -525,49 +369,17 @@ const SingleProduct: FC = () => {
     }
   };
 
-  const handleReviewSubmit = async () => {
-    if (newReview.rating < 1 || newReview.rating > 5) {
-      alert(t("ratingRange"));
-      return;
-    }
 
-    if (!token || !userId || !_id) {
-      return toast.error(t("loginrequired"));
-    }
-
-    try {
-      const res = await fetch(`${BASE_URL}/reviews/products/${_id}`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-          "Accept-Language": language,
-        },
-        body: JSON.stringify({
-          userId,
-          rating: newReview.rating,
-          comment: newReview.comment,
-        }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        toast.error(data.message || t("failTOSUbmitRev"));
-        return;
-      }
-
-      toast.success(t("Reviewsubmitted"));
-      setNewReview({ rating: 0, comment: "" });
-      await fetchReviews();
-    } catch (err) {
-      toast.error(t("Errorsubmittingreview"));
-    }
-  };
 
 
   return (
-    <div className="container mx-auto pt-8 dark:text-white">
+    <motion.div 
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -20 }}
+      transition={{ duration: 0.5 }}
+      className="container mx-auto pt-8 dark:text-white"
+    >
       {loading && <div>{t("loading")}</div>}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 px-4 font-karla">
         <div className="space-y-4 mt-6">
@@ -593,16 +405,6 @@ const SingleProduct: FC = () => {
                 className="h-80 w-full object-cover rounded border cursor-zoom-in"
                 onClick={() => setIsZoomOpen(true)}
               />
-
-              {/* Wishlist Button */}
-              <button
-                onClick={handleWishlistToggle}
-                className={`absolute top-3 right-3 flex items-center justify-center w-10 h-10 rounded-full shadow-md transition transform hover:scale-110 ${
-                  isInWishlist ? "bg-red-500 text-white animate-pulse" : "bg-white text-gray-700 hover:bg-gray-100"
-                }`}
-              >
-                {isInWishlist ? <MdFavorite size={20} /> : <MdFavoriteBorder size={20} />}
-              </button>
             </div>
           )}
 
@@ -734,14 +536,10 @@ const SingleProduct: FC = () => {
         </div>
 
         <div className="px-2 max-h-[80vh] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-400">
-          <h2 className="text-2xl">{product?.title}</h2>
-          {/* {product?.rating !== undefined && <RatingStar rating={averageRating} />} */}
-          {product?.price !== undefined && (
-            <PriceSection discountPercentage={product.discountPercentage ?? 0} price={product.price} />
-          )}
+          <h2 className="text-2xl font-bold">{formatProductName(product?.title)}</h2>
 
           {product && (
-            <table className="mt-2">
+            <table className="mt-4 text-sm">
               <tbody>
                 {product.brand && (
                   <tr>
@@ -768,32 +566,14 @@ const SingleProduct: FC = () => {
 
           <div className="flex flex-col sm:flex-row gap-3 mt-4">
             <button
-              onClick={buyNow}
-              className="flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-amber-400 to-orange-500 text-white font-semibold shadow hover:from-amber-500 hover:to-orange-600 hover:scale-105 transition duration-300"
+              onClick={() => setIsEnquiryOpen(true)}
+              className="flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 text-white font-semibold shadow hover:scale-105 transition-transform duration-300"
             >
-              <FaHandHoldingDollar className="text-base" />
-              {t("buy now")}
-            </button>
-
-            <button
-              onClick={addCart}
-              className="flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-amber-400 to-orange-500 text-white font-semibold shadow hover:from-amber-500 hover:to-orange-600 hover:scale-105 transition duration-300"
-            >
-              <AiOutlineShoppingCart className="text-base" />
-              {t("add to cart")}
-            </button>
-
-            <a
-              href={`https://wa.me/919033094705?text=Hi, I'm interested in ${product?.title} (Price: ₹${product?.price}). Here is the product link: ${window.location.href}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-green-500 to-emerald-600 text-white font-semibold shadow hover:scale-105 transition-transform duration-300"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="currentColor" className="w-4 h-4">
-                <path d="M16 .5C7.44.5.5 7.44.5 16c0 2.83.74 5.58 2.15 8.01L.5 31.5l7.68-2.07A15.45 15.45 0 0016 31.5C24.56 31.5 31.5 24.56 31.5 16S24.56.5 16 .5zm0 28.45c-2.6 0-5.13-.69-7.35-1.99l-.53-.31-4.56 1.23 1.23-4.56-.31-.53A12.43 12.43 0 013.55 16C3.55 9.14 9.14 3.55 16 3.55S28.45 9.14 28.45 16 22.86 28.95 16 28.95zm7.02-8.4c-.39-.2-2.31-1.14-2.67-1.27-.36-.13-.62-.2-.88.2-.26.39-1.01 1.27-1.24 1.53-.23.26-.46.29-.85.1-.39-.2-1.65-.61-3.14-1.94-1.16-1.04-1.94-2.31-2.17-2.7-.23-.39-.02-.6.17-.79.17-.17.39-.46.59-.69.2-.23.26-.39.39-.65.13-.26.07-.49-.03-.69-.1-.2-.88-2.12-1.21-2.91-.32-.78-.65-.68-.88-.68-.23 0-.49-.03-.75-.03s-.69.1-1.05.49c-.36.39-1.38 1.35-1.38 3.3 0 1.94 1.42 3.81 1.62 4.07.2.26 2.8 4.28 6.77 6 .95.41 1.69.65 2.27.84.95.3 1.81.26 2.49.16.76-.11 2.31-.95 2.64-1.87.33-.91.33-1.7.23-1.87-.1-.16-.36-.26-.75-.46z" />
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
               </svg>
-              Inquiry Now
-            </a>
+              Get Enquiry
+            </button>
           </div>
 
           {(Role === "admin" || (Role === "seller" && product?.seller === userId)) && (
@@ -1070,7 +850,16 @@ const SingleProduct: FC = () => {
           </div>
         </div>
       )}
-    </div>
+
+      {/* Enquiry Modal */}
+      <EnquiryModal
+        isOpen={isEnquiryOpen}
+        onClose={() => setIsEnquiryOpen(false)}
+        productName={product?.title}
+        productImage={typeof selectedImg === "string" ? selectedImg : undefined}
+        productPrice={product?.price ? `₹${product.price}` : undefined}
+      />
+    </motion.div>
   );
 };
 
