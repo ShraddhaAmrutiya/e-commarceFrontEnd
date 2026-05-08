@@ -57,7 +57,7 @@ const AllProducts: FC = () => {
               image: imageUrl,
               category: cat.category,
             };
-          })
+          }),
         );
 
         fetchedProducts.sort((a: Product, b: Product) => {
@@ -67,9 +67,9 @@ const AllProducts: FC = () => {
         });
 
         const uniqueCategories: string[] = Array.from(
-          new Set(fetchedProducts.map((p: Product) => String(p.category)))
+          new Set(fetchedProducts.map((p: Product) => String(p.category))),
         ).filter((c) => c !== "") as string[];
-        
+
         setCategories(uniqueCategories);
         dispatch(addProducts(fetchedProducts));
       } catch (error) {
@@ -101,41 +101,17 @@ const AllProducts: FC = () => {
     setCurrentProducts(sortedByDate);
   }, [allProducts, selectedCategory]);
 
-  const sortProducts = (sortValue: string) => {
-    const filteredProducts = [...currentProducts];
-
-    if (sortValue === "default") {
-      filteredProducts.sort((a, b) => {
-        const dateA = a.createdAt ? new Date(a.createdAt).getTime() : getCreationTimeFromId(a._id).getTime();
-        const dateB = b.createdAt ? new Date(b.createdAt).getTime() : getCreationTimeFromId(b._id).getTime();
-        return dateB - dateA;
-      });
-    } else {
-      filteredProducts.sort((a, b) => {
-        const aPrice = a.discountPercentage === 0 ? a.price : a.salePrice ?? a.price;
-        const bPrice = b.discountPercentage === 0 ? b.price : b.salePrice ?? b.price;
-
-        if (sortValue === "asc") return aPrice - bPrice;
-        if (sortValue === "desc") return bPrice - aPrice;
-        return 0;
-      });
-    }
-
-    setCurrentProducts(filteredProducts);
-  };
-
   const containerVariants = {
     hidden: { opacity: 0 },
     show: {
       opacity: 1,
-      transition: { staggerChildren: 0.1 }
-    }
+      transition: { staggerChildren: 0.1 },
+    },
   };
 
   return (
     <div className="min-h-screen pt-28 pb-20 px-4 sm:px-6 lg:px-8 bg-zinc-50 dark:bg-zinc-900 font-inter">
       <div className="max-w-7xl mx-auto">
-        
         {/* Header Section */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-10 gap-6">
           <div>
@@ -161,15 +137,6 @@ const AllProducts: FC = () => {
                 </option>
               ))}
             </select>
-
-            <select
-              className="flex-1 sm:flex-none border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 px-4 py-2.5 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-zinc-200 dark:focus:ring-zinc-600 transition-all text-sm font-medium cursor-pointer"
-              onChange={(e) => sortProducts(e.target.value)}
-            >
-              <option value="default">{t("defaultSort")}</option>
-              <option value="asc">{t("priceLowToHigh")}</option>
-              <option value="desc">{t("priceHighToLow")}</option>
-            </select>
           </div>
         </div>
 
@@ -185,7 +152,7 @@ const AllProducts: FC = () => {
             <p className="text-xl font-medium text-zinc-500 dark:text-zinc-400">No products found.</p>
           </div>
         ) : (
-          <motion.div 
+          <motion.div
             variants={containerVariants}
             initial="hidden"
             animate="show"

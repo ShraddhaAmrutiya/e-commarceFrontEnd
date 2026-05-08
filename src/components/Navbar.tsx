@@ -1,7 +1,5 @@
 import { FC, useEffect, useRef, useState } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
-import { AiOutlineHeart } from "react-icons/ai";
-import { FaRegUser } from "react-icons/fa";
+import { Link, useLocation } from "react-router-dom";
 import { HiOutlineMenuAlt4, HiX } from "react-icons/hi";
 import { MdDarkMode, MdLightMode } from "react-icons/md";
 import { useAppSelector, useAppDispatch } from "../redux/hooks";
@@ -13,15 +11,12 @@ import axiosInstance from "../utils/axiosInstance";
 import { useTranslation } from "react-i18next";
 import i18n from "../i18n";
 import { motion, AnimatePresence } from "framer-motion";
-import toast from "react-hot-toast";
 
 const Navbar: FC = () => {
   const { t } = useTranslation();
-  const [authMenuOpen, setAuthMenuOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
-  const authMenuRef = useRef<HTMLDivElement>(null);
   const mobileMenuRef = useRef<HTMLDivElement>(null);
 
   const dispatch = useAppDispatch();
@@ -30,15 +25,7 @@ const Navbar: FC = () => {
   const userName = useAppSelector((state) => state.authReducer.userName);
   const Role = useAppSelector((state) => state.authReducer.Role) || localStorage.getItem("role");
 
-  const wishlistCount = useAppSelector((state) => {
-    const wishlistItems = state.wishlistReducer?.wishlistItems;
-    return Array.isArray(wishlistItems)
-      ? wishlistItems.reduce((total, item) => total + (item.products?.length || 0), 0)
-      : 0;
-  });
-
   const location = useLocation();
-  const navigate = useNavigate();
 
   // Scroll effect for sticky navbar
   useEffect(() => {
@@ -66,9 +53,6 @@ const Navbar: FC = () => {
       if (mobileMenuRef.current && !mobileMenuRef.current.contains(e.target as Node)) {
         setIsMobileMenuOpen(false);
       }
-      if (authMenuRef.current && !authMenuRef.current.contains(e.target as Node)) {
-        setAuthMenuOpen(false);
-      }
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
@@ -76,7 +60,6 @@ const Navbar: FC = () => {
 
   useEffect(() => {
     setIsMobileMenuOpen(false);
-    setAuthMenuOpen(false);
   }, [location.pathname]);
 
   return (
@@ -91,7 +74,7 @@ const Navbar: FC = () => {
         {/* Logo */}
         <Link to="/" className="flex items-center gap-3 group">
           <div className="relative overflow-hidden rounded-full w-12 h-12 sm:w-14 sm:h-14 bg-zinc-100 flex items-center justify-center border border-zinc-200 dark:border-zinc-700">
-             <img
+            <img
               src="/logo1.jpg"
               alt="Logo"
               className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
@@ -104,19 +87,18 @@ const Navbar: FC = () => {
 
         {/* Desktop Nav */}
         <nav className="hidden md:flex items-center gap-8">
-          <Link
-            to="/products"
-            className="text-zinc-600 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-white font-medium transition-colors"
-          >
-            {t("products")}
-          </Link>
-
           {(Role === "admin" || Role === "seller") && (
             <div className="flex gap-4">
-              <Link to="/addcategory" className="text-sm font-medium text-zinc-500 hover:text-zinc-900 dark:hover:text-white transition-colors">
+              <Link
+                to="/addcategory"
+                className="text-sm font-medium text-zinc-500 hover:text-zinc-900 dark:hover:text-white transition-colors"
+              >
                 Categories
               </Link>
-              <Link to="/Addproduct" className="text-sm font-medium text-zinc-500 hover:text-zinc-900 dark:hover:text-white transition-colors">
+              <Link
+                to="/Addproduct"
+                className="text-sm font-medium text-zinc-500 hover:text-zinc-900 dark:hover:text-white transition-colors"
+              >
                 + Product
               </Link>
             </div>
@@ -125,25 +107,13 @@ const Navbar: FC = () => {
 
         {/* Right Actions */}
         <div className="flex items-center gap-2 sm:gap-4">
-          <button
-            onClick={() => {
-              if (!userId) {
-                toast.error(t("pleaseLogin"));
-                return;
-              }
-              navigate("/wishlist");
-            }}
-            className="relative p-2 text-zinc-600 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-white transition-colors rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800"
-          >
-            <AiOutlineHeart size={22} />
-            {wishlistCount > 0 && (
-              <span className="absolute top-0 right-0 bg-resin-600 text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center border-2 border-white dark:border-zinc-900">
-                {wishlistCount}
-              </span>
-            )}
-          </button>
-
           {/* Theme Toggle */}
+          <Link
+            to="/products"
+            className="text-zinc-600 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-white font-medium transition-colors"
+          >
+            {t(" All products")}
+          </Link>
           <button
             onClick={() => dispatch(toggleTheme())}
             className="p-2 text-zinc-600 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-white transition-colors rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800"
@@ -151,43 +121,6 @@ const Navbar: FC = () => {
           >
             {isDark ? <MdLightMode size={20} /> : <MdDarkMode size={20} />}
           </button>
-
-          <div className="relative hidden md:block" ref={authMenuRef}>
-            {userName ? (
-              <div className="flex items-center gap-2 cursor-pointer">
-                 <CustomPopup />
-              </div>
-            ) : (
-              <button
-                onClick={() => setAuthMenuOpen(!authMenuOpen)}
-                className="p-2 text-zinc-600 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-white transition-colors rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800"
-              >
-                <FaRegUser size={20} />
-              </button>
-            )}
-
-            <AnimatePresence>
-              {!userName && authMenuOpen && (
-                <motion.div
-                  initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                  transition={{ duration: 0.2 }}
-                  className="absolute right-0 mt-3 w-48 bg-white dark:bg-zinc-800 rounded-xl shadow-xl border border-zinc-100 dark:border-zinc-700 overflow-hidden py-1"
-                >
-                  <button
-                    onClick={() => {
-                      dispatch(updateModal(true));
-                      setAuthMenuOpen(false);
-                    }}
-                    className="w-full text-left px-4 py-2 text-sm text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-700 transition-colors"
-                  >
-                    {t("loginCommon")}
-                  </button>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
 
           {/* Mobile Menu Toggle */}
           <button
@@ -227,16 +160,25 @@ const Navbar: FC = () => {
               </div>
 
               <div className="flex flex-col gap-6 font-poppins text-lg">
-                <Link to="/products" className="text-zinc-900 dark:text-white font-medium hover:text-resin-600 transition-colors">
-                  {t("products")}
+                <Link
+                  to="/products"
+                  className="text-zinc-900 dark:text-white font-medium hover:text-resin-600 transition-colors"
+                >
+                  {t(" products")}
                 </Link>
 
                 {(Role === "admin" || Role === "seller") && (
                   <>
-                    <Link to="/addcategory" className="text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 transition-colors">
+                    <Link
+                      to="/addcategory"
+                      className="text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 transition-colors"
+                    >
                       Add Category
                     </Link>
-                    <Link to="/Addproduct" className="text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 transition-colors">
+                    <Link
+                      to="/Addproduct"
+                      className="text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 transition-colors"
+                    >
                       + {t("addProduct")}
                     </Link>
                   </>
@@ -245,7 +187,9 @@ const Navbar: FC = () => {
                 <div className="h-px bg-zinc-100 dark:bg-zinc-800 my-2"></div>
 
                 {userName ? (
-                  <div className="mt-4"><CustomPopup /></div>
+                  <div className="mt-4">
+                    <CustomPopup />
+                  </div>
                 ) : (
                   <div className="flex flex-col gap-4 mt-2">
                     <button

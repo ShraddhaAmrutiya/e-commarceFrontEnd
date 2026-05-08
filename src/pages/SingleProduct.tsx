@@ -99,7 +99,6 @@ const SingleProduct: FC = () => {
     fetch(`${BASE_URL}/products/category/${Category}`)
       .then((res) => res.json())
       .then((data) => {
-
         const cleaned = data.products
           .filter((p: Product) => p._id !== _id)
           .map((p: Product) => {
@@ -369,65 +368,53 @@ const SingleProduct: FC = () => {
     }
   };
 
-
-
-
   return (
-    <motion.div 
+    <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -20 }}
       transition={{ duration: 0.5 }}
-      className="container mx-auto pt-8 dark:text-white"
+      className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-28 pb-10 overflow-hidden dark:text-white"
     >
       {loading && <div>{t("loading")}</div>}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 px-4 font-karla">
-        <div className="space-y-4 mt-6">
-          {/* {selectedImg && (
-            <img
-              src={
-                typeof selectedImg === "string"
-                  ? selectedImg
-                  : URL.createObjectURL(selectedImg)
-              }
-              alt={t("selected")}
-              className="h-80 w-full object-cover rounded border cursor-zoom-in"
-              onClick={() => setIsZoomOpen(true)}
-            />
-            
-            
-          )} */}
+
+      {/* MAIN PRODUCT SECTION */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-start">
+        {/* LEFT SIDE - IMAGE SECTION */}
+        <div className="space-y-5">
           {selectedImg && (
-            <div className="relative">
+            <div className="relative bg-white dark:bg-slate-900 rounded-3xl overflow-hidden shadow-lg border border-gray-200 dark:border-slate-700">
               <img
                 src={typeof selectedImg === "string" ? selectedImg : URL.createObjectURL(selectedImg)}
                 alt={t("selected")}
-                className="h-80 w-full object-cover rounded border cursor-zoom-in"
+                className="w-full h-[350px] sm:h-[450px] object-cover cursor-zoom-in hover:scale-[1.02] transition duration-300"
                 onClick={() => setIsZoomOpen(true)}
               />
             </div>
           )}
 
+          {/* THUMBNAILS */}
           <div className="flex flex-wrap gap-4">
-            {/* Image Thumbnails visible to all */}
-            {product?.images?.map((_img, index) => {
-              // const imgUrl = img.startsWith("/") ? `${BASE_URL}${img}` : img;
+            {product?.images?.map((img, index) => {
+              const imgUrl = img.startsWith("/") ? `${BASE_URL}${img}` : img;
 
               return (
                 <div
                   key={index}
-                  // className="relative w-12 h-12 border rounded overflow-hidden group"
+                  className={`relative w-24 h-24 rounded-2xl overflow-hidden border-2 cursor-pointer transition-all duration-300 ${
+                    selectedImg === imgUrl
+                      ? "border-orange-500 scale-105"
+                      : "border-gray-200 dark:border-slate-700 hover:border-orange-400"
+                  }`}
                 >
-                  {/* <img
+                  <img
                     src={imgUrl}
-                    alt={`Image ${index}`}
+                    alt={`Product ${index}`}
                     onClick={() => setSelectedImg(imgUrl)}
-                    className={`w-full h-full object-cover cursor-pointer transition ${
-                      selectedImg === imgUrl ? "ring-2 ring-blue-500" : ""
-                    }`}
-                  /> */}
+                    className="w-full h-full object-cover"
+                  />
 
-                  {/* Show Delete and Replace only to Admin or Product Owner Seller */}
+                  {/* ADMIN ACTIONS */}
                   {(Role === "admin" || (Role === "seller" && product?.seller === userId)) && (
                     <>
                       <button
@@ -437,7 +424,7 @@ const SingleProduct: FC = () => {
                             handleDeleteImage(index);
                           }
                         }}
-                        className="absolute top-1 right-1 bg-red-600 text-white text-xs px-1 rounded"
+                        className="absolute top-1 right-1 bg-red-600 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center"
                       >
                         ✕
                       </button>
@@ -445,7 +432,7 @@ const SingleProduct: FC = () => {
                       <button
                         type="button"
                         onClick={() => document.getElementById(`replace-input-${index}`)?.click()}
-                        className="absolute bottom-1 left-1 bg-yellow-500 text-white text-xs px-1 rounded"
+                        className="absolute bottom-1 left-1 bg-yellow-500 text-white text-[10px] px-1 py-[2px] rounded"
                       >
                         {t("replace")}
                       </button>
@@ -466,10 +453,13 @@ const SingleProduct: FC = () => {
               );
             })}
 
+            {/* ADD IMAGE */}
             {(Role === "admin" || (Role === "seller" && product?.seller === userId)) && (
               <div
-                className={`flex flex-col items-center justify-center w-24 h-24 border border-dashed rounded cursor-pointer hover:bg-gray-100 ${
-                  (product?.images?.length ?? 0) >= 5 ? "opacity-50 cursor-not-allowed" : ""
+                className={`flex flex-col items-center justify-center w-24 h-24 rounded-2xl border-2 border-dashed transition-all duration-300 ${
+                  (product?.images?.length ?? 0) >= 5
+                    ? "opacity-50 cursor-not-allowed border-gray-300"
+                    : "cursor-pointer border-orange-400 hover:bg-orange-50 dark:hover:bg-slate-800"
                 }`}
                 onClick={() => {
                   if ((product?.images?.length ?? 0) >= 5) {
@@ -477,14 +467,10 @@ const SingleProduct: FC = () => {
                   }
                 }}
               >
-                <label
-                  htmlFor="add-images"
-                  className={`text-center text-sm ${
-                    (product?.images?.length ?? 0) >= 5 ? "text-gray-300" : "text-gray-700"
-                  }`}
-                >
+                <label htmlFor="add-images" className="cursor-pointer text-sm font-medium text-orange-600">
                   + Add
                 </label>
+
                 <input
                   type="file"
                   id="add-images"
@@ -502,21 +488,26 @@ const SingleProduct: FC = () => {
               </div>
             )}
           </div>
+
+          {/* DELETE CONFIRM */}
           {showDeleteConfirm && (
-            <div className="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center">
-              <div className="bg-white p-5 rounded-lg shadow-lg max-w-sm w-full">
+            <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center px-4">
+              <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-xl max-w-sm w-full">
                 <h2 className="text-lg font-semibold mb-2">{t("delete_image")}</h2>
-                <p className="text-sm text-gray-600 mb-4">{t("delete_image_confirmation")}</p>
+
+                <p className="text-sm text-gray-600 dark:text-gray-300 mb-5">{t("delete_image_confirmation")}</p>
+
                 <div className="flex justify-end gap-3">
                   <button
                     onClick={() => {
                       setShowDeleteConfirm(false);
                       setImageToDelete(null);
                     }}
-                    className="px-4 py-1 text-sm bg-gray-200 rounded hover:bg-gray-300"
+                    className="px-4 py-2 text-sm bg-gray-200 dark:bg-slate-700 rounded-lg"
                   >
                     {t("cancel")}
                   </button>
+
                   <button
                     onClick={() => {
                       if (imageToDelete !== null) {
@@ -525,7 +516,7 @@ const SingleProduct: FC = () => {
                         setImageToDelete(null);
                       }
                     }}
-                    className="px-4 py-1 text-sm bg-red-600 text-white rounded hover:bg-red-700"
+                    className="px-4 py-2 text-sm bg-red-600 text-white rounded-lg"
                   >
                     {t("delete")}
                   </button>
@@ -535,49 +526,69 @@ const SingleProduct: FC = () => {
           )}
         </div>
 
-        <div className="px-2 max-h-[80vh] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-400">
-          <h2 className="text-2xl font-bold">{formatProductName(product?.title)}</h2>
+        {/* RIGHT SIDE - PRODUCT DETAILS */}
+        <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-lg border border-gray-200 dark:border-slate-700 p-6 sm:p-8">
+          <h1 className="text-3xl sm:text-4xl font-bold leading-tight mb-6">{formatProductName(product?.title)}</h1>
 
+          {/* PRODUCT INFO */}
           {product && (
-            <table className="mt-4 text-sm">
-              <tbody>
-                {product.brand && (
-                  <tr>
-                    <td className="pr-2 font-bold">{t("brand")}</td>
-                    <td>{product.brand}</td>
-                  </tr>
-                )}
-                {typeof product.category === "object" && product.category?.name && (
-                  <tr>
-                    <td className="pr-2 font-bold">{t("category")}</td>
-                    <td>{product.category.name}</td>
-                  </tr>
-                )}
-                {product.description && (
-                  <tr>
-                    <td className="pr-2 font-bold">{t("size of artical")}</td>
-                    <td>{product.description}</td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          )}
-          {product?.stock === 0 && <p className="text-red-600 mt-4 font-semibold">{t("out_of_stock")}</p>}
+            <div className="space-y-5">
+              {product.brand && (
+                <div className="flex items-start justify-between gap-4 border-b border-gray-100 dark:border-slate-700 pb-3">
+                  <span className="font-semibold text-gray-500 dark:text-gray-300">{t("brand")}</span>
 
-          <div className="flex flex-col sm:flex-row gap-3 mt-4">
+                  <span className="font-medium text-right">{product.brand}</span>
+                </div>
+              )}
+
+              {typeof product.category === "object" && product.category?.name && (
+                <div className="flex items-start justify-between gap-4 border-b border-gray-100 dark:border-slate-700 pb-3">
+                  <span className="font-semibold text-gray-500 dark:text-gray-300">{t("category")}</span>
+
+                  <span className="font-medium text-right">{product.category.name}</span>
+                </div>
+              )}
+
+              {product.description && (
+                <div className="flex items-start justify-between gap-4 border-b border-gray-100 dark:border-slate-700 pb-3">
+                  <span className="font-semibold text-gray-500 dark:text-gray-300">{t("size of artical")}</span>
+
+                  <span className="font-medium text-right">{product.description}</span>
+                </div>
+              )}
+
+              {/* STOCK */}
+              {product?.stock === 0 && (
+                <div className="bg-red-100 text-red-600 px-4 py-3 rounded-xl font-semibold">{t("out_of_stock")}</div>
+              )}
+            </div>
+          )}
+
+          {/* ENQUIRY BUTTON */}
+          <div className="mt-8">
             <button
               onClick={() => setIsEnquiryOpen(true)}
-              className="flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 text-white font-semibold shadow hover:scale-105 transition-transform duration-300"
+              className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-3 rounded-2xl bg-gradient-to-r from-amber-500 to-orange-600 text-white font-semibold shadow-lg hover:scale-105 transition-transform duration-300"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="w-5 h-5"
+              >
                 <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
               </svg>
               Get Enquiry
             </button>
           </div>
 
+          {/* ADMIN BUTTONS */}
           {(Role === "admin" || (Role === "seller" && product?.seller === userId)) && (
-            <div className="mt-6 space-x-3">
+            <div className="flex flex-wrap gap-4 mt-8">
               <button
                 onClick={() => {
                   setFormData({
@@ -592,215 +603,173 @@ const SingleProduct: FC = () => {
                     category: typeof product?.category === "object" ? product.category.name : product?.category,
                     images: product?.images || [],
                   });
+
                   setIsModalOpen(true);
                 }}
-                className="bg-blue-600 text-white px-4 py-2 rounded"
+                className="px-5 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-medium transition"
               >
                 {t("edit_product")}
               </button>
 
-              <button onClick={() => setIsDeleteModalOpen(true)} className="bg-red-600 text-white px-4 py-2 rounded">
+              <button
+                onClick={() => setIsDeleteModalOpen(true)}
+                className="px-5 py-3 rounded-xl bg-red-600 hover:bg-red-700 text-white font-medium transition"
+              >
                 {t("delete_product")}
               </button>
             </div>
           )}
         </div>
-        {/* <div className="border p-4 rounded-2xl shadow-xl bg-white dark:bg-slate-800 h-fit max-h-[80vh] overflow-y-auto">
-          <h3 className="text-xl font-semibold mb-4 text-gray-800 dark:text-gray-200">{t("Customer Reviews")}</h3>
-
-          {reviews.length === 0 ? (
-            <p className="text-sm text-gray-600 dark:text-gray-300 italic py-4">No reviews yet.</p>
-          ) : (
-            <ul className="space-y-3 max-h-64 overflow-y-auto pr-1 custom-scroll">
-              {reviews.map((review: Review, index: number) => (
-                <li
-                  key={index}
-                  className="border rounded-xl p-3 bg-gray-50 dark:bg-slate-700 shadow-sm transition hover:shadow-md"
-                >
-                  <div className="flex items-center mb-1">
-                    <RatingStar rating={review.rating} />
-                    <span className="ml-3 font-medium text-gray-800 dark:text-gray-100">{review.user?.userName}</span>
-                  </div>
-
-                  <p className="text-gray-700 dark:text-gray-300 text-sm leading-relaxed">{review.comment}</p>
-                </li>
-              ))}
-            </ul>
-          )}
-
-          <div className="mt-6 border-t pt-4">
-            <h4 className="font-semibold text-lg text-gray-800 dark:text-gray-200 mb-2">{t("Add Your Review")}</h4>
-
-            <div className="flex items-center space-x-3 mb-3">
-              <label className="text-gray-700 dark:text-gray-300 text-sm">{t("Rating")}:</label>
-
-              <Rating.default
-                fractions={10}
-                initialRating={newReview.rating}
-                onChange={(value: number) => setNewReview({ ...newReview, rating: value })}
-                emptySymbol={<FaRegStar size={26} className="text-gray-400" />}
-                fullSymbol={<FaStar size={26} className="text-yellow-400" />}
-                placeholderSymbol={<FaStarHalfAlt size={26} className="text-yellow-300" />}
-              />
-            </div>
-
-            <textarea
-              rows={3}
-              className="w-full border rounded-xl p-3 text-sm bg-gray-50 dark:bg-slate-700 dark:border-slate-600 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-400"
-              placeholder={t("Writeyourcomment")}
-              value={newReview.comment}
-              onChange={(e) => setNewReview({ ...newReview, comment: e.target.value })}
-            />
-
-            <button
-              onClick={handleReviewSubmit}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 mt-3 rounded-xl w-full transition shadow-md"
-            >
-              {t("SubmitReview")}
-            </button>
-          </div>
-        </div> */}
       </div>
-      {similar.length > 0 && <ProductList title={t("similar_products")} products={similar} />}
+
+      {/* SIMILAR PRODUCTS */}
+      <div className="mt-16">
+        {similar.length > 0 && <ProductList title={t("similar_products")} products={similar} />}
+      </div>
+
+      {/* EDIT MODAL */}
       <Modal
         isOpen={isModalOpen}
         onRequestClose={() => {
           setIsModalOpen(false);
           setFormData({});
         }}
-        className="bg-white p-5 rounded-md shadow-md max-w-md h-[80vh] mx-auto mt-20 overflow-hidden"
+        className="bg-white dark:bg-slate-900 p-5 rounded-2xl shadow-md max-w-md h-[80vh] mx-auto mt-20 overflow-hidden"
       >
         <h2 className="text-xl font-bold mb-4">{t("edit_product")}</h2>
 
         <div className="overflow-y-auto h-[calc(100%-2rem)] pr-2 space-y-3">
           <form className="space-y-3">
             <div className="space-y-1">
-              <label htmlFor="title" className="text-sm font-medium text-gray-700">
+              <label htmlFor="title" className="text-sm font-medium">
                 {t("titleLabel")}
               </label>
+
               <input
                 type="text"
                 name="title"
                 id="title"
                 value={formData.title || ""}
                 onChange={handleInputChange}
-                className="w-full p-2 border"
+                className="w-full p-2 border rounded-lg"
                 placeholder="Title"
               />
+
               {formErrors.title && <p className="text-red-500 text-sm">{formErrors.title}</p>}
             </div>
 
-            {/* Description Field */}
             <div className="space-y-1">
-              <label htmlFor="description" className="text-sm font-medium text-gray-700">
+              <label htmlFor="description" className="text-sm font-medium">
                 {t("descriptionLabel")}
               </label>
+
               <input
                 type="text"
                 name="description"
                 id="description"
                 value={formData.description || ""}
                 onChange={handleInputChange}
-                className="w-full p-2 border"
+                className="w-full p-2 border rounded-lg"
                 placeholder="Description"
               />
-              {formErrors.description && <p className="text-red-500 text-sm">{formErrors.description}</p>}
             </div>
 
-            {/* Price Field */}
             <div className="space-y-1">
-              <label htmlFor="price" className="text-sm font-medium text-gray-700">
+              <label htmlFor="price" className="text-sm font-medium">
                 {t("priceLabel")}
               </label>
+
               <input
                 type="number"
                 name="price"
                 id="price"
                 value={formData.price || ""}
                 onChange={handleInputChange}
-                className="w-full p-2 border"
+                className="w-full p-2 border rounded-lg"
                 placeholder="Price"
               />
-              {formErrors.price && <p className="text-red-500 text-sm">{formErrors.price}</p>}
             </div>
 
-            {/* Sale Price Field */}
             <div className="space-y-1">
-              <label htmlFor="salePrice" className="text-sm font-medium text-gray-700">
+              <label htmlFor="salePrice" className="text-sm font-medium">
                 {t("salePriceLabel")}
               </label>
+
               <input
                 type="number"
                 name="salePrice"
                 id="salePrice"
                 value={formData.salePrice !== undefined && formData.salePrice !== null ? formData.salePrice : ""}
-                className="w-full p-2 border"
+                className="w-full p-2 border rounded-lg bg-gray-100"
                 placeholder="Sale Price"
-                disabled // This disables the field
+                disabled
               />
             </div>
 
-            {/* Discount Percentage Field */}
             <div className="space-y-1">
-              <label htmlFor="discountPercentage" className="text-sm font-medium text-gray-700">
+              <label htmlFor="discountPercentage" className="text-sm font-medium">
                 {t("discountLabel")}
               </label>
+
               <input
                 type="number"
                 name="discountPercentage"
                 id="discountPercentage"
                 value={formData.discountPercentage}
                 onChange={handleInputChange}
-                className="w-full p-2 border"
+                className="w-full p-2 border rounded-lg"
                 placeholder="Discount %"
                 min="0"
                 max="100"
               />
-              {formErrors.discountPercentage && <p className="text-red-500 text-sm">{formErrors.discountPercentage}</p>}
             </div>
 
             <div className="space-y-1 mb-4">
-              <label htmlFor="rating" className="text-sm font-medium text-gray-700">
+              <label htmlFor="rating" className="text-sm font-medium">
                 Average Rating
               </label>
+
               <input
                 type="number"
                 id="rating"
                 value={averageRating}
                 readOnly
-                className="w-full p-2 border bg-gray-100 cursor-not-allowed"
+                className="w-full p-2 border rounded-lg bg-gray-100 cursor-not-allowed"
                 min={0}
                 max={5}
                 step={0.1}
               />
             </div>
 
-            {/* Brand Field */}
             <div className="space-y-1">
-              <label htmlFor="brand" className="text-sm font-medium text-gray-700">
+              <label htmlFor="brand" className="text-sm font-medium">
                 {t("brandLabel")}
               </label>
+
               <input
                 type="text"
                 name="brand"
                 id="brand"
                 value={formData.brand || ""}
                 onChange={handleInputChange}
-                className="w-full p-2 border"
+                className="w-full p-2 border rounded-lg"
                 placeholder="Brand"
               />
-              {formErrors.brand && <p className="text-red-500 text-sm">{formErrors.brand}</p>}
             </div>
 
-            {/* Buttons */}
-            <div className="flex justify-between space-x-2">
-              <button type="button" onClick={handleUpdateProduct} className="w-full bg-blue-600 text-white p-2 rounded">
+            <div className="flex justify-between gap-3 pt-3">
+              <button
+                type="button"
+                onClick={handleUpdateProduct}
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white p-2 rounded-xl"
+              >
                 {t("update")}
               </button>
+
               <button
                 type="button"
                 onClick={() => setIsModalOpen(false)}
-                className="w-full bg-gray-600 text-white p-2 rounded"
+                className="w-full bg-gray-600 hover:bg-gray-700 text-white p-2 rounded-xl"
               >
                 {t("cancel")}
               </button>
@@ -809,49 +778,59 @@ const SingleProduct: FC = () => {
         </div>
       </Modal>
 
-      {/* Modal for delete confirmation */}
+      {/* DELETE MODAL */}
       <Modal
         isOpen={isDeleteModalOpen}
         onRequestClose={() => setIsDeleteModalOpen(false)}
-        className="bg-white p-6 rounded-md shadow-md max-w-md mx-auto mt-20"
+        className="bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-md max-w-md mx-auto mt-20"
       >
         <h2 className="text-xl font-bold mb-4">{t("confirm_delete_product")}</h2>
-        <div className="flex justify-between space-x-2">
-          <button onClick={handleDeleteProduct} className="w-full bg-red-600 text-white p-2 rounded">
+
+        <div className="flex justify-between gap-3">
+          <button
+            onClick={handleDeleteProduct}
+            className="w-full bg-red-600 hover:bg-red-700 text-white p-2 rounded-xl"
+          >
             {t("yes_delete")}
           </button>
-          <button onClick={() => setIsDeleteModalOpen(false)} className="w-full bg-gray-600 text-white p-2 rounded">
+
+          <button
+            onClick={() => setIsDeleteModalOpen(false)}
+            className="w-full bg-gray-600 hover:bg-gray-700 text-white p-2 rounded-xl"
+          >
             {t("cancel")}
           </button>
         </div>
       </Modal>
 
+      {/* ZOOM MODAL */}
       {isZoomOpen && selectedImg && (
         <div
-          className="fixed inset-0 z-50 bg-black bg-opacity-80 flex items-center justify-center"
+          className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center"
           onClick={() => setIsZoomOpen(false)}
         >
-          <div className="relative max-w-4xl w-full max-h-[90vh]">
+          <div className="relative max-w-5xl w-full px-4">
             <button
               onClick={(e) => {
                 e.stopPropagation();
                 setIsZoomOpen(false);
               }}
-              className="absolute top-4 right-4 text-white text-2xl bg-black bg-opacity-70 rounded-full px-3 py-1 hover:bg-opacity-90"
+              className="absolute top-4 right-6 text-white text-3xl z-50"
             >
               ✕
             </button>
+
             <img
               src={typeof selectedImg === "string" ? selectedImg : selectedImg ? URL.createObjectURL(selectedImg) : ""}
               alt="Zoomed"
-              className="w-full h-auto object-contain max-h-[80vh] mx-auto"
+              className="w-full h-auto max-h-[90vh] object-contain rounded-2xl"
               onClick={(e) => e.stopPropagation()}
             />
           </div>
         </div>
       )}
 
-      {/* Enquiry Modal */}
+      {/* ENQUIRY MODAL */}
       <EnquiryModal
         isOpen={isEnquiryOpen}
         onClose={() => setIsEnquiryOpen(false)}
