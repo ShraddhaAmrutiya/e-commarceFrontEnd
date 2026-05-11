@@ -11,12 +11,14 @@ import axiosInstance from "../utils/axiosInstance";
 import { useTranslation } from "react-i18next";
 import i18n from "../i18n";
 import { motion, AnimatePresence } from "framer-motion";
+import { FaRegUser } from "react-icons/fa";
 
 const Navbar: FC = () => {
   const { t } = useTranslation();
+  const [authMenuOpen, setAuthMenuOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-
+  const authMenuRef = useRef<HTMLDivElement>(null);
   const mobileMenuRef = useRef<HTMLDivElement>(null);
 
   const dispatch = useAppDispatch();
@@ -121,6 +123,42 @@ const Navbar: FC = () => {
           >
             {isDark ? <MdLightMode size={20} /> : <MdDarkMode size={20} />}
           </button>
+          <div className="relative hidden md:block" ref={authMenuRef}>
+            {userName ? (
+              <div className="flex items-center gap-2 cursor-pointer">
+                <CustomPopup />
+              </div>
+            ) : (
+              <button
+                onClick={() => setAuthMenuOpen(!authMenuOpen)}
+                className="p-2 text-zinc-600 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-white transition-colors rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800"
+              >
+                <FaRegUser size={20} />
+              </button>
+            )}
+
+            <AnimatePresence>
+              {!userName && authMenuOpen && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                  transition={{ duration: 0.2 }}
+                  className="absolute right-0 mt-3 w-48 bg-white dark:bg-zinc-800 rounded-xl shadow-xl border border-zinc-100 dark:border-zinc-700 overflow-hidden py-1"
+                >
+                  <button
+                    onClick={() => {
+                      dispatch(updateModal(true));
+                      setAuthMenuOpen(false);
+                    }}
+                    className="w-full text-left px-4 py-2 text-sm text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-700 transition-colors"
+                  >
+                    {t("loginCommon")}
+                  </button>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
 
           {/* Mobile Menu Toggle */}
           <button
