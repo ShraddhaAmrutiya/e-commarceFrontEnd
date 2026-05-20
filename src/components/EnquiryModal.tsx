@@ -8,6 +8,7 @@ interface EnquiryModalProps {
   productName?: string;
   productImage?: string;
   productUrl?: string;
+  productPrice?: string;
 }
 
 interface FormData {
