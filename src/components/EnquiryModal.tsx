@@ -7,7 +7,7 @@ interface EnquiryModalProps {
   onClose: () => void;
   productName?: string;
   productImage?: string;
-  productPrice?: string;
+  productUrl?: string;
 }
 
 interface FormData {
@@ -22,7 +22,7 @@ export const EnquiryModal: React.FC<EnquiryModalProps> = ({
   onClose,
   productName = "",
   productImage = "",
-  productPrice = "",
+  productUrl = typeof window !== "undefined" ? window.location.href : "",
 }) => {
   const [formData, setFormData] = useState<FormData>({
     name: "",
@@ -30,6 +30,7 @@ export const EnquiryModal: React.FC<EnquiryModalProps> = ({
     phone: "",
     message: "",
   });
+  const [phoneError, setPhoneError] = useState("");
 
   // Reset form when modal closes
   useEffect(() => {
@@ -46,6 +47,25 @@ export const EnquiryModal: React.FC<EnquiryModalProps> = ({
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
 
+    // Phone validation
+    if (name === "phone") {
+      const numericValue = value.replace(/\D/g, "");
+
+      setFormData((prev) => ({
+        ...prev,
+        phone: numericValue,
+      }));
+
+      // Validate phone number
+      if (numericValue.length > 0 && numericValue.length < 10) {
+        setPhoneError("Please enter valid number");
+      } else {
+        setPhoneError("");
+      }
+
+      return;
+    }
+
     setFormData((prev) => ({
       ...prev,
       [name]: value,
@@ -60,19 +80,36 @@ export const EnquiryModal: React.FC<EnquiryModalProps> = ({
     const phoneNumber = "9033094705";
 
     const whatsappMessage = `
-Hello, I want to enquire about this product.
+      Hello 👋
 
-📦 Product: ${productName}
-💰 Price: ${productPrice}
+      I would like to enquire about the following product.
 
-👤 Name: ${formData.name}
-📧 Email: ${formData.email}
-📱 Phone: ${formData.phone}
+      📦 Product Name: ${productName}
+      🔗 Product URL: ${productUrl}
 
-📝 Message:
-${formData.message}
-    `;
+      ━━━━━━━━━━━━━━
 
+      👤 Customer Information
+
+      Name: ${formData.name}
+      Phone: ${formData.phone}
+
+      ${formData.email ? `Email: ${formData.email}` : ""}
+
+      ${
+        formData.message
+          ? `━━━━━━━━━━━━━━
+
+      📝 Message:
+      ${formData.message}`
+          : ""
+      }
+      `;
+    if (formData.phone.length !== 10) {
+      setPhoneError("Please enter valid number");
+      return;
+    }
+    console.log("whatsappMessage", whatsappMessage);
     const whatsappURL = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(whatsappMessage)}`;
 
     window.open(whatsappURL, "_blank");
@@ -137,7 +174,16 @@ ${formData.message}
                   <div className="flex-1">
                     <p className="text-sm font-semibold text-gray-900 dark:text-white">{productName}</p>
 
-                    {productPrice && <p className="text-sm text-gray-600 dark:text-gray-300">{productPrice}</p>}
+                    {productUrl && (
+                      <a
+                        href={productUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-sm text-green-600 hover:underline break-all"
+                      >
+                        View Product
+                      </a>
+                    )}
                   </div>
                 </div>
               )}
@@ -176,7 +222,6 @@ ${formData.message}
                   value={formData.email}
                   onChange={handleChange}
                   placeholder="your.email@example.com"
-                  required
                   className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 transition-all"
                 />
               </div>
@@ -198,8 +243,12 @@ ${formData.message}
                   onChange={handleChange}
                   placeholder="+91 98765 43210"
                   required
+                  maxLength={10}
+                  pattern="[0-9]{10}"
+                  inputMode="numeric"
                   className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 transition-all"
                 />
+                {phoneError && <p className="text-red-500 text-sm mt-1">{phoneError}</p>}
               </div>
 
               {/* Message */}
@@ -207,7 +256,7 @@ ${formData.message}
                 <label htmlFor="message" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   <span className="flex items-center gap-2">
                     <FiMessageSquare size={16} />
-                    Message *
+                    Message
                   </span>
                 </label>
 
@@ -217,7 +266,7 @@ ${formData.message}
                   value={formData.message}
                   onChange={handleChange}
                   placeholder="Tell us about your enquiry..."
-                  required
+                  // required
                   rows={4}
                   className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 transition-all resize-none"
                 />
