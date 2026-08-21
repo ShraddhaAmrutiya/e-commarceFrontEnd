@@ -89,6 +89,7 @@ const Navbar: FC = () => {
 
         {/* Desktop Nav */}
         <nav className="hidden md:flex items-center gap-8">
+
           {(Role === "admin" || Role === "seller") && (
             <div className="flex gap-4">
               <Link

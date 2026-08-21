@@ -101,6 +101,8 @@ const AllProducts: FC = () => {
     setCurrentProducts(sortedByDate);
   }, [allProducts, selectedCategory]);
 
+
+
   const containerVariants = {
     hidden: { opacity: 0 },
     show: {
