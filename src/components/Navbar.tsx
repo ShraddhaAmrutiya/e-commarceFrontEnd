@@ -104,12 +104,6 @@ const Navbar: FC = () => {
 
         {/* Desktop Nav */}
         <nav className="hidden md:flex items-center gap-8">
-          <Link
-            to="/products"
-            className="text-zinc-600 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-white font-medium transition-colors"
-          >
-            {t("products")}
-          </Link>
 
           {(Role === "admin" || Role === "seller") && (
             <div className="flex gap-4">
