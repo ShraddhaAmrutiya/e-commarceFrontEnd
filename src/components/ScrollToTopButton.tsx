@@ -66,9 +66,11 @@ const ScrollToTopButton: React.FC = () => {
         <button
           onClick={scrollToTop}
           aria-label="Scroll to top"
-          className="bg-gray-800 dark:bg-white text-white dark:text-slate-800 rounded-full h-12 w-12 shadow-lg hover:bg-gray-700 dark:hover:bg-slate-300 transition duration-300 opacity-70 hover:opacity-100 flex items-center justify-center"
+          className="group bg-resin-gradient text-white rounded-full h-14 w-14 shadow-resin hover:shadow-gold transition-all duration-300 opacity-90 hover:opacity-100 flex items-center justify-center hover:scale-110 animate-fadeInUp"
         >
-          <IoIosArrowUp size={24} />
+          <IoIosArrowUp size={28} className="group-hover:animate-bounce" />
+          {/* Glow effect */}
+          <div className="absolute inset-0 rounded-full bg-resin-gradient opacity-0 group-hover:opacity-30 animate-ping"></div>
         </button>
       )}
     </div>

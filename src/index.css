@@ -1,10 +1,10 @@
 /* 🌐 Font Imports */
-@import url('https://fonts.googleapis.com/css2?family=Karla&family=Lato&family=Lora:wght@700&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap");
 
 /* 🌀 Swiper Styles */
-@import 'swiper/css';
-@import 'swiper/css/navigation';
-@import 'swiper/css/pagination';
+@import "swiper/css";
+@import "swiper/css/navigation";
+@import "swiper/css/pagination";
 
 /* 🧩 Tailwind Base Setup */
 @tailwind base;
@@ -15,11 +15,13 @@
 🎨 Global Design Tokens / Styling
 ----------------------------- */
 body {
-  @apply font-karla text-gray-800 dark:text-gray-200 bg-gradient-to-br from-white to-purple-50 dark:from-gray-900 dark:to-gray-800;
+  @apply font-inter text-zinc-900 dark:text-zinc-100 bg-zinc-50 dark:bg-zinc-900 antialiased selection:bg-resin-500 selection:text-white;
 }
 
-h1, h2, h3 {
-  @apply font-lora;
+h1,
+h2,
+h3 {
+  @apply font-poppins tracking-tight;
 }
 
 h1 {
@@ -73,4 +75,12 @@ h3 {
 /* Swiper slide text styling */
 .slide-text-overlay {
   @apply bg-black bg-opacity-40 p-6 rounded-lg text-white text-center max-w-xl;
+}
+@keyframes fade {
+  from { opacity: 0; transform: scale(0.9); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.animate-fade {
+  animation: fade 0.5s ease-in-out;
 }

@@ -3,7 +3,7 @@ import { FC, useEffect, useState, FormEvent } from "react";
 import { toast } from "react-toastify";
 import BASE_URL from "../config/apiconfig";
 import { useTranslation } from "react-i18next";
-import { MdEmail, MdPhone, MdPerson, MdCake, MdWc } from "react-icons/md";
+import { MdEmail, MdPhone, MdPerson, } from "react-icons/md";
 
 interface Address {
   address: string;
@@ -113,7 +113,7 @@ const Profile: FC = () => {
         {/* User Info Cards */}
         <div className="space-y-4">
           <div className="bg-gradient-to-r from-purple-100 to-blue-100 dark:from-slate-700 dark:to-slate-800 rounded-xl shadow-md p-6">
-            <h2 className="text-xl font-bold mb-4">{t("profile.details")}</h2>
+            <h2 className="text-xl font-bold mb-4">{t("Profile Details")}</h2>
             <div className="space-y-3 text-base">
               <div className="flex items-center gap-3">
                 <MdPerson className="text-purple-600 text-xl" />
@@ -133,14 +133,7 @@ const Profile: FC = () => {
                 <MdPhone className="text-green-500 text-xl" />
                 <span>{info?.phone}</span>
               </div>
-              <div className="flex items-center gap-3">
-                <MdCake className="text-orange-500 text-xl" />
-                <span>{info?.age} {t("profile.age")}</span>
-              </div>
-              <div className="flex items-center gap-3">
-                <MdWc className="text-pink-500 text-xl" />
-                <span>{info?.gender}</span>
-              </div>
+
             </div>
           </div>
         </div>

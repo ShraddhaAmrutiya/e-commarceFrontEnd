@@ -362,10 +362,10 @@ const Register = () => {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    if (isNaN(Number(formData.age)) || Number(formData.age) <= 0) {
-      toast.error(t("invalidAge"));
-      return;
-    }
+    // if (isNaN(Number(formData.age)) || Number(formData.age) <= 0) {
+    //   toast.error(t("invalidAge"));
+    //   return;
+    // }
 
     try {
       const payload = {
@@ -478,16 +478,16 @@ const Register = () => {
           error={fieldErrors.phone}
           required={true}
         />
-        <InputField
+        {/* <InputField
           type="number"
           label={t("age")}
           name="age"
           value={formData.age}
           onChange={handleChange}
           error={fieldErrors.age}
-        />
+        /> */}
 
-        <div className="mb-4">
+        {/* <div className="mb-4">
           <label className="block text-sm font-medium text-gray-700 dark:text-white">
             {t("gender")}
           </label>
@@ -505,7 +505,7 @@ const Register = () => {
           {fieldErrors.gender && (
             <p className="text-sm text-red-500 mt-1">{fieldErrors.gender}</p>
           )}
-        </div>
+        </div> */}
 
         <InputField
           type="password"

@@ -1,30 +1,17 @@
-
 import { FC, useEffect, useState, useMemo } from "react";
-import { useSelector } from "react-redux";
+import { motion } from "framer-motion";
 import { useParams, useNavigate } from "react-router-dom";
-import { addToCart } from "../redux/features/cartSlice";
 import { Product } from "../models/Product";
-import RatingStar from "../components/RatingStar";
-import PriceSection from "../components/PriceSection";
 import toast from "react-hot-toast";
-import { AiOutlineShoppingCart } from "react-icons/ai";
-import { FaHandHoldingDollar } from "react-icons/fa6";
 import ProductList from "../components/ProductList";
-import useAuth from "../hooks/useAuth";
-import { MdFavoriteBorder, MdFavorite } from "react-icons/md";
 import { useAppDispatch, useAppSelector } from "../redux/hooks";
 import { fetchWishlistItems, removeWishlistItem } from "../redux/features/WishlistSlice";
-import { RootState } from "../redux/store";
 import Modal from "react-modal";
 import BASE_URL from "../config/apiconfig";
 import { useTranslation } from "react-i18next";
+import { formatProductName } from "../utils/formatters";
+import EnquiryModal from "../components/EnquiryModal";
 
-import * as Rating from "react-rating";
-import { FaStar, FaRegStar, FaStarHalfAlt } from "react-icons/fa";
-export interface CartItem {
-  productId: Product;
-  quantity: number;
-}
 interface ReviewUser {
   userName?: string;
 }
@@ -41,12 +28,10 @@ const SingleProduct: FC = () => {
   const navigate = useNavigate();
   const { _id } = useParams<{ _id?: string }>();
   const [product, setProduct] = useState<Product | null>(null);
-  const [isInWishlist, setIsInWishlist] = useState(false);
   const [, setImgs] = useState<string[]>([]);
   const [selectedImg, setSelectedImg] = useState<File | string | null>(null);
   const [Category, setCategory] = useState<string>("");
   const [similar, setSimilar] = useState<Product[]>([]);
-  const { requireAuth } = useAuth();
   const [formErrors, setFormErrors] = useState<{ [key: string]: string }>({});
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [formData, setFormData] = useState<Partial<Product>>({});
@@ -57,18 +42,24 @@ const SingleProduct: FC = () => {
   const language = localStorage.getItem("language") || "en";
   const userId = useAppSelector((state) => state.authReducer.userId) || localStorage.getItem("userId");
   const [reviews, setReviews] = useState<Review[]>([]);
-  const [newReview, setNewReview] = useState<Review>({ rating: 0, comment: "" });
   const [isZoomOpen, setIsZoomOpen] = useState(false);
+  const [isEnquiryOpen, setIsEnquiryOpen] = useState(false);
 
   const token = localStorage.getItem("accessToken");
   const Role = useAppSelector((state) => state.authReducer.Role);
- useEffect(() => {
-  dispatch(fetchWishlistItems());
+  useEffect(() => {
+    dispatch(fetchWishlistItems());
 
-  // Scroll to top every time product id changes
-  window.scrollTo({ top: 0, behavior: "smooth" });
-}, [dispatch, _id]);
+    // Scroll to top every time product id changes
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, [dispatch, _id]);
+  useEffect(() => {
+    if (!_id) return;
 
+    fetchProductDetails();
+    fetchReviews();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, [_id]);
 
   const fetchProductDetails = async () => {
     if (!_id) return;
@@ -77,7 +68,7 @@ const SingleProduct: FC = () => {
       const res = await fetch(`${BASE_URL}/products/${_id}`);
       const data = await res.json();
       if (!data || !data.product || !data.product._id) {
-        toast.error(t("sp.productNotFound"));
+        toast.error(t("productNotFound"));
 
         return;
       }
@@ -85,11 +76,7 @@ const SingleProduct: FC = () => {
       const { images, category } = data.product;
 
       const categoryName =
-        typeof category === "object" && category?.name
-          ? category.name
-          : typeof category === "string"
-          ? category
-          : "Unknown";
+        typeof category === "object" && category?.name ? category.name : typeof category === "string" ? category : "";
 
       const fullImageUrls = Array.isArray(images)
         ? images.map((img) => (img.startsWith("/") ? `${BASE_URL}${img}` : img))
@@ -100,22 +87,11 @@ const SingleProduct: FC = () => {
       setSelectedImg(fullImageUrls.length > 0 ? fullImageUrls[0] : "");
       setCategory(categoryName);
     } catch (error) {
-      toast.error(t("sp.errorFatchingProduct"));
+      toast.error(t("errorFatchingProduct"));
     } finally {
       setLoading(false);
     }
   };
-
-  useEffect(() => {
-    if (!_id) {
-      toast.error(t("sp.invalidpId"));
-
-      return;
-    }
-
-    fetchProductDetails();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [_id]);
 
   useEffect(() => {
     if (!Category) return;
@@ -123,7 +99,16 @@ const SingleProduct: FC = () => {
     fetch(`${BASE_URL}/products/category/${Category}`)
       .then((res) => res.json())
       .then((data) => {
-        setSimilar(data.products.filter((p: Product) => p._id !== _id));
+
+        const cleaned = data.products
+          .filter((p: Product) => p._id !== _id)
+          .map((p: Product) => {
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            const { category, ...rest } = p; //
+            return rest;
+          });
+
+        setSimilar(cleaned);
       });
   }, [Category, _id]);
 
@@ -177,18 +162,18 @@ const SingleProduct: FC = () => {
   const validateForm = () => {
     const errors: { [key: string]: string } = {};
 
-    if (!formData.title || formData.title.trim() === "") errors.title = t("sp.validation.titleRequired");
-    if (formData.price === undefined || formData.price <= 0) errors.price = t("sp.validation.pricePositive");
+    if (!formData.title || formData.title.trim() === "") errors.title = t("validation.titleRequired");
+    if (formData.price === undefined || formData.price <= 0) errors.price = t("validation.pricePositive");
     if (
       formData.discountPercentage !== undefined &&
       (formData.discountPercentage < 0 || formData.discountPercentage > 100)
     ) {
-      errors.discountPercentage = t("sp.validation.discountRange");
+      errors.discountPercentage = t("validation.discountRange");
     }
-    if (formData.stock === undefined || formData.stock < 0) errors.stock = t("sp.validation.stockPositive");
+    if (formData.stock === undefined || formData.stock < 0) errors.stock = t("validation.stockPositive");
     if (formData.rating !== undefined && (formData.rating < 0 || formData.rating > 5))
-      errors.rating = t("sp.validation.ratingRange");
-    if (!formData.brand || formData.brand.trim() === "") errors.brand = t("sp.validation.brandRequired");
+      errors.rating = t("validation.ratingRange");
+    if (!formData.brand || formData.brand.trim() === "") errors.brand = t("validation.brandRequired");
 
     return errors;
   };
@@ -228,14 +213,14 @@ const SingleProduct: FC = () => {
 
       const data = await res.json();
       if (!res.ok) {
-        throw new Error(data.message || t("sp.updateFailed"));
+        throw new Error(data.message || t("updateFailed"));
       }
 
-      toast.success(t("sp.updated"));
+      toast.success(t("updated"));
       setProduct(data.product);
       setIsModalOpen(false);
     } catch (error) {
-      toast.error(t("sp.updateFailed", { message: (error as Error).message }));
+      toast.error(t("updateFailed", { message: (error as Error).message }));
     }
   };
   const handleDeleteProduct = async () => {
@@ -253,7 +238,7 @@ const SingleProduct: FC = () => {
       });
 
       const data = await res.json();
-      if (!res.ok) throw new Error(data.message || t("sp.validation.Deletefailed"));
+      if (!res.ok) throw new Error(data.message || t("validation.Deletefailed"));
 
       const userId = localStorage.getItem("userId");
       if (userId) {
@@ -269,90 +254,28 @@ const SingleProduct: FC = () => {
 
         await response.json();
         if (response.ok) {
-          toast.success(t("sp.validation.itemRemovedFromCart"));
+          toast.success(t("validation.itemRemovedFromCart"));
         } else {
-          toast.error(t("sp.failedRemoveItem"));
+          toast.error(t("failedRemoveItem"));
         }
       }
 
       await dispatch(removeWishlistItem({ productId: _id }))
         .unwrap()
         .then(() => {
-          toast.success(t("sp.validation.removedWwishlist"));
+          toast.success(t("validation.removedWwishlist"));
         })
         .catch((error) => {
-          toast.error((t("sp.validation.failedRemoveItemWishlist" ,` ${error.message}`)));
+          toast.error(t("validation.failedRemoveItemWishlist", ` ${error.message}`));
         });
 
-      toast.success(t("sp.validation.productDelete"));
+      toast.success(t("validation.productDelete"));
       navigate("/");
     } catch (error) {
-      toast.error(t("sp.validation.failedProductDelete"));
+      toast.error(t("validation.failedProductDelete"));
     }
   };
 
-  const cartItems = useSelector((state: RootState) => state.cartReducer.cartItems);
-
-  const addCart = async () => {
-    requireAuth(async () => {
-      if (!product || !product._id) {
-        toast.error(t("sp.productNotFound"));
-        return;
-      }
-
-      const existingProductIndex = cartItems.findIndex((item) => item.productId._id === product._id);
-
-      const existingCartItem = cartItems[existingProductIndex];
-      const maxQuantity = product.stock || 10; //
-      const newQuantity = existingCartItem ? Math.min(existingCartItem.quantity + 1, maxQuantity) : 1;
-
-      if (existingCartItem && existingCartItem.quantity >= maxQuantity) {
-        toast(t("sp.maxQuantityReached"));
-
-        return;
-      }
-
-      try {
-        const res = await fetch(`${BASE_URL}/cart`, {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-            "Accept-Language": language,
-          },
-          body: JSON.stringify({
-            userId,
-            productId: product._id,
-            quantity: newQuantity,
-          }),
-        });
-
-        const data = await res.json();
-
-        if (res.ok) {
-          dispatch(
-            addToCart({
-              _id: existingCartItem?._id || "unique-cart-id",
-              title: product.title,
-              price: product.price,
-              rating: product.rating,
-              category: product.category,
-              productId: product,
-              quantity: newQuantity,
-              images: product.images,
-              discountPercentage: product.discountPercentage,
-              stock: product.stock,
-            })
-          );
-          toast.success(existingCartItem ? t("sp.quantityIncreased") : t("sp.added"));
-        } else {
-          throw new Error(data.message || t("sp.addToCartFailed"));
-        }
-      } catch (error) {
-        toast.error(t("sp.addToCartFailed"));
-      }
-    });
-  };
   const handleReplaceImage = async (file: File, index: number) => {
     if (!_id || !token) return;
 
@@ -370,12 +293,12 @@ const SingleProduct: FC = () => {
       });
 
       const data = await res.json();
-      if (!res.ok) throw new Error(data.message || t("sp.imageUpdateFail"));
+      if (!res.ok) throw new Error(data.message || t("imageUpdateFail"));
 
-      toast.success(t("sp.imageReplaced"));
+      toast.success(t("imageReplaced"));
       await fetchProductDetails();
     } catch (error) {
-      toast.error(t("sp.imgReplaceFailed"));
+      toast.error(t("imgReplaceFailed"));
     }
   };
 
@@ -392,12 +315,12 @@ const SingleProduct: FC = () => {
       });
 
       const data = await res.json();
-      if (!res.ok) throw new Error(data.message || t("sp.imageDeletationFail"));
+      if (!res.ok) throw new Error(data.message || t("imageDeletationFail"));
 
-      toast.success(t("sp.imageDelete"));
+      toast.success(t("imageDelete"));
       await fetchProductDetails();
     } catch (error) {
-      toast.error(t("sp.imageDeletationFail"));
+      toast.error(t("imageDeletationFail"));
     }
   };
 
@@ -420,98 +343,21 @@ const SingleProduct: FC = () => {
       });
 
       const data = await res.json();
-      if (!res.ok) throw new Error(data.message || t("sp.addImagefail"));
+      if (!res.ok) throw new Error(data.message || t("addImagefail"));
 
-      toast.success(t("sp.imagesAdded"));
+      toast.success(t("imagesAdded"));
       await fetchProductDetails();
     } catch (error) {
-      toast.error(t("sp.addImagefail"));
+      toast.error(t("addImagefail"));
     }
   };
 
-  const buyNow = () => {
-    requireAuth(() => {
-      if (!product || !_id) return;
-
-      const checkoutData = {
-        productId: _id,
-        quantity: 1,
-        title: product.title,
-        price: product.price,
-        salePrice: product.salePrice,
-        rating: product.rating,
-        category: product.category,
-        image: product.images,
-      };
-
-      sessionStorage.setItem("checkoutItem", JSON.stringify(checkoutData));
-
-      navigate("/checkoutDirect");
-    });
-  };
   const averageRating = useMemo(() => {
     if (reviews.length === 0) return 0;
     const sum = reviews.reduce((acc, r) => acc + r.rating, 0);
     return Number((sum / reviews.length).toFixed(1));
   }, [reviews]);
 
-  const wishlistItems = useAppSelector((state) => state.wishlistReducer.wishlistItems);
-
-  useEffect(() => {
-    if (product) {
-      const isProductInWishlist = wishlistItems.some((wishlistItem) =>
-        wishlistItem.products.some((item) => item.productId && item.productId._id === product._id)
-      );
-      setIsInWishlist(isProductInWishlist);
-    }
-  }, [wishlistItems, product]);
-
-  const handleWishlistToggle = async () => {
-    if (!product) return;
-    if (!token) return toast.error(t("sp.NOtoken"));
-    if (!userId) return toast.error(t("sp.NoUserId"));
-
-    try {
-      if (isInWishlist) {
-        dispatch(removeWishlistItem({ productId: product._id }));
-        toast.success(t("sp.removedWwishlist"));
-      } else {
-        const response = await fetch(`${BASE_URL}/wishlist/add`, {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-            "Accept-Language": language,
-            userId,
-          },
-          body: JSON.stringify({
-            productId: product._id,
-            name: product.title,
-            price: product.price,
-            image: product.images || [],
-          }),
-        });
-
-        if (!response.ok) {
-          const errorDetails = await response.text();
-          const errorObj = JSON.parse(errorDetails);
-
-          if (errorObj.message === "Product already in wishlist") {
-            toast.error(t("sp.alreadyInWishlist"));
-            setIsInWishlist(true);
-            return;
-          }
-
-          throw new Error(t("sp.failedTOaddinWishlist"));
-        }
-        toast.success(t("sp.addedToWishlist"));
-        setIsInWishlist(true);
-        dispatch(fetchWishlistItems());
-      }
-    } catch (error) {
-      toast.error((error as Error).message || t("sp.failTOUpdateWishlist"));
-    }
-  };
   const fetchReviews = async () => {
     if (!_id) return;
     try {
@@ -523,80 +369,63 @@ const SingleProduct: FC = () => {
     }
   };
 
-  const handleReviewSubmit = async () => {
-    if (newReview.rating < 1 || newReview.rating > 5) {
-      alert(t("ratingRange"));
-      return;
-    }
 
-    if (!token || !userId || !_id) {
-      return toast.error(t("loginrequired"));
-    }
 
-    try {
-      const res = await fetch(`${BASE_URL}/reviews/products/${_id}`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-          "Accept-Language": language,
-        },
-        body: JSON.stringify({
-          userId,
-          rating: newReview.rating,
-          comment: newReview.comment,
-        }),
-      });
 
-      const data = await res.json();
-
-      if (!res.ok) {
-        toast.error(data.message || t("failTOSUbmitRev"));
-        return;
-      }
-
-      toast.success(t("Reviewsubmitted"));
-      setNewReview({ rating: 0, comment: "" });
-      await fetchReviews();
-    } catch (err) {
-      toast.error(t("Errorsubmittingreview"));
-    }
-  };
-
-  useEffect(() => {
-    fetchProductDetails();
-    fetchReviews();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [_id]);
-  
   return (
-    <div className="container mx-auto pt-8 dark:text-white">
+    <motion.div 
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -20 }}
+      transition={{ duration: 0.5 }}
+      className="container mx-auto pt-8 dark:text-white"
+    >
       {loading && <div>{t("loading")}</div>}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 px-4 font-karla">
         <div className="space-y-4 mt-6">
-         {selectedImg && (
-  <img
-    src={typeof selectedImg === "string" ? selectedImg : URL.createObjectURL(selectedImg)}
-    alt={t("selected")}
-    className="h-80 w-full object-cover rounded border cursor-zoom-in"
-    onClick={() => setIsZoomOpen(true)}
-  />
-)}
+          {/* {selectedImg && (
+            <img
+              src={
+                typeof selectedImg === "string"
+                  ? selectedImg
+                  : URL.createObjectURL(selectedImg)
+              }
+              alt={t("selected")}
+              className="h-80 w-full object-cover rounded border cursor-zoom-in"
+              onClick={() => setIsZoomOpen(true)}
+            />
+            
+            
+          )} */}
+          {selectedImg && (
+            <div className="relative">
+              <img
+                src={typeof selectedImg === "string" ? selectedImg : URL.createObjectURL(selectedImg)}
+                alt={t("selected")}
+                className="h-80 w-full object-cover rounded border cursor-zoom-in"
+                onClick={() => setIsZoomOpen(true)}
+              />
+            </div>
+          )}
+
           <div className="flex flex-wrap gap-4">
             {/* Image Thumbnails visible to all */}
-            {product?.images?.map((img, index) => {
-              const imgUrl = img.startsWith("/") ? `${BASE_URL}${img}` : img;
+            {product?.images?.map((_img, index) => {
+              // const imgUrl = img.startsWith("/") ? `${BASE_URL}${img}` : img;
 
               return (
-                <div key={index} className="relative w-12 h-12 border rounded overflow-hidden group">
-                  <img
+                <div
+                  key={index}
+                  // className="relative w-12 h-12 border rounded overflow-hidden group"
+                >
+                  {/* <img
                     src={imgUrl}
                     alt={`Image ${index}`}
                     onClick={() => setSelectedImg(imgUrl)}
                     className={`w-full h-full object-cover cursor-pointer transition ${
                       selectedImg === imgUrl ? "ring-2 ring-blue-500" : ""
                     }`}
-                  />
+                  /> */}
 
                   {/* Show Delete and Replace only to Admin or Product Owner Seller */}
                   {(Role === "admin" || (Role === "seller" && product?.seller === userId)) && (
@@ -707,14 +536,10 @@ const SingleProduct: FC = () => {
         </div>
 
         <div className="px-2 max-h-[80vh] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-400">
-          <h2 className="text-2xl">{product?.title}</h2>
-          {product?.rating !== undefined && <RatingStar rating={averageRating} />}
-          {product?.price !== undefined && (
-            <PriceSection discountPercentage={product.discountPercentage ?? 0} price={product.price} />
-          )}
+          <h2 className="text-2xl font-bold">{formatProductName(product?.title)}</h2>
 
           {product && (
-            <table className="mt-2">
+            <table className="mt-4 text-sm">
               <tbody>
                 {product.brand && (
                   <tr>
@@ -730,7 +555,7 @@ const SingleProduct: FC = () => {
                 )}
                 {product.description && (
                   <tr>
-                    <td className="pr-2 font-bold">{t("description")}</td>
+                    <td className="pr-2 font-bold">{t("size of artical")}</td>
                     <td>{product.description}</td>
                   </tr>
                 )}
@@ -739,43 +564,16 @@ const SingleProduct: FC = () => {
           )}
           {product?.stock === 0 && <p className="text-red-600 mt-4 font-semibold">{t("out_of_stock")}</p>}
 
-          <div className="flex justify-between mt-4">
-            <button className="flex items-center bg-black text-white p-2 rounded w-24" onClick={addCart}>
-              <AiOutlineShoppingCart /> {t("add_to_cart")}
-            </button>
-     
-            <button className="flex items-center bg-black text-white p-2 rounded w-24" onClick={buyNow}>
-              <FaHandHoldingDollar /> {t("buy_now")}
-            </button>
-     
-  <a
-  href={`https://wa.me/917874501471?text=Hi, I'm interested in ${product?.title} (Price: ₹${product?.price}). Here is the product link: ${window.location.href}`}
-  target="_blank"
-  rel="noopener noreferrer"
-  className="flex items-center justify-center gap-2 bg-gradient-to-r from-green-500 to-green-700 text-white font-semibold p-2 px-4 rounded-2xl shadow-lg hover:scale-105 transition-transform duration-300"
->
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    viewBox="0 0 32 32"
-    fill="currentColor"
-    className="w-5 h-5"
-  >
-    <path d="M16 .5C7.44.5.5 7.44.5 16c0 2.83.74 5.58 2.15 8.01L.5 31.5l7.68-2.07A15.45 15.45 0 0016 31.5C24.56 31.5 31.5 24.56 31.5 16S24.56.5 16 .5zm0 28.45c-2.6 0-5.13-.69-7.35-1.99l-.53-.31-4.56 1.23 1.23-4.56-.31-.53A12.43 12.43 0 013.55 16C3.55 9.14 9.14 3.55 16 3.55S28.45 9.14 28.45 16 22.86 28.95 16 28.95zm7.02-8.4c-.39-.2-2.31-1.14-2.67-1.27-.36-.13-.62-.2-.88.2-.26.39-1.01 1.27-1.24 1.53-.23.26-.46.29-.85.1-.39-.2-1.65-.61-3.14-1.94-1.16-1.04-1.94-2.31-2.17-2.7-.23-.39-.02-.6.17-.79.17-.17.39-.46.59-.69.2-.23.26-.39.39-.65.13-.26.07-.49-.03-.69-.1-.2-.88-2.12-1.21-2.91-.32-.78-.65-.68-.88-.68-.23 0-.49-.03-.75-.03s-.69.1-1.05.49c-.36.39-1.38 1.35-1.38 3.3 0 1.94 1.42 3.81 1.62 4.07.2.26 2.8 4.28 6.77 6 .95.41 1.69.65 2.27.84.95.3 1.81.26 2.49.16.76-.11 2.31-.95 2.64-1.87.33-.91.33-1.7.23-1.87-.1-.16-.36-.26-.75-.46z"/>
-  </svg>
-  Inquiry Now
-</a>
-
-          </div>
-
-          <div className="flex mt-4 items-center space-x-2">
+          <div className="flex flex-col sm:flex-row gap-3 mt-4">
             <button
-              className="flex items-center text-2xl ml-4"
-              onClick={handleWishlistToggle}
-              style={{ color: isInWishlist ? "red" : "black" }}
+              onClick={() => setIsEnquiryOpen(true)}
+              className="flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 text-white font-semibold shadow hover:scale-105 transition-transform duration-300"
             >
-              {isInWishlist ? <MdFavorite /> : <MdFavoriteBorder />}
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+              </svg>
+              Get Enquiry
             </button>
-            <span>{isInWishlist ? t("remove_from_wishlist") : t("add_to_wishlist")}</span>
           </div>
 
           {(Role === "admin" || (Role === "seller" && product?.seller === userId)) && (
@@ -807,6 +605,61 @@ const SingleProduct: FC = () => {
             </div>
           )}
         </div>
+        {/* <div className="border p-4 rounded-2xl shadow-xl bg-white dark:bg-slate-800 h-fit max-h-[80vh] overflow-y-auto">
+          <h3 className="text-xl font-semibold mb-4 text-gray-800 dark:text-gray-200">{t("Customer Reviews")}</h3>
+
+          {reviews.length === 0 ? (
+            <p className="text-sm text-gray-600 dark:text-gray-300 italic py-4">No reviews yet.</p>
+          ) : (
+            <ul className="space-y-3 max-h-64 overflow-y-auto pr-1 custom-scroll">
+              {reviews.map((review: Review, index: number) => (
+                <li
+                  key={index}
+                  className="border rounded-xl p-3 bg-gray-50 dark:bg-slate-700 shadow-sm transition hover:shadow-md"
+                >
+                  <div className="flex items-center mb-1">
+                    <RatingStar rating={review.rating} />
+                    <span className="ml-3 font-medium text-gray-800 dark:text-gray-100">{review.user?.userName}</span>
+                  </div>
+
+                  <p className="text-gray-700 dark:text-gray-300 text-sm leading-relaxed">{review.comment}</p>
+                </li>
+              ))}
+            </ul>
+          )}
+
+          <div className="mt-6 border-t pt-4">
+            <h4 className="font-semibold text-lg text-gray-800 dark:text-gray-200 mb-2">{t("Add Your Review")}</h4>
+
+            <div className="flex items-center space-x-3 mb-3">
+              <label className="text-gray-700 dark:text-gray-300 text-sm">{t("Rating")}:</label>
+
+              <Rating.default
+                fractions={10}
+                initialRating={newReview.rating}
+                onChange={(value: number) => setNewReview({ ...newReview, rating: value })}
+                emptySymbol={<FaRegStar size={26} className="text-gray-400" />}
+                fullSymbol={<FaStar size={26} className="text-yellow-400" />}
+                placeholderSymbol={<FaStarHalfAlt size={26} className="text-yellow-300" />}
+              />
+            </div>
+
+            <textarea
+              rows={3}
+              className="w-full border rounded-xl p-3 text-sm bg-gray-50 dark:bg-slate-700 dark:border-slate-600 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-400"
+              placeholder={t("Writeyourcomment")}
+              value={newReview.comment}
+              onChange={(e) => setNewReview({ ...newReview, comment: e.target.value })}
+            />
+
+            <button
+              onClick={handleReviewSubmit}
+              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 mt-3 rounded-xl w-full transition shadow-md"
+            >
+              {t("SubmitReview")}
+            </button>
+          </div>
+        </div> */}
       </div>
       {similar.length > 0 && <ProductList title={t("similar_products")} products={similar} />}
       <Modal
@@ -906,23 +759,6 @@ const SingleProduct: FC = () => {
               {formErrors.discountPercentage && <p className="text-red-500 text-sm">{formErrors.discountPercentage}</p>}
             </div>
 
-            {/* Stock Quantity Field */}
-            {/* <div className="space-y-1">
-              <label htmlFor="stock" className="text-sm font-medium text-gray-700">
-                {t("stockLabel")}
-              </label>
-              <input
-                type="number"
-                name="stock"
-                id="stock"
-                value={formData.stock || ""}
-                onChange={handleInputChange}
-                className="w-full p-2 border"
-                placeholder="Stock Quantity"
-              />
-              {formErrors.stock && <p className="text-red-500 text-sm">{formErrors.stock}</p>}
-            </div> */}
-
             <div className="space-y-1 mb-4">
               <label htmlFor="rating" className="text-sm font-medium text-gray-700">
                 Average Rating
@@ -989,85 +825,41 @@ const SingleProduct: FC = () => {
           </button>
         </div>
       </Modal>
-      <div className="border p-6 rounded shadow bg-white h-fit">
-        <h3 className="text-lg font-semibold mb-2">Customer Reviews</h3>
-        {reviews.length === 0 ? (
-          <p className="text-sm text-gray-600">No reviews yet.</p>
-        ) : (
-          <ul className="space-y-2 max-h-64 overflow-y-auto">
-            {reviews.map((review: Review, index: number) => (
-              <li key={index} className="border p-2 rounded">
-                <div className="flex items-center">
-                  <RatingStar rating={review.rating} />
-                  <span className="ml-2 font-medium">{review.user?.userName}</span>
-                </div>
-                <p>{review.comment}</p>
-              </li>
-            ))}
-          </ul>
-        )}
 
-        {/* Add Review Form */}
-
-        <div className="mt-4">
-          <h4 className="font-semibold">Add Your Review</h4>
-          <div className="flex items-center space-x-2">
-            <label className="mr-2">{t("Rating")}:</label>
-            <Rating.default
-              fractions={10}
-              initialRating={newReview.rating}
-              onChange={(value: number) => setNewReview({ ...newReview, rating: value })}
-              emptySymbol={<FaRegStar size={30} className="text-gray-400" />}
-              fullSymbol={<FaStar size={30} className="text-yellow-400" />}
-              placeholderSymbol={<FaStarHalfAlt size={30} className="text-yellow-300" />}
+      {isZoomOpen && selectedImg && (
+        <div
+          className="fixed inset-0 z-50 bg-black bg-opacity-80 flex items-center justify-center"
+          onClick={() => setIsZoomOpen(false)}
+        >
+          <div className="relative max-w-4xl w-full max-h-[90vh]">
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsZoomOpen(false);
+              }}
+              className="absolute top-4 right-4 text-white text-2xl bg-black bg-opacity-70 rounded-full px-3 py-1 hover:bg-opacity-90"
+            >
+              ✕
+            </button>
+            <img
+              src={typeof selectedImg === "string" ? selectedImg : selectedImg ? URL.createObjectURL(selectedImg) : ""}
+              alt="Zoomed"
+              className="w-full h-auto object-contain max-h-[80vh] mx-auto"
+              onClick={(e) => e.stopPropagation()}
             />
           </div>
-
-          <textarea
-            rows={3}
-            className="w-full border p-2 mt-2"
-            placeholder={t("Writeyourcomment")}
-            value={newReview.comment}
-            onChange={(e) => setNewReview({ ...newReview, comment: e.target.value })}
-          />
-          <button onClick={handleReviewSubmit} className="bg-blue-600 text-white px-4 py-2 mt-2 rounded w-full">
-            {t("SubmitReview")}
-          </button>
-        </div>
-                {isZoomOpen && selectedImg && (
-          <div
-            className="fixed inset-0 z-50 bg-black bg-opacity-80 flex items-center justify-center"
-            onClick={() => setIsZoomOpen(false)}
-          >
-            <div className="relative max-w-4xl w-full max-h-[90vh]">
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setIsZoomOpen(false);
-                }}
-                className="absolute top-4 right-4 text-white text-2xl bg-black bg-opacity-70 rounded-full px-3 py-1 hover:bg-opacity-90"
-              >
-                ✕
-              </button>
-              <img
-                src={
-                  typeof selectedImg === "string"
-                    ? selectedImg
-                    : selectedImg
-                    ? URL.createObjectURL(selectedImg)
-                    : ""
-                }
-                alt="Zoomed"
-                className="w-full h-auto object-contain max-h-[80vh] mx-auto"
-                onClick={(e) => e.stopPropagation()}
-              />
-            </div>
         </div>
       )}
-        
-      </div>
-      
-    </div>
+
+      {/* Enquiry Modal */}
+      <EnquiryModal
+        isOpen={isEnquiryOpen}
+        onClose={() => setIsEnquiryOpen(false)}
+        productName={product?.title}
+        productImage={typeof selectedImg === "string" ? selectedImg : undefined}
+        productPrice={product?.price ? `₹${product.price}` : undefined}
+      />
+    </motion.div>
   );
 };
 

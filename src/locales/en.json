@@ -124,7 +124,7 @@
   "confirmDeletion": "Confirm Deletion",
   "yesDelete": "Yes, Delete",
   "loadingProducts": "Loading products...",
-  "defaultSort": "Default",
+  "defaultSort": "Sort by (Default)",
   "priceLowToHigh": "Price (low to high)",
   "priceHighToLow": "Price (high to low)",
   "failedFetchCart": "Failed to fetch cart.",
