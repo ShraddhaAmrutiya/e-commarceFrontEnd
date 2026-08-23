@@ -8,9 +8,6 @@ import BASE_URL from "../config/apiconfig";
 import { updateNewList, updateFeaturedList } from "../redux/features/productSlice";
 import { Product } from "../models/Product";
 
-// Social Icons
-import { FaWhatsapp, FaInstagram } from "react-icons/fa";
-
 interface Category {
   category: string;
   products: Product[];
